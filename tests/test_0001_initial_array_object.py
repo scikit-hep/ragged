@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-# import ragged
+import ragged
 
 
-# def test():
-#     a = ragged.array([1, 2, 3])
+def test():
+    a = ragged.array([1, 2, "hello", 3])
+    assert a is not None

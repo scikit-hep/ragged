@@ -14,6 +14,10 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class NestedSequence(Protocol[T_co]):
+    """
+    Python list of list of ... some type.
+    """
+
     def __getitem__(self, key: int, /) -> T_co | NestedSequence[T_co]:
         ...
 
@@ -25,6 +29,10 @@ PyCapsule = Any
 
 
 class SupportsDLPack(Protocol):
+    """
+    Array type that supports DLPack.
+    """
+
     def __dlpack__(self, /, *, stream: None = ...) -> PyCapsule:
         ...
 
@@ -32,7 +40,7 @@ class SupportsDLPack(Protocol):
 Device = Union[Literal["cpu"], Literal["cuda"]]
 
 Dtype = np.dtype[
-    (
+    Union[
         np.int8,
         np.int16,
         np.int32,
@@ -43,5 +51,5 @@ Dtype = np.dtype[
         np.uint64,
         np.float32,
         np.float64,
-    )
+    ]
 ]
