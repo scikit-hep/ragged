@@ -30,7 +30,9 @@ classifiers = [
   "Typing :: Typed",
 ]
 dynamic = ["version"]
-dependencies = []
+dependencies = [
+  "awkward",
+]
 
 [project.optional-dependencies]
 test = [
@@ -100,6 +102,13 @@ module = "ragged.*"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 
+[[tool.mypy.overrides]]
+module = "numpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "awkward.*"
+ignore_missing_imports = true
 
 [tool.ruff]
 src = ["src"]

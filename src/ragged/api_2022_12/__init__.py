@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from ._version import version as __version__
-from .api_2022_12 import array
+from ..common import array as common_array
 
-__all__ = ["array", "__version__"]
+
+class array(common_array):
+    pass

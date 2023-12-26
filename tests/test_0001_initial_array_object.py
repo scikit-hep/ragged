@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from ._version import version as __version__
-from .api_2022_12 import array
+# import ragged
 
-__all__ = ["array", "__version__"]
+
+# def test():
+#     a = ragged.array([1, 2, 3])
