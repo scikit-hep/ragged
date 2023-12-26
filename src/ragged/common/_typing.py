@@ -2,22 +2,16 @@
 
 from __future__ import annotations
 
-import warnings
-from typing import Any, Literal, Protocol, TypeVar, Union
+import numbers
+from typing import Any, Literal, Optional, Protocol, TypeVar, Union
 
 import numpy as np
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
 
 T_co = TypeVar("T_co", covariant=True)
 
 
+# not actually checked because of https://github.com/python/typing/discussions/1145
 class NestedSequence(Protocol[T_co]):
-    """
-    Python list of list of ... some type.
-    """
-
     def __getitem__(self, key: int, /) -> T_co | NestedSequence[T_co]:
         ...
 
@@ -29,15 +23,14 @@ PyCapsule = Any
 
 
 class SupportsDLPack(Protocol):
-    """
-    Array type that supports DLPack.
-    """
-
     def __dlpack__(self, /, *, stream: None = ...) -> PyCapsule:
         ...
 
+    def item(self) -> numbers.Number:
+        ...
 
-Device = Union[Literal["cpu"], Literal["cuda"]]
+
+Shape = tuple[Optional[int], ...]
 
 Dtype = np.dtype[
     Union[
@@ -53,3 +46,5 @@ Dtype = np.dtype[
         np.float64,
     ]
 ]
+
+Device = Union[Literal["cpu"], Literal["cuda"]]

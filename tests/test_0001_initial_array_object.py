@@ -6,5 +6,5 @@ import ragged
 
 
 def test():
-    a = ragged.array([1, 2, "hello", 3])
+    a = ragged.array([[1, 2], [3]])
     assert a is not None
