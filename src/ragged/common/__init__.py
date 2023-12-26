@@ -14,6 +14,7 @@ from awkward.contents import (
     RegularArray,
 )
 
+from . import _import
 from ._typing import Device, Dtype, NestedSequence, Shape, SupportsDLPack
 
 
@@ -96,8 +97,7 @@ class array:  # pylint: disable=C0103
             if isinstance(self._impl, ak.Array) and device != ak.backend(self._impl):
                 self._impl = ak.to_backend(self._impl, device)
             elif isinstance(self._impl, np.ndarray) and device == "cuda":
-                import cupy as cp  # pylint: disable=C0415
-
+                cp = _import.cupy()
                 self._impl = cp.array(self._impl.item())
 
     def __str__(self) -> str:
