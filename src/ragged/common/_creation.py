@@ -391,3 +391,159 @@ def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
     assert arrays, "TODO"
     assert indexing, "TODO"
     assert False, "TODO"
+
+
+def ones(
+    shape: int | tuple[int, ...],
+    *,
+    dtype: None | Dtype = None,
+    device: None | Device = None,
+) -> array:
+    """
+    Returns a new array having a specified `shape` and filled with ones.
+
+    Args:
+        shape: Output array shape.
+        dtype: Output array data type. If `dtype` is `None`, the output array
+            data type is `np.float64`.
+        device: Device on which to place the created array.
+
+    Returns:
+        An array containing ones.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones.html
+    """
+
+    assert shape, "TODO"
+    assert dtype, "TODO"
+    assert device, "TODO"
+    assert False, "TODO"
+
+
+def ones_like(
+    x: array, /, *, dtype: None | Dtype = None, device: None | Device = None
+) -> array:
+    """
+    Returns a new array filled with ones and having the same `shape` as an
+    input array `x`.
+
+    Args:
+        x: Input array from which to derive the output array shape.
+        dtype: Output array data type. If `dtype` is `None`, the output array
+            data type is inferred from `x`.
+        device: Device on which to place the created array. If `device` is
+            `None`, the output array device is inferred from `x`.
+
+    Returns:
+        An array having the same shape as x and filled with ones.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones_like.html
+    """
+
+    assert x, "TODO"
+    assert dtype, "TODO"
+    assert device, "TODO"
+    assert False, "TODO"
+
+
+def tril(x: array, /, *, k: int = 0) -> array:
+    """
+    Returns the lower triangular part of a matrix (or a stack of matrices) `x`.
+
+    Args:
+        x: Input array having shape `(..., M, N)` and whose innermost two
+            dimensions form `M` by `N` matrices.
+        `k`: Diagonal above which to zero elements. If `k = 0`, the diagonal is
+            the main diagonal. If `k < 0`, the diagonal is below the main
+            diagonal. If `k > 0`, the diagonal is above the main diagonal.
+
+    Returns:
+        An array containing the lower triangular part(s). The returned array
+        has the same shape and data type as `x`. All elements above the
+        specified diagonal `k` are zero. The returned array is allocated on the
+        same device as `x`.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.tril.html
+    """
+
+    assert x, "TODO"
+    assert k, "TODO"
+    assert False, "TODO"
+
+
+def triu(x: array, /, *, k: int = 0) -> array:
+    """
+    Returns the upper triangular part of a matrix (or a stack of matrices) `x`.
+
+    Args:
+        x: Input array having shape `(..., M, N)` and whose innermost two
+            dimensions form `M` by `N` matrices.
+        k: Diagonal below which to zero elements. If `k = 0`, the diagonal is
+            the main diagonal. If `k < 0`, the diagonal is below the main
+            diagonal. If `k > 0`, the diagonal is above the main diagonal.
+
+    Returns:
+        An array containing the upper triangular part(s). The returned array
+        has the same shape and data type as `x`. All elements below the
+        specified diagonal `k` are zero. The returned array is allocated on the
+        same device as `x`.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.triu.html
+    """
+
+    assert x, "TODO"
+    assert k, "TODO"
+    assert False, "TODO"
+
+
+def zeros(
+    shape: int | tuple[int, ...],
+    *,
+    dtype: None | Dtype = None,
+    device: None | Device = None,
+) -> array:
+    """
+    Returns a new array having a specified shape and filled with zeros.
+
+    Args:
+        shape: Output array shape.
+        dtype: Output array data type. If `dtype` is `None`, the output array
+            data type is `np.float64`.
+        device: Device on which to place the created array.
+
+    Returns:
+        An array containing zeros.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros.html
+    """
+
+    assert shape, "TODO"
+    assert dtype, "TODO"
+    assert device, "TODO"
+    assert False, "TODO"
+
+
+def zeros_like(
+    x: array, /, *, dtype: None | Dtype = None, device: None | Device = None
+) -> array:
+    """
+    Returns a new array filled with zeros and having the same `shape` as an
+    input array `x`.
+
+    Args:
+        x: Input array from which to derive the output array shape.
+        dtype: Output array data type. If `dtype` is `None`, the output array
+            data type is inferred from `x`.
+        device: Device on which to place the created array. If `device` is
+            `None`, the output array device is inferred from `x`.
+
+    Returns:
+        An array having the same shape as `x` and filled with zeros.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros_like.html
+    """
+
+    assert x, "TODO"
+    assert dtype, "TODO"
+    assert device, "TODO"
+    assert False, "TODO"

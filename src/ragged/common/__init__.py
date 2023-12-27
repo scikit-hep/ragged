@@ -20,6 +20,12 @@ from ._creation import (
     full_like,
     linspace,
     meshgrid,
+    ones,
+    ones_like,
+    tril,
+    triu,
+    zeros,
+    zeros_like,
 )
 from ._obj import array
 
@@ -35,6 +41,12 @@ __all__ = [
     "full_like",
     "linspace",
     "meshgrid",
+    "ones",
+    "ones_like",
+    "tril",
+    "triu",
+    "zeros",
+    "zeros_like",
     # _obj
     "array",
 ]
