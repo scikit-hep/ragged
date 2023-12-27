@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from ..common import array as common_array
+from ._obj import array
 
-
-class array(common_array):  # pylint: disable=C0103
-    """
-    Ragged array class and constructor for data-apis.org/array-api/2022.12.
-    """
+__all__ = ["array"]
