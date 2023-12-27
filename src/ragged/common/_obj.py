@@ -877,6 +877,3 @@ class array:  # pylint: disable=C0103
     __rxor__ = __xor__
     __rlshift__ = __lshift__
     __rrshift__ = __rshift__
-
-
-__all__ = ["array"]
