@@ -173,4 +173,5 @@ messages_control.disable = [
   "missing-class-docstring",
   "missing-function-docstring",
   "R1705",   # I like my if (return) elif (return) else (return) pattern
+  "R0801",   # Different files can have similar lines; that's okay
 ]

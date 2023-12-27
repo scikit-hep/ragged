@@ -106,5 +106,31 @@ def asarray(
             ValueError in case a copy would be necessary. If `None`, the
             function reuses the existing memory buffer if possible and copies
             otherwise.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.asarray.html
     """
     return array(obj, dtype=dtype, device=device, copy=copy)
+
+
+def empty(
+    shape: int | tuple[int, ...],
+    *,
+    dtype: None | Dtype = None,
+    device: None | Device = None,
+) -> array:
+    """
+    Returns an uninitialized array having a specified shape.
+
+    Args:
+        shape: Output array shape.
+        dtype: Output array data type. If `dtype` is `None`, the output array
+            data type is `np.float64`.
+        device: Device on which to place the created array.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.empty.html
+    """
+
+    assert shape, "TODO"
+    assert dtype, "TODO"
+    assert device, "TODO"
+    assert False, "TODO"
