@@ -703,3 +703,177 @@ class array:  # pylint: disable=C0103
             impl = np.array(self._impl.item()) if device == "cpu" else self._impl
 
         return self._new(impl, self._shape, self._dtype, device)
+
+    # in-place operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#in-place-operators
+
+    def __iadd__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self + other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self + other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __isub__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self - other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self - other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __imul__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self * other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self * other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __itruediv__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self / other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self / other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __ifloordiv__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self // other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self // other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __ipow__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self ** other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self**other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __imod__(self, other: int | float | array, /) -> array:
+        """
+        Calculates `self = self % other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self % other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __imatmul__(self, other: array, /) -> array:
+        """
+        Calculates `self = self @ other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self @ other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __iand__(self, other: int | bool | array, /) -> array:
+        """
+        Calculates `self = self & other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self & other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __ior__(self, other: int | bool | array, /) -> array:
+        """
+        Calculates `self = self | other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self | other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __ixor__(self, other: int | bool | array, /) -> array:
+        """
+        Calculates `self = self ^ other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self ^ other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __ilshift__(self, other: int | array, /) -> array:
+        """
+        Calculates `self = self << other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self << other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    def __irshift__(self, other: int | array, /) -> array:
+        """
+        Calculates `self = self >> other` in-place.
+
+        (Internal arrays are immutable; this only replaces the array that the
+        Python object points to.)
+        """
+
+        out = self >> other
+        self._impl, self._device = out._impl, out._device
+        return self
+
+    # reflected operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#reflected-operators
+
+    __radd__ = __add__
+    __rsub__ = __sub__
+    __rmul__ = __mul__
+    __rtruediv__ = __truediv__
+    __rfloordiv__ = __floordiv__
+    __rpow__ = __pow__
+    __rmod__ = __mod__
+    __rmatmul__ = __matmul__
+    __rand__ = __and__
+    __ror__ = __or__
+    __rxor__ = __xor__
+    __rlshift__ = __lshift__
+    __rrshift__ = __rshift__
