@@ -9,7 +9,18 @@ https://data-apis.org/array-api/latest/API_specification/
 
 from __future__ import annotations
 
-from ._creation import arange, asarray, empty
+from ._creation import (
+    arange,
+    asarray,
+    empty,
+    empty_like,
+    eye,
+    from_dlpack,
+    full,
+    full_like,
+    linspace,
+    meshgrid,
+)
 from ._obj import array
 
 __all__ = [
@@ -17,6 +28,13 @@ __all__ = [
     "arange",
     "asarray",
     "empty",
+    "empty_like",
+    "eye",
+    "from_dlpack",
+    "full",
+    "full_like",
+    "linspace",
+    "meshgrid",
     # _obj
     "array",
 ]
