@@ -65,14 +65,6 @@ repos:
     hooks:
       - id: shellcheck
 
-  - repo: local
-    hooks:
-      - id: disallow-caps
-        name: Disallow improper capitalization
-        language: pygrep
-        entry: PyBind|Numpy|Cmake|CCache|Github|PyTest
-        exclude: .pre-commit-config.yaml
-
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.15
     hooks:
