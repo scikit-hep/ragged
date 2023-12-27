@@ -1,41 +1,12 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 
 """
-Generic definitions used by the version-specific modules, such as
-`ragged.v202212`.
-
-https://data-apis.org/array-api/latest/API_specification/
+https://data-apis.org/array-api/2022.12/API_specification/creation_functions.html
 """
 
 from __future__ import annotations
 
-from ._creation import (
-    arange,
-    asarray,
-    empty,
-    empty_like,
-    eye,
-    from_dlpack,
-    full,
-    full_like,
-    linspace,
-    meshgrid,
-    ones,
-    ones_like,
-    tril,
-    triu,
-    zeros,
-    zeros_like,
-)
-from ._datatype import (
-    astype,
-    can_cast,
-    finfo,
-    iinfo,
-    isdtype,
-    result_type,
-)
-from ._elementwise import (  # pylint: disable=W0622
+from ..common._elementwise import (  # pylint: disable=W0622
     abs,
     acos,
     acosh,
@@ -96,34 +67,8 @@ from ._elementwise import (  # pylint: disable=W0622
     tanh,
     trunc,
 )
-from ._obj import array
 
 __all__ = [
-    # _creation
-    "arange",
-    "asarray",
-    "empty",
-    "empty_like",
-    "eye",
-    "from_dlpack",
-    "full",
-    "full_like",
-    "linspace",
-    "meshgrid",
-    "ones",
-    "ones_like",
-    "tril",
-    "triu",
-    "zeros",
-    "zeros_like",
-    # _datatype
-    "astype",
-    "can_cast",
-    "finfo",
-    "iinfo",
-    "isdtype",
-    "result_type",
-    # _elementwise
     "abs",
     "acos",
     "acosh",
@@ -183,6 +128,4 @@ __all__ = [
     "tan",
     "tanh",
     "trunc",
-    # _obj
-    "array",
 ]
