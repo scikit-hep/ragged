@@ -1,13 +1,26 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 
+"""
+Borrows liberally from https://github.com/numpy/numpy/blob/main/numpy/array_api/_typing.py
+"""
+
 from __future__ import annotations
 
 import numbers
+import sys
 from typing import Any, Literal, Optional, Protocol, TypeVar, Union
 
 import numpy as np
 
 T_co = TypeVar("T_co", covariant=True)
+
+
+if sys.version_info >= (3, 12):
+    from collections.abc import (  # pylint: disable=W0611
+        Buffer as SupportsBufferProtocol,
+    )
+else:
+    SupportsBufferProtocol = Any
 
 
 # not actually checked because of https://github.com/python/typing/discussions/1145

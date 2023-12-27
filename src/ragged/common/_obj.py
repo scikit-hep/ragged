@@ -23,6 +23,7 @@ from ._typing import (
     NestedSequence,
     PyCapsule,
     Shape,
+    SupportsBufferProtocol,
     SupportsDLPack,
 )
 
@@ -101,44 +102,67 @@ class array:  # pylint: disable=C0103
 
     def __init__(
         self,
-        array_like: (
+        obj: (
             array
             | ak.Array
-            | SupportsDLPack
             | bool
             | int
             | float
-            | NestedSequence[bool | int | float]
+            | complex
+            | NestedSequence[bool | int | float | complex]
+            | SupportsBufferProtocol
+            | SupportsDLPack
         ),
         dtype: None | Dtype | type | str = None,
         device: None | Device = None,
+        copy: None | bool = None,
     ):
         """
-        Primary array constructor.
+        Primary array constructor, same as `ragged.asarray`.
 
         Args:
-            array_like: Data to use as or convert into a ragged array.
-            dtype: NumPy dtype describing the data (subclass of `np.number`,
-                without `shape` or `fields`).
-            device: If `"cpu"`, the array is backed by NumPy and resides in
-                main memory; if `"cuda"`, the array is backed by CuPy and
-                resides in CUDA global memory.
+            obj: Object to be converted to an array. May be a Python scalar, a
+                (possibly nested) sequence of Python scalars, or an object
+                supporting the Python buffer protocol or DLPack.
+            dtype: Output array data type. If `dtype` is `None`, the output
+                array data type is inferred from the data type(s) in `obj`.
+                If all input values are Python scalars, then, in order of
+                precedence,
+                    - if all values are of type `bool`, the output data type is
+                      `bool`.
+                    - if all values are of type `int` or are a mixture of `bool`
+                      and `int`, the output data type is `np.int64`.
+                    - if one or more values are `complex` numbers, the output
+                      data type is `np.complex128`.
+                    - if one or more values are `float`s, the output data type
+                      is `np.float64`.
+            device: Device on which to place the created array. If device is
+                `None` and `obj` is an array, the output array device is
+                inferred from `obj`. If `"cpu"`, the array is backed by NumPy
+                and resides in main memory; if `"cuda"`, the array is backed by
+                CuPy and resides in CUDA global memory.
+            copy: Boolean indicating whether or not to copy the input. If `True`,
+                this function always copies. If `False`, the function never
+                copies for input which supports the buffer protocol and raises
+                a ValueError in case a copy would be necessary. If `None`, the
+                function reuses the existing memory buffer if possible and
+                copies otherwise.
         """
 
-        if isinstance(array_like, array):
-            self._impl = array_like._impl
-            self._shape, self._dtype = array_like._shape, array_like._dtype
+        if isinstance(obj, array):
+            self._impl = obj._impl
+            self._shape, self._dtype = obj._shape, obj._dtype
 
-        elif isinstance(array_like, ak.Array):
-            self._impl = array_like
+        elif isinstance(obj, ak.Array):
+            self._impl = obj
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
-        elif isinstance(array_like, (bool, Real)):
-            self._impl = np.array(array_like)
+        elif isinstance(obj, (bool, Real)):
+            self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
         else:
-            self._impl = ak.Array(array_like)
+            self._impl = ak.Array(obj)
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
         if not isinstance(dtype, np.dtype):
@@ -149,7 +173,7 @@ class array:  # pylint: disable=C0103
                 self._impl = ak.values_astype(self._impl, dtype)
                 self._shape, self._dtype = _shape_dtype(self._impl.layout)
             else:
-                self._impl = np.array(array_like, dtype=dtype)
+                self._impl = np.array(obj, dtype=dtype)
                 self._dtype = dtype
 
         if self._dtype.fields is not None:
@@ -170,6 +194,8 @@ class array:  # pylint: disable=C0103
             elif isinstance(self._impl, np.ndarray) and device == "cuda":
                 cp = _import.cupy()
                 self._impl = cp.array(self._impl.item())
+
+        assert copy is None, "TODO"
 
     def __str__(self) -> str:
         """
@@ -236,8 +262,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     @property
     def ndim(self) -> int:
@@ -300,8 +325,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -312,8 +336,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__abs__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __add__(self, other: int | float | array, /) -> array:
         """
@@ -323,8 +346,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __and__(self, other: int | bool | array, /) -> array:
         """
@@ -334,8 +356,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __array_namespace__(self, *, api_version: None | str = None) -> Any:
         """
@@ -344,10 +365,8 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__array_namespace__.html
         """
 
-        assert api_version is None, "FIXME"
-
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert api_version, "TODO"
+        assert False, "TODO"
 
     def __bool__(self) -> bool:  # FIXME pylint: disable=E0304
         """
@@ -356,8 +375,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__bool__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __complex__(self) -> complex:
         """
@@ -366,8 +384,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__complex__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __dlpack__(self, *, stream: None | int | Any = None) -> PyCapsule:
         """
@@ -384,10 +401,8 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack__.html
         """
 
-        assert stream is None, "FIXME"
-
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert stream, "TODO"
+        assert False, "TODO"
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -399,8 +414,7 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -410,8 +424,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __float__(self) -> float:
         """
@@ -420,8 +433,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__float__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __floordiv__(self, other: int | float | array, /) -> array:
         """
@@ -431,8 +443,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __ge__(self, other: int | float | array, /) -> array:
         """
@@ -442,8 +453,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __getitem__(self, key: GetSliceKey, /) -> array:
         """
@@ -452,8 +462,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
@@ -463,8 +472,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __index__(self) -> int:  # FIXME pylint: disable=E0305
         """
@@ -473,8 +481,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__index__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __int__(self) -> int:
         """
@@ -483,8 +490,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__int__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __invert__(self) -> array:
         """
@@ -493,8 +499,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__invert__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __le__(self, other: int | float | array, /) -> array:
         """
@@ -504,8 +509,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__le__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __lshift__(self, other: int | array, /) -> array:
         """
@@ -515,8 +519,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lshift__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __lt__(self, other: int | float | array, /) -> array:
         """
@@ -526,8 +529,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lt__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __matmul__(self, other: array, /) -> array:
         """
@@ -536,8 +538,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -547,8 +548,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mod__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __mul__(self, other: int | float | array, /) -> array:
         """
@@ -558,8 +558,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __ne__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -569,8 +568,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ne__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __neg__(self) -> array:
         """
@@ -579,8 +577,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__neg__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __or__(self, other: int | bool | array, /) -> array:
         """
@@ -590,8 +587,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__or__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __pos__(self) -> array:
         """
@@ -600,8 +596,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pos__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __pow__(self, other: int | float | array, /) -> array:
         """
@@ -613,8 +608,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pow__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __rshift__(self, other: int | array, /) -> array:
         """
@@ -624,8 +618,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__rshift__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __setitem__(
         self, key: SetSliceKey, value: int | float | bool | array, /
@@ -636,8 +629,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
@@ -647,8 +639,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__sub__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __truediv__(self, other: int | float | array, /) -> array:
         """
@@ -658,8 +649,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def __xor__(self, other: int | bool | array, /) -> array:
         """
@@ -669,8 +659,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__xor__.html
         """
 
-        msg = "not implemented yet, but will be"
-        raise RuntimeError(msg)
+        assert False, "TODO"
 
     def to_device(self, device: Device, /, *, stream: None | int | Any = None) -> array:
         """
@@ -688,12 +677,12 @@ class array:  # pylint: disable=C0103
         """
 
         if isinstance(self._impl, ak.Array) and device != ak.backend(self._impl):
-            assert stream is None, "FIXME: use CuPy stream"
+            assert stream is None, "TODO"
             impl = ak.to_backend(self._impl, device)
 
         elif isinstance(self._impl, np.ndarray):
             if device == "cuda":
-                assert stream is None, "FIXME: use CuPy stream"
+                assert stream is None, "TODO"
                 cp = _import.cupy()
                 impl = cp.array(self._impl.item())
             else:

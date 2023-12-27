@@ -9,6 +9,13 @@ https://data-apis.org/array-api/latest/API_specification/
 
 from __future__ import annotations
 
+from ._creation import arange, asarray
 from ._obj import array
 
-__all__ = ["array"]
+__all__ = [
+    # _creation
+    "arange",
+    "asarray",
+    # _obj
+    "array",
+]
