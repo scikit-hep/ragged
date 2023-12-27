@@ -8,8 +8,18 @@ from __future__ import annotations
 
 from ..common._datatype import (
     astype,
+    can_cast,
+    finfo,
+    iinfo,
+    isdtype,
+    result_type,
 )
 
 __all__ = [
     "astype",
+    "can_cast",
+    "finfo",
+    "iinfo",
+    "isdtype",
+    "result_type",
 ]

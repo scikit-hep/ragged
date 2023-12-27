@@ -31,6 +31,11 @@ from ._creation import (
 )
 from ._datatype import (
     astype,
+    can_cast,
+    finfo,
+    iinfo,
+    isdtype,
+    result_type,
 )
 from ._obj import array
 
@@ -54,6 +59,11 @@ __all__ = [
     "zeros_like",
     # _datatype
     "astype",
+    "can_cast",
+    "finfo",
+    "iinfo",
+    "isdtype",
+    "result_type",
     # _obj
     "array",
 ]
