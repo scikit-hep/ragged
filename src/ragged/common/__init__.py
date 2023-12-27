@@ -27,6 +27,9 @@ from ._creation import (
     zeros,
     zeros_like,
 )
+from ._datatype import (
+    astype,
+)
 from ._obj import array
 
 __all__ = [
@@ -47,6 +50,8 @@ __all__ = [
     "triu",
     "zeros",
     "zeros_like",
+    # _datatype
+    "astype",
     # _obj
     "array",
 ]
