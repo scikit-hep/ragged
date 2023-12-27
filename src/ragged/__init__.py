@@ -3,6 +3,6 @@
 from __future__ import annotations
 
 from ._version import version as __version__
-from .api_2022_12 import array
+from .v202212 import array
 
 __all__ = ["array", "__version__"]
