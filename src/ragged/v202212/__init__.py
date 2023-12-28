@@ -11,6 +11,8 @@ https://data-apis.org/array-api/2022.12/API_specification/
 
 from __future__ import annotations
 
+__array_api_version__ = "2022.12"
+
 from ._creation import (
     arange,
     asarray,
@@ -98,9 +100,57 @@ from ._elementwise import (  # pylint: disable=W0622
     tanh,
     trunc,
 )
+from ._indexing import (
+    take,
+)
+from ._linalg import (
+    matmul,
+    matrix_transpose,
+    tensordot,
+    vecdot,
+)
+from ._manipulation import (
+    broadcast_arrays,
+    broadcast_to,
+    concat,
+    expand_dims,
+    flip,
+    permute_dims,
+    reshape,
+    roll,
+    squeeze,
+    stack,
+)
 from ._obj import array
-
-__array_api_version__ = "2022.12"
+from ._search import (
+    argmax,
+    argmin,
+    nonzero,
+    where,
+)
+from ._set import (
+    unique_all,
+    unique_counts,
+    unique_inverse,
+    unique_values,
+)
+from ._sorting import (
+    argsort,
+    sort,
+)
+from ._statistical import (  # pylint: disable=W0622
+    max,
+    mean,
+    min,
+    prod,
+    std,
+    sum,
+    var,
+)
+from ._utility import (  # pylint: disable=W0622
+    all,
+    any,
+)
 
 __all__ = [
     "__array_api_version__",
@@ -188,6 +238,48 @@ __all__ = [
     "tan",
     "tanh",
     "trunc",
+    # _indexing
+    "take",
+    # _linalg
+    "matmul",
+    "matrix_transpose",
+    "tensordot",
+    "vecdot",
+    # _manipulation
+    "broadcast_arrays",
+    "broadcast_to",
+    "concat",
+    "expand_dims",
+    "flip",
+    "permute_dims",
+    "reshape",
+    "roll",
+    "squeeze",
+    "stack",
     # _obj
     "array",
+    # _search
+    "argmax",
+    "argmin",
+    "nonzero",
+    "where",
+    # _set
+    "unique_all",
+    "unique_counts",
+    "unique_inverse",
+    "unique_values",
+    # _sorting
+    "argsort",
+    "sort",
+    # _statistical
+    "max",
+    "mean",
+    "min",
+    "prod",
+    "std",
+    "sum",
+    "var",
+    # _utility
+    "all",
+    "any",
 ]
