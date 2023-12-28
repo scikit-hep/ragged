@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/elementwise_functions.
 
 from __future__ import annotations
 
-from ..common._elementwise import (  # pylint: disable=W0622
+from ..common._spec_elementwise_functions import (  # pylint: disable=W0622
     abs,
     acos,
     acosh,

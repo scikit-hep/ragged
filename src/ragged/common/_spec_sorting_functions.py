@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/sorting_functions.html
 
 from __future__ import annotations
 
-from ._obj import array
+from ._spec_array_object import array
 
 
 def argsort(

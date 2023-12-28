@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/statistical_functions.
 
 from __future__ import annotations
 
-from ..common._statistical import (  # pylint: disable=W0622
+from ..common._spec_statistical_functions import (  # pylint: disable=W0622
     max,
     mean,
     min,

@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/indexing_functions.html
 
 from __future__ import annotations
 
-from ._obj import array
+from ._spec_array_object import array
 
 
 def take(x: array, indices: array, /, *, axis: None | int = None) -> array:

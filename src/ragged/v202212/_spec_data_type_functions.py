@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/data_type_functions.ht
 
 from __future__ import annotations
 
-from ..common._datatype import (
+from ..common._spec_data_type_functions import (
     astype,
     can_cast,
     finfo,

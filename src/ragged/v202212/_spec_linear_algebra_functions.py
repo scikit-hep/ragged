@@ -6,6 +6,11 @@ https://data-apis.org/array-api/2022.12/API_specification/linear_algebra_functio
 
 from __future__ import annotations
 
-from ..common._linalg import matmul, matrix_transpose, tensordot, vecdot
+from ..common._spec_linear_algebra_functions import (
+    matmul,
+    matrix_transpose,
+    tensordot,
+    vecdot,
+)
 
 __all__ = ["matmul", "matrix_transpose", "tensordot", "vecdot"]

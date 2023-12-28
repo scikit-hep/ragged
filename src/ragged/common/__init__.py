@@ -9,14 +9,15 @@ https://data-apis.org/array-api/latest/API_specification/
 
 from __future__ import annotations
 
-from ._const import (
+from ._spec_array_object import array
+from ._spec_constants import (
     e,
     inf,
     nan,
     newaxis,
     pi,
 )
-from ._creation import (
+from ._spec_creation_functions import (
     arange,
     asarray,
     empty,
@@ -34,7 +35,7 @@ from ._creation import (
     zeros,
     zeros_like,
 )
-from ._datatype import (
+from ._spec_data_type_functions import (
     astype,
     can_cast,
     finfo,
@@ -42,7 +43,7 @@ from ._datatype import (
     isdtype,
     result_type,
 )
-from ._elementwise import (  # pylint: disable=W0622
+from ._spec_elementwise_functions import (  # pylint: disable=W0622
     abs,
     acos,
     acosh,
@@ -103,16 +104,16 @@ from ._elementwise import (  # pylint: disable=W0622
     tanh,
     trunc,
 )
-from ._indexing import (
+from ._spec_indexing_functions import (
     take,
 )
-from ._linalg import (
+from ._spec_linear_algebra_functions import (
     matmul,
     matrix_transpose,
     tensordot,
     vecdot,
 )
-from ._manipulation import (
+from ._spec_manipulation_functions import (
     broadcast_arrays,
     broadcast_to,
     concat,
@@ -124,24 +125,23 @@ from ._manipulation import (
     squeeze,
     stack,
 )
-from ._obj import array
-from ._search import (
+from ._spec_searching_functions import (
     argmax,
     argmin,
     nonzero,
     where,
 )
-from ._set import (
+from ._spec_set_functions import (
     unique_all,
     unique_counts,
     unique_inverse,
     unique_values,
 )
-from ._sorting import (
+from ._spec_sorting_functions import (
     argsort,
     sort,
 )
-from ._statistical import (  # pylint: disable=W0622
+from ._spec_statistical_functions import (  # pylint: disable=W0622
     max,
     mean,
     min,
@@ -150,19 +150,21 @@ from ._statistical import (  # pylint: disable=W0622
     sum,
     var,
 )
-from ._utility import (  # pylint: disable=W0622
+from ._spec_utility_functions import (  # pylint: disable=W0622
     all,
     any,
 )
 
 __all__ = [
-    # _const
+    # _spec_array_object
+    "array",
+    # _spec_constants
     "e",
     "inf",
     "nan",
     "newaxis",
     "pi",
-    # _creation
+    # _spec_creation_functions
     "arange",
     "asarray",
     "empty",
@@ -179,14 +181,14 @@ __all__ = [
     "triu",
     "zeros",
     "zeros_like",
-    # _datatype
+    # _spec_data_type_functions
     "astype",
     "can_cast",
     "finfo",
     "iinfo",
     "isdtype",
     "result_type",
-    # _elementwise
+    # _spec_elementwise_functions
     "abs",
     "acos",
     "acosh",
@@ -246,14 +248,14 @@ __all__ = [
     "tan",
     "tanh",
     "trunc",
-    # _indexing
+    # _spec_indexing_functions
     "take",
-    # _linalg
+    # _spec_linear_algebra_functions
     "matmul",
     "matrix_transpose",
     "tensordot",
     "vecdot",
-    # _manipulation
+    # _spec_manipulation_functions
     "broadcast_arrays",
     "broadcast_to",
     "concat",
@@ -264,22 +266,20 @@ __all__ = [
     "roll",
     "squeeze",
     "stack",
-    # _obj
-    "array",
-    # _search
+    # _spec_searching_functions
     "argmax",
     "argmin",
     "nonzero",
     "where",
-    # _set
+    # _spec_set_functions
     "unique_all",
     "unique_counts",
     "unique_inverse",
     "unique_values",
-    # _sorting
+    # _spec_sorting_functions
     "argsort",
     "sort",
-    # _statistical
+    # _spec_statistical_functions
     "max",
     "mean",
     "min",
@@ -287,7 +287,7 @@ __all__ = [
     "std",
     "sum",
     "var",
-    # _utility
+    # _spec_utility_functions
     "all",
     "any",
 ]

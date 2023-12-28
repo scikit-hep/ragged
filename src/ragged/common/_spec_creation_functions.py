@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import awkward as ak
 
-from ._obj import array
+from ._spec_array_object import array
 from ._typing import (
     Device,
     Dtype,

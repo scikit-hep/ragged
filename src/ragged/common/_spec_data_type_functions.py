@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ._obj import array
+from ._spec_array_object import array
 from ._typing import Dtype
 
 

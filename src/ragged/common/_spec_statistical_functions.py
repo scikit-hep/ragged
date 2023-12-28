@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/statistical_functions.h
 
 from __future__ import annotations
 
-from ._obj import array
+from ._spec_array_object import array
 from ._typing import Dtype
 
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from ._obj import array
+from ._spec_array_object import array
 
 
 def matmul(x1: array, x2: array, /) -> array:

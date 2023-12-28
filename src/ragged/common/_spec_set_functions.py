@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections import namedtuple
 
-from ._obj import array
+from ._spec_array_object import array
 
 unique_all_result = namedtuple(  # pylint: disable=C0103
     "unique_all_result", ["values", "indices", "inverse_indices", "counts"]

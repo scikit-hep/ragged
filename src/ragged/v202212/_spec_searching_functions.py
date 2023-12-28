@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/searching_functions.ht
 
 from __future__ import annotations
 
-from ..common._search import argmax, argmin, nonzero, where
+from ..common._spec_searching_functions import argmax, argmin, nonzero, where
 
 __all__ = [
     "argmax",

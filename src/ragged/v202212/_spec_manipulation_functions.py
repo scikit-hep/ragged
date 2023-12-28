@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/manipulation_functions
 
 from __future__ import annotations
 
-from ..common._manipulation import (
+from ..common._spec_manipulation_functions import (
     broadcast_arrays,
     broadcast_to,
     concat,

@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
-from ._obj import array
+from ._spec_array_object import array
 
 
 def abs(x: array, /) -> array:  # pylint: disable=W0622

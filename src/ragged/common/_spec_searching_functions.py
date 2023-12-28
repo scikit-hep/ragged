@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/searching_functions.htm
 
 from __future__ import annotations
 
-from ._obj import array
+from ._spec_array_object import array
 
 
 def argmax(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> array:

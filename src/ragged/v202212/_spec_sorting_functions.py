@@ -6,6 +6,6 @@ https://data-apis.org/array-api/2022.12/API_specification/sorting_functions.html
 
 from __future__ import annotations
 
-from ..common._sorting import argsort, sort
+from ..common._spec_sorting_functions import argsort, sort
 
 __all__ = ["argsort", "sort"]

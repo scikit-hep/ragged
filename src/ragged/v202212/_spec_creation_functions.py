@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/creation_functions.htm
 
 from __future__ import annotations
 
-from ..common._creation import (
+from ..common._spec_creation_functions import (
     arange,
     asarray,
     empty,

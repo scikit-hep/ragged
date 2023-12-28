@@ -6,7 +6,7 @@ https://data-apis.org/array-api/2022.12/API_specification/array_object.html
 
 from __future__ import annotations
 
-from ..common._obj import array as common_array
+from ..common._spec_array_object import array as common_array
 
 
 class array(common_array):  # pylint: disable=C0103
