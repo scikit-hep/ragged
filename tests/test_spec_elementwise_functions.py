@@ -1,38 +1,15 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 
+"""
+https://data-apis.org/array-api/latest/API_specification/elementwise_functions.html
+"""
+
 from __future__ import annotations
 
 import ragged
 
 
-def test():
-    assert ragged.__array_api_version__ == "2022.12"
-
-    a = ragged.array([[1, 2], [3]])
-    assert a is not None
-
-    assert ragged.arange is not None
-    assert ragged.asarray is not None
-    assert ragged.empty is not None
-    assert ragged.empty_like is not None
-    assert ragged.eye is not None
-    assert ragged.from_dlpack is not None
-    assert ragged.full is not None
-    assert ragged.full_like is not None
-    assert ragged.linspace is not None
-    assert ragged.meshgrid is not None
-    assert ragged.ones is not None
-    assert ragged.ones_like is not None
-    assert ragged.tril is not None
-    assert ragged.triu is not None
-    assert ragged.zeros is not None
-    assert ragged.zeros_like is not None
-    assert ragged.astype is not None
-    assert ragged.can_cast is not None
-    assert ragged.finfo is not None
-    assert ragged.iinfo is not None
-    assert ragged.isdtype is not None
-    assert ragged.result_type is not None
+def test_existence():
     assert ragged.abs is not None
     assert ragged.acos is not None
     assert ragged.acosh is not None
@@ -92,37 +69,3 @@ def test():
     assert ragged.tan is not None
     assert ragged.tanh is not None
     assert ragged.trunc is not None
-    assert ragged.take is not None
-    assert ragged.matmul is not None
-    assert ragged.matrix_transpose is not None
-    assert ragged.tensordot is not None
-    assert ragged.vecdot is not None
-    assert ragged.broadcast_arrays is not None
-    assert ragged.broadcast_to is not None
-    assert ragged.concat is not None
-    assert ragged.expand_dims is not None
-    assert ragged.flip is not None
-    assert ragged.permute_dims is not None
-    assert ragged.reshape is not None
-    assert ragged.roll is not None
-    assert ragged.squeeze is not None
-    assert ragged.stack is not None
-    assert ragged.argmax is not None
-    assert ragged.argmin is not None
-    assert ragged.nonzero is not None
-    assert ragged.where is not None
-    assert ragged.unique_all is not None
-    assert ragged.unique_counts is not None
-    assert ragged.unique_inverse is not None
-    assert ragged.unique_values is not None
-    assert ragged.argsort is not None
-    assert ragged.sort is not None
-    assert ragged.max is not None
-    assert ragged.mean is not None
-    assert ragged.min is not None
-    assert ragged.prod is not None
-    assert ragged.std is not None
-    assert ragged.sum is not None
-    assert ragged.var is not None
-    assert ragged.all is not None
-    assert ragged.any is not None

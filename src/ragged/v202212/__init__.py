@@ -13,6 +13,13 @@ from __future__ import annotations
 
 __array_api_version__ = "2022.12"
 
+from ._const import (
+    e,
+    inf,
+    nan,
+    newaxis,
+    pi,
+)
 from ._creation import (
     arange,
     asarray,
@@ -154,6 +161,12 @@ from ._utility import (  # pylint: disable=W0622
 
 __all__ = [
     "__array_api_version__",
+    # _const
+    "e",
+    "inf",
+    "nan",
+    "newaxis",
+    "pi",
     # _creation
     "arange",
     "asarray",

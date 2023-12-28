@@ -9,6 +9,13 @@ https://data-apis.org/array-api/latest/API_specification/
 
 from __future__ import annotations
 
+from ._const import (
+    e,
+    inf,
+    nan,
+    newaxis,
+    pi,
+)
 from ._creation import (
     arange,
     asarray,
@@ -149,6 +156,12 @@ from ._utility import (  # pylint: disable=W0622
 )
 
 __all__ = [
+    # _const
+    "e",
+    "inf",
+    "nan",
+    "newaxis",
+    "pi",
     # _creation
     "arange",
     "asarray",
