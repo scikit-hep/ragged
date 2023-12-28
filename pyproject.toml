@@ -175,5 +175,4 @@ messages_control.disable = [
   "R1705",   # I like my if (return) elif (return) else (return) pattern
   "R0801",   # Different files can have similar lines; that's okay
   "C0302",   # I can have as many lines as I want; what's it with you?
-  "C0103",   # FIXME temporary
 ]
