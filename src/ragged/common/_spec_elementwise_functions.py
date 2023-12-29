@@ -67,8 +67,7 @@ def acos(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.acos.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arccos(*_unbox(x)))
 
 
 def acosh(x: array, /) -> array:
@@ -103,8 +102,7 @@ def acosh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.acosh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arccosh(*_unbox(x)))
 
 
 def add(x1: array, x2: array, /) -> array:

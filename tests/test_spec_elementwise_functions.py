@@ -112,6 +112,23 @@ def test_abs(device, x):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_acos(device, x):
+    with np.errstate(invalid="ignore"):
+        result = ragged.acos(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == np.dtype(np.float64)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_acosh(device, x):
+    result = ragged.acosh(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == np.dtype(np.float64)
+
+
+@pytest.mark.parametrize("device", devices)
 def test_add(device, x, y):
     result = ragged.add(x.to_device(device), y.to_device(device))
     assert type(result) is type(x) is type(y)
