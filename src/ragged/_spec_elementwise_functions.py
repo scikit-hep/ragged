@@ -441,8 +441,7 @@ def conj(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.conj.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 66"
+    return _box(type(x), np.conj(*_unbox(x)))
 
 
 def cos(x: array, /) -> array:
@@ -462,8 +461,7 @@ def cos(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.cos.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 67"
+    return _box(type(x), np.cos(*_unbox(x)))
 
 
 def cosh(x: array, /) -> array:
@@ -486,8 +484,7 @@ def cosh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.cosh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 68"
+    return _box(type(x), np.cosh(*_unbox(x)))
 
 
 def divide(x1: array, x2: array, /) -> array:
@@ -506,9 +503,7 @@ def divide(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.divide.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 69"
+    return _box(type(x1), np.divide(*_unbox(x1, x2)))
 
 
 def equal(x1: array, x2: array, /) -> array:
@@ -528,9 +523,7 @@ def equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 70"
+    return _box(type(x1), np.equal(*_unbox(x1, x2)))
 
 
 def exp(x: array, /) -> array:

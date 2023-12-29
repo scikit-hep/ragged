@@ -59,9 +59,20 @@ def x_int(request):
         return ragged.array(np.array(10, dtype=np.int64))
 
 
+@pytest.fixture(params=["regular", "irregular", "scalar"])
+def x_complex(request):
+    if request.param == "regular":
+        return ragged.array(np.array([1+0.1j, 2+0.2j, 3+0.3j]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[1+0j, 2+0j, 3+0j], [], [4+0j, 5+0j]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(10+1j))
+
+
 y = x
 y_lt1 = x_lt1
 y_int = x_int
+y_complex = x_complex
 
 
 def first(x: ragged.array) -> Any:
@@ -275,3 +286,48 @@ def test_ceil(device, x):
     assert result.shape == x.shape
     assert xp.ceil(first(x)) == first(result)
     assert xp.ceil(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_conj(device, x_complex):
+    result = ragged.conj(x_complex.to_device(device))
+    assert type(result) is type(x_complex)
+    assert result.shape == x_complex.shape
+    assert xp.conj(first(x_complex)) == first(result)
+    assert xp.conj(first(x_complex)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_cos(device, x):
+    result = ragged.cos(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.cos(first(x)) == pytest.approx(first(result))
+    assert xp.cos(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_cosh(device, x):
+    result = ragged.cosh(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.cosh(first(x)) == pytest.approx(first(result))
+    assert xp.cosh(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_divide(device, x, y):
+    result = ragged.divide(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.divide(first(x), first(y)) == first(result)
+    assert xp.divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_equal(device, x, y):
+    result = ragged.equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.equal(first(x), first(y)) == first(result)
+    assert xp.equal(first(x), first(y)).dtype == result.dtype
