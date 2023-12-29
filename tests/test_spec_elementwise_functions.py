@@ -6,6 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
+from typing import Any
+
 import awkward as ak
 import numpy as np
 import pytest
@@ -24,9 +26,9 @@ except ModuleNotFoundError:
 @pytest.fixture(params=["regular", "irregular", "scalar"])
 def x(request):
     if request.param == "regular":
-        return ragged.array(np.array([10, 20, 30]))
+        return ragged.array(np.array([1, 2, 3]))
     elif request.param == "irregular":
-        return ragged.array(ak.Array([[1.1, 2.2, 3.3], [], [4.4, 5.5]]))
+        return ragged.array(ak.Array([[1.1, 1.2, 1.3], [], [1.4, 1.5]]))
     else:  # request.param == "scalar"
         return ragged.array(np.array(100))
 
@@ -34,11 +36,26 @@ def x(request):
 @pytest.fixture(params=["regular", "irregular", "scalar"])
 def y(request):
     if request.param == "regular":
-        return ragged.array(np.array([10, 20, 30]))
+        return ragged.array(np.array([1, 2, 3]))
     elif request.param == "irregular":
-        return ragged.array(ak.Array([[1.1, 2.2, 3.3], [], [4.4, 5.5]]))
+        return ragged.array(ak.Array([[1.1, 1.2, 1.3], [], [1.4, 1.5]]))
     else:  # request.param == "scalar"
         return ragged.array(np.array(100))
+
+
+@pytest.fixture(params=["regular", "irregular", "scalar"])
+def x_lt1(request):
+    if request.param == "regular":
+        return ragged.array(np.array([0.1, 0.2, 0.3]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[0.1, 0.2, 0.3], [], [0.4, 0.5]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(0.5))
+
+
+def first(x: ragged.array) -> Any:
+    out = ak.flatten(x._impl, axis=None)[0] if x.shape != () else x._impl
+    return out.item()
 
 
 def test_existence():
@@ -109,15 +126,16 @@ def test_abs(device, x):
     assert type(result) is type(x)
     assert result.shape == x.shape
     assert result.dtype == x.dtype
+    assert np.absolute(first(x)) == pytest.approx(first(result))
 
 
 @pytest.mark.parametrize("device", devices)
-def test_acos(device, x):
-    with np.errstate(invalid="ignore"):
-        result = ragged.acos(x.to_device(device))
-    assert type(result) is type(x)
-    assert result.shape == x.shape
+def test_acos(device, x_lt1):
+    result = ragged.acos(x_lt1.to_device(device))
+    assert type(result) is type(x_lt1)
+    assert result.shape == x_lt1.shape
     assert result.dtype == np.dtype(np.float64)
+    assert np.arccos(first(x_lt1)) == pytest.approx(first(result))
 
 
 @pytest.mark.parametrize("device", devices)
@@ -126,6 +144,7 @@ def test_acosh(device, x):
     assert type(result) is type(x)
     assert result.shape == x.shape
     assert result.dtype == np.dtype(np.float64)
+    assert np.arccosh(first(x)) == pytest.approx(first(result))
 
 
 @pytest.mark.parametrize("device", devices)
@@ -134,3 +153,22 @@ def test_add(device, x, y):
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert result.dtype in (x.dtype, y.dtype)
+    assert np.add(first(x), first(y)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_asin(device, x_lt1):
+    result = ragged.asin(x_lt1.to_device(device))
+    assert type(result) is type(x_lt1)
+    assert result.shape == x_lt1.shape
+    assert result.dtype == np.dtype(np.float64)
+    assert np.arcsin(first(x_lt1)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_asinh(device, x):
+    result = ragged.asinh(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == np.dtype(np.float64)
+    assert np.arcsinh(first(x)) == pytest.approx(first(result))

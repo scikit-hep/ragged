@@ -37,7 +37,7 @@ def argmax(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> a
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 124"
 
 
 def argmin(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> array:
@@ -68,7 +68,7 @@ def argmin(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> a
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 125"
 
 
 def nonzero(x: array, /) -> tuple[array, ...]:
@@ -90,7 +90,7 @@ def nonzero(x: array, /) -> tuple[array, ...]:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 126"
 
 
 def where(condition: array, x1: array, x2: array, /) -> array:
@@ -115,4 +115,4 @@ def where(condition: array, x1: array, x2: array, /) -> array:
     assert condition, "TODO"
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 127"

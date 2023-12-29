@@ -48,7 +48,7 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 128"
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -79,7 +79,7 @@ def unique_counts(x: array, /) -> tuple[array, array]:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 129"
 
 
 unique_inverse_result = namedtuple(  # pylint: disable=C0103
@@ -110,7 +110,7 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 130"
 
 
 def unique_values(x: array, /) -> array:
@@ -130,4 +130,4 @@ def unique_values(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 131"

@@ -284,7 +284,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 1"
 
     @property
     def ndim(self) -> int:
@@ -347,7 +347,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 2"
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -358,7 +358,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__abs__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 3"
 
     def __add__(self, other: int | float | array, /) -> array:
         """
@@ -368,7 +368,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 4"
 
     def __and__(self, other: int | bool | array, /) -> array:
         """
@@ -378,7 +378,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 5"
 
     def __array_namespace__(self, *, api_version: None | str = None) -> Any:
         """
@@ -388,7 +388,7 @@ class array:  # pylint: disable=C0103
         """
 
         assert api_version, "TODO"
-        assert False, "TODO"
+        assert False, "TODO 6"
 
     def __bool__(self) -> bool:  # FIXME pylint: disable=E0304
         """
@@ -397,7 +397,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__bool__.html
         """
 
-        assert False, "TODO"
+        return bool(self._impl)
 
     def __complex__(self) -> complex:
         """
@@ -406,7 +406,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__complex__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 8"
 
     def __dlpack__(self, *, stream: None | int | Any = None) -> PyCapsule:
         """
@@ -424,7 +424,7 @@ class array:  # pylint: disable=C0103
         """
 
         assert stream, "TODO"
-        assert False, "TODO"
+        assert False, "TODO 9"
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -436,7 +436,7 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 10"
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -446,7 +446,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 11"
 
     def __float__(self) -> float:
         """
@@ -455,7 +455,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__float__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 12"
 
     def __floordiv__(self, other: int | float | array, /) -> array:
         """
@@ -465,7 +465,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 13"
 
     def __ge__(self, other: int | float | array, /) -> array:
         """
@@ -475,7 +475,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 14"
 
     def __getitem__(self, key: GetSliceKey, /) -> array:
         """
@@ -484,7 +484,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 15"
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
@@ -494,7 +494,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 16"
 
     def __index__(self) -> int:  # FIXME pylint: disable=E0305
         """
@@ -503,7 +503,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__index__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 17"
 
     def __int__(self) -> int:
         """
@@ -512,7 +512,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__int__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 18"
 
     def __invert__(self) -> array:
         """
@@ -521,7 +521,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__invert__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 19"
 
     def __le__(self, other: int | float | array, /) -> array:
         """
@@ -531,7 +531,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__le__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 20"
 
     def __lshift__(self, other: int | array, /) -> array:
         """
@@ -541,7 +541,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lshift__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 21"
 
     def __lt__(self, other: int | float | array, /) -> array:
         """
@@ -551,7 +551,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lt__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 22"
 
     def __matmul__(self, other: array, /) -> array:
         """
@@ -560,7 +560,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 22"
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -570,7 +570,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mod__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 23"
 
     def __mul__(self, other: int | float | array, /) -> array:
         """
@@ -580,7 +580,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 24"
 
     def __ne__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -590,7 +590,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ne__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 25"
 
     def __neg__(self) -> array:
         """
@@ -599,7 +599,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__neg__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 26"
 
     def __or__(self, other: int | bool | array, /) -> array:
         """
@@ -609,7 +609,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__or__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 27"
 
     def __pos__(self) -> array:
         """
@@ -618,7 +618,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pos__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 28"
 
     def __pow__(self, other: int | float | array, /) -> array:
         """
@@ -630,7 +630,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pow__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 29"
 
     def __rshift__(self, other: int | array, /) -> array:
         """
@@ -640,7 +640,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__rshift__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 30"
 
     def __setitem__(
         self, key: SetSliceKey, value: int | float | bool | array, /
@@ -651,7 +651,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 31"
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
@@ -661,7 +661,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__sub__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 32"
 
     def __truediv__(self, other: int | float | array, /) -> array:
         """
@@ -671,7 +671,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 33"
 
     def __xor__(self, other: int | bool | array, /) -> array:
         """
@@ -681,7 +681,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__xor__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 34"
 
     def to_device(self, device: Device, /, *, stream: None | int | Any = None) -> array:
         """

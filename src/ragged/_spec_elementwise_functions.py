@@ -205,7 +205,7 @@ def atan(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 56"
 
 
 def atan2(x1: array, x2: array, /) -> array:
@@ -248,7 +248,7 @@ def atan2(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 57"
 
 
 def atanh(x: array, /) -> array:
@@ -278,7 +278,7 @@ def atanh(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 58"
 
 
 def bitwise_and(x1: array, x2: array, /) -> array:
@@ -300,7 +300,7 @@ def bitwise_and(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 59"
 
 
 def bitwise_invert(x: array, /) -> array:
@@ -318,7 +318,7 @@ def bitwise_invert(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 60"
 
 
 def bitwise_left_shift(x1: array, x2: array, /) -> array:
@@ -341,7 +341,7 @@ def bitwise_left_shift(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 61"
 
 
 def bitwise_or(x1: array, x2: array, /) -> array:
@@ -363,7 +363,7 @@ def bitwise_or(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 62"
 
 
 def bitwise_right_shift(x1: array, x2: array, /) -> array:
@@ -387,7 +387,7 @@ def bitwise_right_shift(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 63"
 
 
 def bitwise_xor(x1: array, x2: array, /) -> array:
@@ -409,7 +409,7 @@ def bitwise_xor(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 64"
 
 
 def ceil(x: array, /) -> array:
@@ -428,7 +428,7 @@ def ceil(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 65"
 
 
 def conj(x: array, /) -> array:
@@ -458,7 +458,7 @@ def conj(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 66"
 
 
 def cos(x: array, /) -> array:
@@ -479,7 +479,7 @@ def cos(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 67"
 
 
 def cosh(x: array, /) -> array:
@@ -503,7 +503,7 @@ def cosh(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 68"
 
 
 def divide(x1: array, x2: array, /) -> array:
@@ -524,7 +524,7 @@ def divide(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 69"
 
 
 def equal(x1: array, x2: array, /) -> array:
@@ -546,7 +546,7 @@ def equal(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 70"
 
 
 def exp(x: array, /) -> array:
@@ -567,7 +567,7 @@ def exp(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 71"
 
 
 def expm1(x: array, /) -> array:
@@ -590,7 +590,7 @@ def expm1(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 72"
 
 
 def floor(x: array, /) -> array:
@@ -610,7 +610,7 @@ def floor(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 73"
 
 
 def floor_divide(x1: array, x2: array, /) -> array:
@@ -633,7 +633,7 @@ def floor_divide(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 74"
 
 
 def greater(x1: array, x2: array, /) -> array:
@@ -655,7 +655,7 @@ def greater(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 75"
 
 
 def greater_equal(x1: array, x2: array, /) -> array:
@@ -677,7 +677,7 @@ def greater_equal(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 76"
 
 
 def imag(x: array, /) -> array:
@@ -698,7 +698,7 @@ def imag(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 77"
 
 
 def isfinite(x: array, /) -> array:
@@ -716,7 +716,7 @@ def isfinite(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 78"
 
 
 def isinf(x: array, /) -> array:
@@ -735,7 +735,7 @@ def isinf(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 79"
 
 
 def isnan(x: array, /) -> array:
@@ -754,7 +754,7 @@ def isnan(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 80"
 
 
 def less(x1: array, x2: array, /) -> array:
@@ -776,7 +776,7 @@ def less(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 81"
 
 
 def less_equal(x1: array, x2: array, /) -> array:
@@ -798,7 +798,7 @@ def less_equal(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 82"
 
 
 def log(x: array, /) -> array:
@@ -818,7 +818,7 @@ def log(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 83"
 
 
 def log1p(x: array, /) -> array:
@@ -842,7 +842,7 @@ def log1p(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 84"
 
 
 def log2(x: array, /) -> array:
@@ -862,7 +862,7 @@ def log2(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 85"
 
 
 def log10(x: array, /) -> array:
@@ -882,7 +882,7 @@ def log10(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 86"
 
 
 def logaddexp(x1: array, x2: array, /) -> array:
@@ -904,7 +904,7 @@ def logaddexp(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 87"
 
 
 def logical_and(x1: array, x2: array, /) -> array:
@@ -925,7 +925,7 @@ def logical_and(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 88"
 
 
 def logical_not(x: array, /) -> array:
@@ -943,7 +943,7 @@ def logical_not(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 89"
 
 
 def logical_or(x1: array, x2: array, /) -> array:
@@ -964,7 +964,7 @@ def logical_or(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 90"
 
 
 def logical_xor(x1: array, x2: array, /) -> array:
@@ -985,7 +985,7 @@ def logical_xor(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 91"
 
 
 def multiply(x1: array, x2: array, /) -> array:
@@ -1006,7 +1006,7 @@ def multiply(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 92"
 
 
 def negative(x: array, /) -> array:
@@ -1025,7 +1025,7 @@ def negative(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 93"
 
 
 def not_equal(x1: array, x2: array, /) -> array:
@@ -1047,7 +1047,7 @@ def not_equal(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 94"
 
 
 def positive(x: array, /) -> array:
@@ -1066,7 +1066,7 @@ def positive(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 95"
 
 
 def pow(x1: array, x2: array, /) -> array:  # pylint: disable=W0622
@@ -1091,7 +1091,7 @@ def pow(x1: array, x2: array, /) -> array:  # pylint: disable=W0622
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 96"
 
 
 def real(x: array, /) -> array:
@@ -1112,7 +1112,7 @@ def real(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 97"
 
 
 def remainder(x1: array, x2: array, /) -> array:
@@ -1136,7 +1136,7 @@ def remainder(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 98"
 
 
 def round(x: array, /) -> array:  # pylint: disable=W0622
@@ -1163,7 +1163,7 @@ def round(x: array, /) -> array:  # pylint: disable=W0622
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 99"
 
 
 def sign(x: array, /) -> array:
@@ -1189,7 +1189,7 @@ def sign(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 100"
 
 
 def sin(x: array, /) -> array:
@@ -1210,7 +1210,7 @@ def sin(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 101"
 
 
 def sinh(x: array, /) -> array:
@@ -1234,7 +1234,7 @@ def sinh(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 102"
 
 
 def square(x: array, /) -> array:
@@ -1256,7 +1256,7 @@ def square(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 103"
 
 
 def sqrt(x: array, /) -> array:
@@ -1276,7 +1276,7 @@ def sqrt(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 104"
 
 
 def subtract(x1: array, x2: array, /) -> array:
@@ -1300,7 +1300,7 @@ def subtract(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 105"
 
 
 def tan(x: array, /) -> array:
@@ -1321,7 +1321,7 @@ def tan(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 106"
 
 
 def tanh(x: array, /) -> array:
@@ -1348,7 +1348,7 @@ def tanh(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 107"
 
 
 def trunc(x: array, /) -> array:
@@ -1367,4 +1367,4 @@ def trunc(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 108"

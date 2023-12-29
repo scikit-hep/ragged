@@ -38,7 +38,7 @@ def argsort(
     assert axis, "TODO"
     assert descending, "TODO"
     assert stable, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 132"
 
 
 def sort(
@@ -70,4 +70,4 @@ def sort(
     assert axis, "TODO"
     assert descending, "TODO"
     assert stable, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 133"
