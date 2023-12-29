@@ -6,7 +6,9 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import numpy as np
+
+from ._spec_array_object import _box, _unbox, array
 
 
 def abs(x: array, /) -> array:  # pylint: disable=W0622
@@ -122,9 +124,7 @@ def add(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.add.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.add(*_unbox(x1, x2)))
 
 
 def asin(x: array, /) -> array:

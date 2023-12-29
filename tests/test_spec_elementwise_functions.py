@@ -6,7 +6,39 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
+import awkward as ak
+import numpy as np
+import pytest
+
 import ragged
+
+devices = ["cpu"]
+try:
+    import cupy as cp
+
+    devices.append("cuda")
+except ModuleNotFoundError:
+    cp = None
+
+
+@pytest.fixture(params=["regular", "irregular", "scalar"])
+def x(request):
+    if request.param == "regular":
+        return ragged.array(np.array([10, 20, 30]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[1.1, 2.2, 3.3], [], [4.4, 5.5]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(100))
+
+
+@pytest.fixture(params=["regular", "irregular", "scalar"])
+def y(request):
+    if request.param == "regular":
+        return ragged.array(np.array([10, 20, 30]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[1.1, 2.2, 3.3], [], [4.4, 5.5]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(100))
 
 
 def test_existence():
@@ -69,3 +101,11 @@ def test_existence():
     assert ragged.tan is not None
     assert ragged.tanh is not None
     assert ragged.trunc is not None
+
+
+@pytest.mark.parametrize("device", devices)
+def test_add(device, x, y):
+    result = ragged.add(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert result.dtype in (x.dtype, y.dtype)

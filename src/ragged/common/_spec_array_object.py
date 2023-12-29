@@ -29,6 +29,7 @@ from ._typing import (
     Shape,
     SupportsBufferProtocol,
     SupportsDLPack,
+    numeric_types,
 )
 
 
@@ -161,6 +162,23 @@ class array:  # pylint: disable=C0103
             self._impl = obj
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
+        elif hasattr(obj, "__dlpack_device__") and getattr(obj, "shape", None) == ():
+            device_type, _ = obj.__dlpack_device__()
+            if (
+                isinstance(device_type, enum.Enum) and device_type.value == 1
+            ) or device_type == 1:
+                self._impl = np.array(obj)
+                self._shape, self._dtype = (), self._impl.dtype
+            elif (
+                isinstance(device_type, enum.Enum) and device_type.value == 2
+            ) or device_type == 2:
+                cp = _import.cupy()
+                self._impl = cp.array(obj)
+                self._shape, self._dtype = (), self._impl.dtype
+            else:
+                msg = f"unsupported __dlpack_device__ type: {device_type}"
+                raise TypeError(msg)
+
         elif isinstance(obj, (bool, Real)):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
@@ -169,7 +187,7 @@ class array:  # pylint: disable=C0103
             self._impl = ak.Array(obj)
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
-        if not isinstance(dtype, np.dtype):
+        if dtype is not None and not isinstance(dtype, np.dtype):
             dtype = np.dtype(dtype)
 
         if dtype is not None and dtype != self._dtype:
@@ -188,8 +206,8 @@ class array:  # pylint: disable=C0103
             msg = f"dtype must not have a shape: dtype.shape = {self._dtype.shape}"
             raise TypeError(msg)
 
-        if not issubclass(self._dtype.type, np.number):
-            msg = f"dtype must be numeric: dtype.type = {self._dtype.type}"
+        if self._dtype.type not in numeric_types:
+            msg = f"dtype must be numeric (bool, [u]int*, float*, complex*): dtype.type = {self._dtype.type}"
             raise TypeError(msg)
 
         if device is not None:
@@ -197,7 +215,7 @@ class array:  # pylint: disable=C0103
                 self._impl = ak.to_backend(self._impl, device)
             elif isinstance(self._impl, np.ndarray) and device == "cuda":
                 cp = _import.cupy()
-                self._impl = cp.array(self._impl.item())
+                self._impl = cp.array(self._impl)
 
         assert copy is None, "TODO"
 
@@ -207,7 +225,7 @@ class array:  # pylint: disable=C0103
         """
 
         if len(self._shape) == 0:
-            return f"{self._impl.item()}"
+            return f"{self._impl}"
         elif len(self._shape) == 1:
             return f"{ak._prettyprint.valuestr(self._impl, 1, 80)}"
         else:
@@ -222,7 +240,7 @@ class array:  # pylint: disable=C0103
         """
 
         if len(self._shape) == 0:
-            return f"ragged.array({self._impl.item()})"
+            return f"ragged.array({self._impl})"
         elif len(self._shape) == 1:
             return f"ragged.array({ak._prettyprint.valuestr(self._impl, 1, 80 - 14)})"
         else:
@@ -680,20 +698,25 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.to_device.html
         """
 
-        if isinstance(self._impl, ak.Array) and device != ak.backend(self._impl):
-            assert stream is None, "TODO"
-            impl = ak.to_backend(self._impl, device)
+        if isinstance(self._impl, ak.Array):
+            if device != ak.backend(self._impl):
+                assert stream is None, "TODO"
+                impl = ak.to_backend(self._impl, device)
+            else:
+                impl = self._impl
 
         elif isinstance(self._impl, np.ndarray):
+            # self._impl is a NumPy 0-dimensional array
             if device == "cuda":
                 assert stream is None, "TODO"
                 cp = _import.cupy()
-                impl = cp.array(self._impl.item())
+                impl = cp.array(self._impl)
             else:
                 impl = self._impl
 
         else:
-            impl = np.array(self._impl.item()) if device == "cpu" else self._impl
+            # self._impl is a CuPy 0-dimensional array
+            impl = self._impl.get() if device == "cpu" else self._impl  # type: ignore[union-attr]
 
         return self._new(impl, self._shape, self._dtype, device)
 
@@ -870,3 +893,33 @@ class array:  # pylint: disable=C0103
     __rxor__ = __xor__
     __rlshift__ = __lshift__
     __rrshift__ = __rshift__
+
+
+def _unbox(*inputs: array) -> tuple[ak.Array | SupportsDLPack, ...]:
+    if len(inputs) > 1 and any(type(inputs[0]) is not type(x) for x in inputs):
+        types = "\n".join(f"{type(x).__module__}.{type(x).__name__}" for x in inputs)
+        msg = f"mixed array types: {types}"
+        raise TypeError(msg)
+
+    return tuple(x._impl for x in inputs)  # pylint: disable=W0212
+
+
+def _box(cls: type[array], output: ak.Array | np.number | SupportsDLPack) -> array:
+    if isinstance(output, ak.Array):
+        impl = output
+        shape, dtype = _shape_dtype(output.layout)
+        device = ak.backend(output)
+
+    elif isinstance(output, np.number):
+        impl = np.array(output)
+        shape = output.shape
+        dtype = output.dtype
+        device = "cpu"
+
+    else:
+        impl = output
+        shape = output.shape  # type: ignore[union-attr]
+        dtype = output.dtype  # type: ignore[union-attr]
+        device = "cpu" if isinstance(output, np.ndarray) else "cuda"
+
+    return cls._new(impl, shape, dtype, device)  # pylint: disable=W0212
