@@ -38,8 +38,7 @@ def abs(x: array, /) -> array:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.abs.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.absolute(*_unbox(x)))
 
 
 def acos(x: array, /) -> array:

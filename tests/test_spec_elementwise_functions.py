@@ -104,6 +104,14 @@ def test_existence():
 
 
 @pytest.mark.parametrize("device", devices)
+def test_abs(device, x):
+    result = ragged.abs(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_add(device, x, y):
     result = ragged.add(x.to_device(device), y.to_device(device))
     assert type(result) is type(x) is type(y)
