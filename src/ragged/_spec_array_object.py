@@ -904,22 +904,39 @@ def _unbox(*inputs: array) -> tuple[ak.Array | SupportsDLPack, ...]:
     return tuple(x._impl for x in inputs)  # pylint: disable=W0212
 
 
-def _box(cls: type[array], output: ak.Array | np.number | SupportsDLPack) -> array:
+def _box(
+    cls: type[array],
+    output: ak.Array | np.number | SupportsDLPack,
+    *,
+    dtype: None | Dtype = None,
+) -> array:
     if isinstance(output, ak.Array):
         impl = output
-        shape, dtype = _shape_dtype(output.layout)
+        shape, dtype_observed = _shape_dtype(output.layout)
+        if dtype is not None and dtype != dtype_observed:
+            impl = ak.values_astype(impl, dtype)
+        else:
+            dtype = dtype_observed
         device = ak.backend(output)
 
     elif isinstance(output, np.number):
         impl = np.array(output)
         shape = output.shape
-        dtype = output.dtype
+        dtype_observed = output.dtype
+        if dtype is not None and dtype != dtype_observed:
+            impl = impl.astype(dtype)
+        else:
+            dtype = dtype_observed
         device = "cpu"
 
     else:
         impl = output
         shape = output.shape  # type: ignore[union-attr]
-        dtype = output.dtype  # type: ignore[union-attr]
+        dtype_observed = output.dtype  # type: ignore[union-attr]
+        if dtype is not None and dtype != dtype_observed:
+            impl = impl.astype(dtype)
+        else:
+            dtype = dtype_observed
         device = "cpu" if isinstance(output, np.ndarray) else "cuda"
 
     return cls._new(impl, shape, dtype, device)  # pylint: disable=W0212

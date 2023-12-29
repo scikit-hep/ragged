@@ -26,11 +26,11 @@ except ModuleNotFoundError:
 @pytest.fixture(params=["regular", "irregular", "scalar"])
 def x(request):
     if request.param == "regular":
-        return ragged.array(np.array([1, 2, 3]))
+        return ragged.array(np.array([1, 2, 3], dtype=np.int64))
     elif request.param == "irregular":
         return ragged.array(ak.Array([[1.1, 1.2, 1.3], [], [1.4, 1.5]]))
     else:  # request.param == "scalar"
-        return ragged.array(np.array(10))
+        return ragged.array(np.array(10, dtype=np.int64))
 
 
 @pytest.fixture(params=["regular", "irregular", "scalar"])
@@ -46,11 +46,11 @@ def x_lt1(request):
 @pytest.fixture(params=["regular", "irregular", "scalar"])
 def x_int(request):
     if request.param == "regular":
-        return ragged.array(np.array([0, 1, 2]))
+        return ragged.array(np.array([0, 1, 2], dtype=np.int64))
     elif request.param == "irregular":
         return ragged.array(ak.Array([[1, 2, 3], [], [4, 5]]))
     else:  # request.param == "scalar"
-        return ragged.array(np.array(10))
+        return ragged.array(np.array(10, dtype=np.int64))
 
 
 y = x
@@ -222,3 +222,50 @@ def test_bitwise_invert(device, x_int):
     assert result.shape == x_int.shape
     assert result.dtype == np.dtype(np.int64)
     assert np.invert(first(x_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_left_shift(device, x_int, y_int):
+    result = ragged.bitwise_left_shift(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert result.dtype == np.dtype(np.int64)
+    assert np.left_shift(first(x_int), first(y_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_or(device, x_int, y_int):
+    result = ragged.bitwise_or(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert result.dtype == np.dtype(np.int64)
+    assert np.bitwise_or(first(x_int), first(y_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_right_shift(device, x_int, y_int):
+    result = ragged.bitwise_right_shift(
+        x_int.to_device(device), y_int.to_device(device)
+    )
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert result.dtype == np.dtype(np.int64)
+    assert np.right_shift(first(x_int), first(y_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_xor(device, x_int, y_int):
+    result = ragged.bitwise_xor(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert result.dtype == np.dtype(np.int64)
+    assert np.bitwise_xor(first(x_int), first(y_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_ceil(device, x):
+    result = ragged.ceil(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+    assert np.ceil(first(x)) == first(result)

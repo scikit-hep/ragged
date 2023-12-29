@@ -332,9 +332,7 @@ def bitwise_left_shift(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_left_shift.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 61"
+    return _box(type(x1), np.left_shift(*_unbox(x1, x2)))
 
 
 def bitwise_or(x1: array, x2: array, /) -> array:
@@ -354,9 +352,7 @@ def bitwise_or(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_or.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 62"
+    return _box(type(x1), np.bitwise_or(*_unbox(x1, x2)))
 
 
 def bitwise_right_shift(x1: array, x2: array, /) -> array:
@@ -378,9 +374,7 @@ def bitwise_right_shift(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_right_shift.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 63"
+    return _box(type(x1), np.right_shift(*_unbox(x1, x2)))
 
 
 def bitwise_xor(x1: array, x2: array, /) -> array:
@@ -400,9 +394,7 @@ def bitwise_xor(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_xor.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 64"
+    return _box(type(x1), np.bitwise_xor(*_unbox(x1, x2)))
 
 
 def ceil(x: array, /) -> array:
@@ -420,8 +412,7 @@ def ceil(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 65"
+    return _box(type(x), np.ceil(*_unbox(x)), dtype=x.dtype)
 
 
 def conj(x: array, /) -> array:
