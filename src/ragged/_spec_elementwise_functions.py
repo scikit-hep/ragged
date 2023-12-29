@@ -204,8 +204,7 @@ def atan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 56"
+    return _box(type(x), np.arctan(*_unbox(x)))
 
 
 def atan2(x1: array, x2: array, /) -> array:
@@ -246,9 +245,7 @@ def atan2(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atan2.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 57"
+    return _box(type(x1), np.arctan2(*_unbox(x1, x2)))
 
 
 def atanh(x: array, /) -> array:
@@ -277,8 +274,7 @@ def atanh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atanh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 58"
+    return _box(type(x), np.arctanh(*_unbox(x)))
 
 
 def bitwise_and(x1: array, x2: array, /) -> array:
@@ -298,9 +294,7 @@ def bitwise_and(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_and.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 59"
+    return _box(type(x1), np.bitwise_and(*_unbox(x1, x2)))
 
 
 def bitwise_invert(x: array, /) -> array:
@@ -317,8 +311,7 @@ def bitwise_invert(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_invert.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 60"
+    return _box(type(x), np.invert(*_unbox(x)))
 
 
 def bitwise_left_shift(x1: array, x2: array, /) -> array:

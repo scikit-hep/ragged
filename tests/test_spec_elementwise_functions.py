@@ -30,17 +30,7 @@ def x(request):
     elif request.param == "irregular":
         return ragged.array(ak.Array([[1.1, 1.2, 1.3], [], [1.4, 1.5]]))
     else:  # request.param == "scalar"
-        return ragged.array(np.array(100))
-
-
-@pytest.fixture(params=["regular", "irregular", "scalar"])
-def y(request):
-    if request.param == "regular":
-        return ragged.array(np.array([1, 2, 3]))
-    elif request.param == "irregular":
-        return ragged.array(ak.Array([[1.1, 1.2, 1.3], [], [1.4, 1.5]]))
-    else:  # request.param == "scalar"
-        return ragged.array(np.array(100))
+        return ragged.array(np.array(10))
 
 
 @pytest.fixture(params=["regular", "irregular", "scalar"])
@@ -51,6 +41,21 @@ def x_lt1(request):
         return ragged.array(ak.Array([[0.1, 0.2, 0.3], [], [0.4, 0.5]]))
     else:  # request.param == "scalar"
         return ragged.array(np.array(0.5))
+
+
+@pytest.fixture(params=["regular", "irregular", "scalar"])
+def x_int(request):
+    if request.param == "regular":
+        return ragged.array(np.array([0, 1, 2]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[1, 2, 3], [], [4, 5]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(10))
+
+
+y = x
+y_lt1 = x_lt1
+y_int = x_int
 
 
 def first(x: ragged.array) -> Any:
@@ -126,7 +131,7 @@ def test_abs(device, x):
     assert type(result) is type(x)
     assert result.shape == x.shape
     assert result.dtype == x.dtype
-    assert np.absolute(first(x)) == pytest.approx(first(result))
+    assert np.absolute(first(x)) == first(result)
 
 
 @pytest.mark.parametrize("device", devices)
@@ -153,7 +158,7 @@ def test_add(device, x, y):
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert result.dtype in (x.dtype, y.dtype)
-    assert np.add(first(x), first(y)) == pytest.approx(first(result))
+    assert np.add(first(x), first(y)) == first(result)
 
 
 @pytest.mark.parametrize("device", devices)
@@ -172,3 +177,48 @@ def test_asinh(device, x):
     assert result.shape == x.shape
     assert result.dtype == np.dtype(np.float64)
     assert np.arcsinh(first(x)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_atan(device, x):
+    result = ragged.atan(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert result.dtype == np.dtype(np.float64)
+    assert np.arctan(first(x)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_atan2(device, x, y):
+    result = ragged.atan2(y.to_device(device), x.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert result.dtype == np.dtype(np.float64)
+    assert np.arctan2(first(y), first(x)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_atanh(device, x_lt1):
+    result = ragged.atanh(x_lt1.to_device(device))
+    assert type(result) is type(x_lt1)
+    assert result.shape == x_lt1.shape
+    assert result.dtype == np.dtype(np.float64)
+    assert np.arctanh(first(x_lt1)) == pytest.approx(first(result))
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_and(device, x_int, y_int):
+    result = ragged.bitwise_and(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert result.dtype == np.dtype(np.int64)
+    assert np.bitwise_and(first(x_int), first(y_int)) == first(result)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_invert(device, x_int):
+    result = ragged.bitwise_invert(x_int.to_device(device))
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+    assert result.dtype == np.dtype(np.int64)
+    assert np.invert(first(x_int)) == first(result)
