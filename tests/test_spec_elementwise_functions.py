@@ -50,6 +50,16 @@ def x_lt1(request):
 
 
 @pytest.fixture(params=["regular", "irregular", "scalar"])
+def x_bool(request):
+    if request.param == "regular":
+        return ragged.array(np.array([False, True, False]))
+    elif request.param == "irregular":
+        return ragged.array(ak.Array([[True, True, False], [], [False, False]]))
+    else:  # request.param == "scalar"
+        return ragged.array(np.array(True))
+
+
+@pytest.fixture(params=["regular", "irregular", "scalar"])
 def x_int(request):
     if request.param == "regular":
         return ragged.array(np.array([0, 1, 2], dtype=np.int64))
@@ -71,6 +81,7 @@ def x_complex(request):
 
 y = x
 y_lt1 = x_lt1
+y_bool = x_bool
 y_int = x_int
 y_complex = x_complex
 
@@ -422,3 +433,129 @@ def test_imag(device, x_complex):
     assert result.shape == x_complex.shape
     assert xp.imag(first(x_complex)) == first(result)
     assert xp.imag(first(x_complex)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_isfinite(device, x):
+    result = ragged.isfinite(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.isfinite(first(x)) == first(result)
+    assert xp.isfinite(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_isinf(device, x):
+    result = ragged.isinf(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.isinf(first(x)) == first(result)
+    assert xp.isinf(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_isnan(device, x):
+    result = ragged.isnan(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.isnan(first(x)) == first(result)
+    assert xp.isnan(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_less(device, x, y):
+    result = ragged.less(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.less(first(x), first(y)) == first(result)
+    assert xp.less(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_less_equal(device, x, y):
+    result = ragged.less_equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.less_equal(first(x), first(y)) == first(result)
+    assert xp.less_equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_log(device, x):
+    result = ragged.log(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.log(first(x)) == pytest.approx(first(result))
+    assert xp.log(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_log1p(device, x):
+    result = ragged.log1p(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.log1p(first(x)) == pytest.approx(first(result))
+    assert xp.log1p(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_log2(device, x):
+    result = ragged.log2(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.log2(first(x)) == pytest.approx(first(result))
+    assert xp.log2(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_log10(device, x):
+    result = ragged.log10(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.log10(first(x)) == pytest.approx(first(result))
+    assert xp.log10(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_logaddexp(device, x, y):
+    result = ragged.logaddexp(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.logaddexp(first(x), first(y)) == pytest.approx(first(result))
+    assert xp.logaddexp(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_logical_and(device, x_bool, y_bool):
+    result = ragged.logical_and(x_bool.to_device(device), y_bool.to_device(device))
+    assert type(result) is type(x_bool) is type(y_bool)
+    assert result.shape in (x_bool.shape, y_bool.shape)
+    assert xp.logical_and(first(x_bool), first(y_bool)) == first(result)
+    assert xp.logical_and(first(x_bool), first(y_bool)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_logical_not(device, x_bool):
+    result = ragged.logical_not(x_bool.to_device(device))
+    assert type(result) is type(x_bool)
+    assert result.shape == x_bool.shape
+    assert xp.logical_not(first(x_bool)) == first(result)
+    assert xp.logical_not(first(x_bool)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_logical_or(device, x_bool, y_bool):
+    result = ragged.logical_or(x_bool.to_device(device), y_bool.to_device(device))
+    assert type(result) is type(x_bool) is type(y_bool)
+    assert result.shape in (x_bool.shape, y_bool.shape)
+    assert xp.logical_or(first(x_bool), first(y_bool)) == first(result)
+    assert xp.logical_or(first(x_bool), first(y_bool)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_logical_xor(device, x_bool, y_bool):
+    result = ragged.logical_xor(x_bool.to_device(device), y_bool.to_device(device))
+    assert type(result) is type(x_bool) is type(y_bool)
+    assert result.shape in (x_bool.shape, y_bool.shape)
+    assert xp.logical_xor(first(x_bool), first(y_bool)) == first(result)
+    assert xp.logical_xor(first(x_bool), first(y_bool)).dtype == result.dtype

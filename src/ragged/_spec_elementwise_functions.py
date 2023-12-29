@@ -691,8 +691,7 @@ def isfinite(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isfinite.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 78"
+    return _box(type(x), np.isfinite(*_unbox(x)))
 
 
 def isinf(x: array, /) -> array:
@@ -710,8 +709,7 @@ def isinf(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isinf.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 79"
+    return _box(type(x), np.isinf(*_unbox(x)))
 
 
 def isnan(x: array, /) -> array:
@@ -729,8 +727,7 @@ def isnan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isnan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 80"
+    return _box(type(x), np.isnan(*_unbox(x)))
 
 
 def less(x1: array, x2: array, /) -> array:
@@ -750,9 +747,7 @@ def less(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.less.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 81"
+    return _box(type(x1), np.less(*_unbox(x1, x2)))
 
 
 def less_equal(x1: array, x2: array, /) -> array:
@@ -772,9 +767,7 @@ def less_equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.less_equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 82"
+    return _box(type(x1), np.less_equal(*_unbox(x1, x2)))
 
 
 def log(x: array, /) -> array:
@@ -793,8 +786,7 @@ def log(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 83"
+    return _box(type(x), np.log(*_unbox(x)))
 
 
 def log1p(x: array, /) -> array:
@@ -817,8 +809,7 @@ def log1p(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log1p.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 84"
+    return _box(type(x), np.log1p(*_unbox(x)))
 
 
 def log2(x: array, /) -> array:
@@ -837,8 +828,7 @@ def log2(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log2.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 85"
+    return _box(type(x), np.log2(*_unbox(x)))
 
 
 def log10(x: array, /) -> array:
@@ -857,8 +847,7 @@ def log10(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log10.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 86"
+    return _box(type(x), np.log10(*_unbox(x)))
 
 
 def logaddexp(x1: array, x2: array, /) -> array:
@@ -878,9 +867,7 @@ def logaddexp(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logaddexp.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 87"
+    return _box(type(x1), np.logaddexp(*_unbox(x1, x2)))
 
 
 def logical_and(x1: array, x2: array, /) -> array:
@@ -899,9 +886,7 @@ def logical_and(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_and.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 88"
+    return _box(type(x1), np.logical_and(*_unbox(x1, x2)))
 
 
 def logical_not(x: array, /) -> array:
@@ -918,8 +903,7 @@ def logical_not(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_not.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 89"
+    return _box(type(x), np.logical_not(*_unbox(x)))
 
 
 def logical_or(x1: array, x2: array, /) -> array:
@@ -938,9 +922,7 @@ def logical_or(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_or.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 90"
+    return _box(type(x1), np.logical_or(*_unbox(x1, x2)))
 
 
 def logical_xor(x1: array, x2: array, /) -> array:
@@ -959,9 +941,7 @@ def logical_xor(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_xor.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 91"
+    return _box(type(x1), np.logical_xor(*_unbox(x1, x2)))
 
 
 def multiply(x1: array, x2: array, /) -> array:
