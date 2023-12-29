@@ -6,6 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
@@ -441,7 +443,7 @@ def conj(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.conj.html
     """
 
-    return _box(type(x), np.conj(*_unbox(x)))
+    return _box(type(x), np.conjugate(*_unbox(x)))
 
 
 def cos(x: array, /) -> array:
@@ -625,9 +627,7 @@ def greater(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.greater.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 75"
+    return _box(type(x1), np.greater(*_unbox(x1, x2)))
 
 
 def greater_equal(x1: array, x2: array, /) -> array:
@@ -647,9 +647,7 @@ def greater_equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.greater_equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 76"
+    return _box(type(x1), np.greater_equal(*_unbox(x1, x2)))
 
 
 def imag(x: array, /) -> array:
@@ -669,8 +667,14 @@ def imag(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.imag.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 77"
+    (a,) = _unbox(x)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return _box(
+            type(x),
+            (a - np.conjugate(a)) / 2j,
+            dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
+        )
 
 
 def isfinite(x: array, /) -> array:

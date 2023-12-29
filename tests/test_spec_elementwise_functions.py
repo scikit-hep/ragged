@@ -62,11 +62,11 @@ def x_int(request):
 @pytest.fixture(params=["regular", "irregular", "scalar"])
 def x_complex(request):
     if request.param == "regular":
-        return ragged.array(np.array([1+0.1j, 2+0.2j, 3+0.3j]))
+        return ragged.array(np.array([1 + 0.1j, 2 + 0.2j, 3 + 0.3j]))
     elif request.param == "irregular":
-        return ragged.array(ak.Array([[1+0j, 2+0j, 3+0j], [], [4+0j, 5+0j]]))
+        return ragged.array(ak.Array([[1 + 0j, 2 + 0j, 3 + 0j], [], [4 + 0j, 5 + 0j]]))
     else:  # request.param == "scalar"
-        return ragged.array(np.array(10+1j))
+        return ragged.array(np.array(10 + 1j))
 
 
 y = x
@@ -395,3 +395,30 @@ def test_floor_divide_int(device, x_int, y_int):
         assert result.shape in (x_int.shape, y_int.shape)
         assert xp.floor_divide(first(x_int), first(y_int)) == first(result)
         assert xp.floor_divide(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_greater(device, x, y):
+    result = ragged.greater(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.greater(first(x), first(y)) == first(result)
+    assert xp.greater(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_greater_equal(device, x, y):
+    result = ragged.greater_equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.greater_equal(first(x), first(y)) == first(result)
+    assert xp.greater_equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_imag(device, x_complex):
+    result = ragged.imag(x_complex.to_device(device))
+    assert type(result) is type(x_complex)
+    assert result.shape == x_complex.shape
+    assert xp.imag(first(x_complex)) == first(result)
+    assert xp.imag(first(x_complex)).dtype == result.dtype
