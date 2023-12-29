@@ -543,8 +543,7 @@ def exp(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.exp.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 71"
+    return _box(type(x), np.exp(*_unbox(x)))
 
 
 def expm1(x: array, /) -> array:
@@ -566,8 +565,7 @@ def expm1(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.expm1.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 72"
+    return _box(type(x), np.expm1(*_unbox(x)))
 
 
 def floor(x: array, /) -> array:
@@ -586,8 +584,7 @@ def floor(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 73"
+    return _box(type(x), np.floor(*_unbox(x)), dtype=x.dtype)
 
 
 def floor_divide(x1: array, x2: array, /) -> array:
@@ -608,9 +605,7 @@ def floor_divide(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor_divide.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 74"
+    return _box(type(x1), np.floor_divide(*_unbox(x1, x2)))
 
 
 def greater(x1: array, x2: array, /) -> array:

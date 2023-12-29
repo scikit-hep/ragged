@@ -289,6 +289,15 @@ def test_ceil(device, x):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_ceil_int(device, x_int):
+    result = ragged.ceil(x_int.to_device(device))
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+    assert xp.ceil(first(x_int)) == first(result)
+    assert xp.ceil(first(x_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_conj(device, x_complex):
     result = ragged.conj(x_complex.to_device(device))
     assert type(result) is type(x_complex)
@@ -331,3 +340,58 @@ def test_equal(device, x, y):
     assert result.shape in (x.shape, y.shape)
     assert xp.equal(first(x), first(y)) == first(result)
     assert xp.equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_exp(device, x):
+    result = ragged.exp(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.exp(first(x)) == pytest.approx(first(result))
+    assert xp.exp(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_expm1(device, x):
+    result = ragged.expm1(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.expm1(first(x)) == pytest.approx(first(result))
+    assert xp.expm1(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_floor(device, x):
+    result = ragged.floor(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.floor(first(x)) == first(result)
+    assert xp.floor(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_floor_int(device, x_int):
+    result = ragged.floor(x_int.to_device(device))
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+    assert xp.floor(first(x_int)) == first(result)
+    assert xp.floor(first(x_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_floor_divide(device, x, y):
+    result = ragged.floor_divide(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.floor_divide(first(x), first(y)) == first(result)
+    assert xp.floor_divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_floor_divide_int(device, x_int, y_int):
+    with np.errstate(divide="ignore"):
+        result = ragged.floor_divide(x_int.to_device(device), y_int.to_device(device))
+        assert type(result) is type(x_int) is type(y_int)
+        assert result.shape in (x_int.shape, y_int.shape)
+        assert xp.floor_divide(first(x_int), first(y_int)) == first(result)
+        assert xp.floor_divide(first(x_int), first(y_int)).dtype == result.dtype
