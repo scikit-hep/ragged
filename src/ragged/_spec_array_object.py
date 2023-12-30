@@ -358,7 +358,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__abs__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         return ns.abs(self)
 
@@ -370,7 +372,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -385,7 +389,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -399,7 +405,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__array_namespace__.html
         """
 
-        import ragged  # pylint: disable=C0415
+        import ragged  # pylint: disable=C0415,R0401
 
         if api_version is not None and api_version != ragged.__array_api_version__:
             msg = f"api_version {api_version!r} is not implemented; {ragged.__array_api_version__ = }"
@@ -463,7 +469,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -487,7 +495,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -502,7 +512,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -526,7 +538,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -558,7 +572,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__invert__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         return ns.bitwise_invert(self)
 
@@ -570,7 +586,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__le__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -585,7 +603,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lshift__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -600,7 +620,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lt__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -624,7 +646,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mod__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -639,7 +663,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -654,7 +680,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ne__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -668,7 +696,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__neg__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         return ns.negative(self)
 
@@ -680,7 +710,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__or__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -694,7 +726,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pos__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         return ns.positive(self)
 
@@ -708,7 +742,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pow__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -723,7 +759,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__rshift__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -749,7 +787,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__sub__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -764,7 +804,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
@@ -779,7 +821,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__xor__.html
         """
 
-        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
 
         if not isinstance(other, array):
             other = array(other, device=self._device)
