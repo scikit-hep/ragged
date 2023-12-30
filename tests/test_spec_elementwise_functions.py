@@ -163,6 +163,15 @@ def test_abs(device, x):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_abs_method(device, x):
+    result = abs(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.abs(first(x)) == first(result)
+    assert xp.abs(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_acos(device, x_lt1):
     result = ragged.acos(x_lt1.to_device(device))
     assert type(result) is type(x_lt1)
@@ -183,6 +192,15 @@ def test_acosh(device, x):
 @pytest.mark.parametrize("device", devices)
 def test_add(device, x, y):
     result = ragged.add(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.add(first(x), first(y)) == first(result)
+    assert xp.add(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_add_method(device, x, y):
+    result = x.to_device(device) + y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.add(first(x), first(y)) == first(result)
@@ -244,8 +262,26 @@ def test_bitwise_and(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_and_method(device, x_int, y_int):
+    result = x_int.to_device(device) & y_int.to_device(device)
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert xp.bitwise_and(first(x_int), first(y_int)) == first(result)
+    assert xp.bitwise_and(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_invert(device, x_int):
     result = ragged.bitwise_invert(x_int.to_device(device))
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+    assert xp.bitwise_invert(first(x_int)) == first(result)
+    assert xp.bitwise_invert(first(x_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_invert_method(device, x_int):
+    result = ~x_int.to_device(device)
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.bitwise_invert(first(x_int)) == first(result)
@@ -262,8 +298,26 @@ def test_bitwise_left_shift(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_left_shift_method(device, x_int, y_int):
+    result = x_int.to_device(device) << y_int.to_device(device)
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert xp.bitwise_left_shift(first(x_int), first(y_int)) == first(result)
+    assert xp.bitwise_left_shift(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_or(device, x_int, y_int):
     result = ragged.bitwise_or(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert xp.bitwise_or(first(x_int), first(y_int)) == first(result)
+    assert xp.bitwise_or(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_or_method(device, x_int, y_int):
+    result = x_int.to_device(device) | y_int.to_device(device)
     assert type(result) is type(x_int) is type(y_int)
     assert result.shape in (x_int.shape, y_int.shape)
     assert xp.bitwise_or(first(x_int), first(y_int)) == first(result)
@@ -282,8 +336,26 @@ def test_bitwise_right_shift(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_right_shift_method(device, x_int, y_int):
+    result = x_int.to_device(device) >> y_int.to_device(device)
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert xp.bitwise_right_shift(first(x_int), first(y_int)) == first(result)
+    assert xp.bitwise_right_shift(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_xor(device, x_int, y_int):
     result = ragged.bitwise_xor(x_int.to_device(device), y_int.to_device(device))
+    assert type(result) is type(x_int) is type(y_int)
+    assert result.shape in (x_int.shape, y_int.shape)
+    assert xp.bitwise_xor(first(x_int), first(y_int)) == first(result)
+    assert xp.bitwise_xor(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_xor_method(device, x_int, y_int):
+    result = x_int.to_device(device) ^ y_int.to_device(device)
     assert type(result) is type(x_int) is type(y_int)
     assert result.shape in (x_int.shape, y_int.shape)
     assert xp.bitwise_xor(first(x_int), first(y_int)) == first(result)
@@ -345,8 +417,26 @@ def test_divide(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_divide_method(device, x, y):
+    result = x.to_device(device) / y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.divide(first(x), first(y)) == first(result)
+    assert xp.divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_equal(device, x, y):
     result = ragged.equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.equal(first(x), first(y)) == first(result)
+    assert xp.equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_equal_method(device, x, y):
+    result = x.to_device(device) == y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.equal(first(x), first(y)) == first(result)
@@ -399,6 +489,15 @@ def test_floor_divide(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_floor_divide_method(device, x, y):
+    result = x.to_device(device) // y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.floor_divide(first(x), first(y)) == first(result)
+    assert xp.floor_divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_floor_divide_int(device, x_int, y_int):
     with np.errstate(divide="ignore"):
         result = ragged.floor_divide(x_int.to_device(device), y_int.to_device(device))
@@ -418,8 +517,26 @@ def test_greater(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_greater_method(device, x, y):
+    result = x.to_device(device) > y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.greater(first(x), first(y)) == first(result)
+    assert xp.greater(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_greater_equal(device, x, y):
     result = ragged.greater_equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.greater_equal(first(x), first(y)) == first(result)
+    assert xp.greater_equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_greater_equal_method(device, x, y):
+    result = x.to_device(device) >= y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.greater_equal(first(x), first(y)) == first(result)
@@ -472,8 +589,26 @@ def test_less(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_less_method(device, x, y):
+    result = x.to_device(device) < y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.less(first(x), first(y)) == first(result)
+    assert xp.less(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_less_equal(device, x, y):
     result = ragged.less_equal(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.less_equal(first(x), first(y)) == first(result)
+    assert xp.less_equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_less_equal_method(device, x, y):
+    result = x.to_device(device) <= y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.less_equal(first(x), first(y)) == first(result)
@@ -571,8 +706,26 @@ def test_multiply(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_multiply_method(device, x, y):
+    result = x.to_device(device) * y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.multiply(first(x), first(y)) == first(result)
+    assert xp.multiply(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_negative(device, x):
     result = ragged.negative(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.negative(first(x)) == pytest.approx(first(result))
+    assert xp.negative(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_negative_method(device, x):
+    result = -x.to_device(device)
     assert type(result) is type(x)
     assert result.shape == x.shape
     assert xp.negative(first(x)) == pytest.approx(first(result))
@@ -589,6 +742,15 @@ def test_not_equal(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_not_equal_method(device, x, y):
+    result = x.to_device(device) != y.to_device(device)
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.not_equal(first(x), first(y)) == first(result)
+    assert xp.not_equal(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_positive(device, x):
     result = ragged.positive(x.to_device(device))
     assert type(result) is type(x)
@@ -598,8 +760,26 @@ def test_positive(device, x):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_positive_method(device, x):
+    result = +x.to_device(device)
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.positive(first(x)) == pytest.approx(first(result))
+    assert xp.positive(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_pow(device, x, y):
     result = ragged.pow(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.pow(first(x), first(y)) == first(result)
+    assert xp.pow(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_pow_method(device, x, y):
+    result = x.to_device(device) ** y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.pow(first(x), first(y)) == first(result)
@@ -618,6 +798,15 @@ def test_real(device, x_complex):
 @pytest.mark.parametrize("device", devices)
 def test_remainder(device, x, y):
     result = ragged.remainder(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.remainder(first(x), first(y)) == first(result)
+    assert xp.remainder(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_remainder_method(device, x, y):
+    result = x.to_device(device) % y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.remainder(first(x), first(y)) == first(result)
@@ -690,6 +879,15 @@ def test_sqrt(device, x):
 @pytest.mark.parametrize("device", devices)
 def test_subtract(device, x, y):
     result = ragged.subtract(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.subtract(first(x), first(y)) == first(result)
+    assert xp.subtract(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_subtract_method(device, x, y):
+    result = x.to_device(device) - y.to_device(device)
     assert type(result) is type(x) is type(y)
     assert result.shape in (x.shape, y.shape)
     assert xp.subtract(first(x), first(y)) == first(result)

@@ -358,7 +358,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__abs__.html
         """
 
-        assert False, "TODO 3"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        return ns.abs(self)
 
     def __add__(self, other: int | float | array, /) -> array:
         """
@@ -368,7 +370,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
 
-        assert False, "TODO 4"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.add(self, other)
 
     def __and__(self, other: int | bool | array, /) -> array:
         """
@@ -378,7 +385,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
 
-        assert False, "TODO 5"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_and(self, other)
 
     def __array_namespace__(self, *, api_version: None | str = None) -> Any:
         """
@@ -387,8 +399,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__array_namespace__.html
         """
 
-        assert api_version, "TODO"
-        assert False, "TODO 6"
+        import ragged  # pylint: disable=C0415
+
+        if api_version is not None and api_version != ragged.__array_api_version__:
+            msg = f"api_version {api_version!r} is not implemented; {ragged.__array_api_version__ = }"
+            raise NotImplementedError(msg)
+
+        return ragged
 
     def __bool__(self) -> bool:  # FIXME pylint: disable=E0304
         """
@@ -406,7 +423,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__complex__.html
         """
 
-        assert False, "TODO 8"
+        return complex(self._impl)  # type: ignore[arg-type]
 
     def __dlpack__(self, *, stream: None | int | Any = None) -> PyCapsule:
         """
@@ -446,7 +463,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
 
-        assert False, "TODO 11"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.equal(self, other)
 
     def __float__(self) -> float:
         """
@@ -455,7 +477,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__float__.html
         """
 
-        assert False, "TODO 12"
+        return float(self._impl)  # type: ignore[arg-type]
 
     def __floordiv__(self, other: int | float | array, /) -> array:
         """
@@ -465,7 +487,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
 
-        assert False, "TODO 13"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.floor_divide(self, other)
 
     def __ge__(self, other: int | float | array, /) -> array:
         """
@@ -475,7 +502,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
 
-        assert False, "TODO 14"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.greater_equal(self, other)
 
     def __getitem__(self, key: GetSliceKey, /) -> array:
         """
@@ -494,7 +526,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
 
-        assert False, "TODO 16"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.greater(self, other)
 
     def __index__(self) -> int:  # FIXME pylint: disable=E0305
         """
@@ -503,7 +540,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__index__.html
         """
 
-        assert False, "TODO 17"
+        return self._impl.__index__()  # type: ignore[no-any-return, union-attr]
 
     def __int__(self) -> int:
         """
@@ -512,7 +549,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__int__.html
         """
 
-        assert False, "TODO 18"
+        return int(self._impl)  # type: ignore[arg-type]
 
     def __invert__(self) -> array:
         """
@@ -521,7 +558,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__invert__.html
         """
 
-        assert False, "TODO 19"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        return ns.bitwise_invert(self)
 
     def __le__(self, other: int | float | array, /) -> array:
         """
@@ -531,7 +570,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__le__.html
         """
 
-        assert False, "TODO 20"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.less_equal(self, other)
 
     def __lshift__(self, other: int | array, /) -> array:
         """
@@ -541,7 +585,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lshift__.html
         """
 
-        assert False, "TODO 21"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_left_shift(self, other)
 
     def __lt__(self, other: int | float | array, /) -> array:
         """
@@ -551,7 +600,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lt__.html
         """
 
-        assert False, "TODO 22"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.less(self, other)
 
     def __matmul__(self, other: array, /) -> array:
         """
@@ -570,7 +624,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mod__.html
         """
 
-        assert False, "TODO 23"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.remainder(self, other)
 
     def __mul__(self, other: int | float | array, /) -> array:
         """
@@ -580,7 +639,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
         """
 
-        assert False, "TODO 24"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.multiply(self, other)
 
     def __ne__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -590,7 +654,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ne__.html
         """
 
-        assert False, "TODO 25"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.not_equal(self, other)
 
     def __neg__(self) -> array:
         """
@@ -599,7 +668,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__neg__.html
         """
 
-        assert False, "TODO 26"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        return ns.negative(self)
 
     def __or__(self, other: int | bool | array, /) -> array:
         """
@@ -609,7 +680,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__or__.html
         """
 
-        assert False, "TODO 27"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_or(self, other)
 
     def __pos__(self) -> array:
         """
@@ -618,7 +694,9 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pos__.html
         """
 
-        assert False, "TODO 28"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        return ns.positive(self)
 
     def __pow__(self, other: int | float | array, /) -> array:
         """
@@ -630,7 +708,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pow__.html
         """
 
-        assert False, "TODO 29"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.pow(self, other)
 
     def __rshift__(self, other: int | array, /) -> array:
         """
@@ -640,7 +723,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__rshift__.html
         """
 
-        assert False, "TODO 30"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_right_shift(self, other)
 
     def __setitem__(
         self, key: SetSliceKey, value: int | float | bool | array, /
@@ -661,7 +749,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__sub__.html
         """
 
-        assert False, "TODO 32"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.subtract(self, other)
 
     def __truediv__(self, other: int | float | array, /) -> array:
         """
@@ -671,7 +764,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
         """
 
-        assert False, "TODO 33"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.divide(self, other)
 
     def __xor__(self, other: int | bool | array, /) -> array:
         """
@@ -681,7 +779,12 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__xor__.html
         """
 
-        assert False, "TODO 34"
+        from ragged import _spec_elementwise_functions as ns  # pylint: disable=C0415
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_xor(self, other)
 
     def to_device(self, device: Device, /, *, stream: None | int | Any = None) -> array:
         """
