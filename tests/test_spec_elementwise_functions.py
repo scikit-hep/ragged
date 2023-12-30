@@ -640,3 +640,84 @@ def test_round_complex(device, x_complex):
     assert result.shape == x_complex.shape
     assert xp.round(first(x_complex)) == first(result)
     assert xp.round(first(x_complex)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_sign(device, x):
+    result = ragged.sign(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.sign(first(x)) == first(result)
+    assert xp.sign(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_sin(device, x):
+    result = ragged.sin(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.sin(first(x)) == pytest.approx(first(result))
+    assert xp.sin(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_sinh(device, x):
+    result = ragged.sinh(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.sinh(first(x)) == pytest.approx(first(result))
+    assert xp.sinh(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_square(device, x):
+    result = ragged.square(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.square(first(x)) == first(result)
+    assert xp.square(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_sqrt(device, x):
+    result = ragged.sqrt(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.sqrt(first(x)) == pytest.approx(first(result))
+    assert xp.sqrt(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_subtract(device, x, y):
+    result = ragged.subtract(x.to_device(device), y.to_device(device))
+    assert type(result) is type(x) is type(y)
+    assert result.shape in (x.shape, y.shape)
+    assert xp.subtract(first(x), first(y)) == first(result)
+    assert xp.subtract(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_tan(device, x):
+    result = ragged.tan(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.tan(first(x)) == pytest.approx(first(result))
+    assert xp.tan(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_tanh(device, x):
+    result = ragged.tanh(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.tanh(first(x)) == pytest.approx(first(result))
+    assert xp.tanh(first(x)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_trunc(device, x):
+    result = ragged.trunc(x.to_device(device))
+    assert type(result) is type(x)
+    assert result.shape == x.shape
+    assert xp.trunc(first(x)) == first(result)
+    assert xp.trunc(first(x)).dtype == result.dtype

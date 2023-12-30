@@ -1156,8 +1156,7 @@ def sign(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sign.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 100"
+    return _box(type(x), np.sign(*_unbox(x)))
 
 
 def sin(x: array, /) -> array:
@@ -1177,8 +1176,7 @@ def sin(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sin.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 101"
+    return _box(type(x), np.sin(*_unbox(x)))
 
 
 def sinh(x: array, /) -> array:
@@ -1201,8 +1199,7 @@ def sinh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sinh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 102"
+    return _box(type(x), np.sinh(*_unbox(x)))
 
 
 def square(x: array, /) -> array:
@@ -1223,8 +1220,7 @@ def square(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.square.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 103"
+    return _box(type(x), np.square(*_unbox(x)))
 
 
 def sqrt(x: array, /) -> array:
@@ -1243,8 +1239,7 @@ def sqrt(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sqrt.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 104"
+    return _box(type(x), np.sqrt(*_unbox(x)))
 
 
 def subtract(x1: array, x2: array, /) -> array:
@@ -1266,9 +1261,7 @@ def subtract(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.subtract.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 105"
+    return _box(type(x1), np.subtract(*_unbox(x1, x2)))
 
 
 def tan(x: array, /) -> array:
@@ -1288,8 +1281,7 @@ def tan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 106"
+    return _box(type(x), np.tan(*_unbox(x)))
 
 
 def tanh(x: array, /) -> array:
@@ -1315,8 +1307,7 @@ def tanh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tanh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 107"
+    return _box(type(x), np.tanh(*_unbox(x)))
 
 
 def trunc(x: array, /) -> array:
@@ -1334,5 +1325,4 @@ def trunc(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.trunc.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 108"
+    return _box(type(x), np.trunc(*_unbox(x)))
