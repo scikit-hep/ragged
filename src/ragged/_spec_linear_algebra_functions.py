@@ -75,7 +75,7 @@ def matmul(x1: array, x2: array, /) -> array:
 
     assert x1, "TODO"
     assert x2, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 110"
 
 
 def matrix_transpose(x: array, /) -> array:
@@ -94,7 +94,7 @@ def matrix_transpose(x: array, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 111"
 
 
 def tensordot(
@@ -143,7 +143,7 @@ def tensordot(
     assert x1, "TODO"
     assert x2, "TODO"
     assert axes, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 112"
 
 
 def vecdot(x1: array, x2: array, /, *, axis: int = -1) -> array:
@@ -187,4 +187,4 @@ def vecdot(x1: array, x2: array, /, *, axis: int = -1) -> array:
     assert x1, "TODO"
     assert x2, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 113"

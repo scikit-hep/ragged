@@ -37,7 +37,7 @@ def astype(x: array, dtype: Dtype, /, *, copy: bool = True) -> array:
     assert x, "TODO"
     assert dtype, "TODO"
     assert copy, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 50"
 
 
 def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
@@ -58,7 +58,7 @@ def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
 
     assert from_, "TODO"
     assert to, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 51"
 
 
 @dataclass
@@ -115,7 +115,7 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     """
 
     assert type, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 52"
 
 
 @dataclass
@@ -156,7 +156,7 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     """
 
     assert type, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 53"
 
 
 def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
@@ -201,7 +201,7 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
 
     assert dtype, "TODO"
     assert kind, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 54"
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
@@ -219,4 +219,4 @@ def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
     """
 
     assert arrays_and_dtypes, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 55"

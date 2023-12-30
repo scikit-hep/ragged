@@ -6,7 +6,7 @@ Borrows liberally from https://github.com/numpy/numpy/blob/main/numpy/array_api/
 
 from __future__ import annotations
 
-import numbers
+import enum
 import sys
 from typing import Any, Literal, Optional, Protocol, TypeVar, Union
 
@@ -39,7 +39,7 @@ class SupportsDLPack(Protocol):
     def __dlpack__(self, /, *, stream: None = ...) -> PyCapsule:
         ...
 
-    def item(self) -> numbers.Number:
+    def __dlpack_device__(self, /) -> tuple[enum.Enum, int]:
         ...
 
 
@@ -47,6 +47,7 @@ Shape = tuple[Optional[int], ...]
 
 Dtype = np.dtype[
     Union[
+        np.bool_,
         np.int8,
         np.int16,
         np.int32,
@@ -57,7 +58,25 @@ Dtype = np.dtype[
         np.uint64,
         np.float32,
         np.float64,
+        np.complex64,
+        np.complex128,
     ]
 ]
 
-Device = Union[Literal["cpu"], Literal["cuda"]]
+numeric_types = (
+    np.bool_,
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+    np.float32,
+    np.float64,
+    np.complex64,
+    np.complex128,
+)
+
+Device = Literal["cpu", "cuda"]

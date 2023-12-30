@@ -7,7 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/array_object.html
 from __future__ import annotations
 
 import enum
-from numbers import Real
+import numbers
 from typing import TYPE_CHECKING, Any, Union
 
 import awkward as ak
@@ -29,6 +29,7 @@ from ._typing import (
     Shape,
     SupportsBufferProtocol,
     SupportsDLPack,
+    numeric_types,
 )
 
 
@@ -161,7 +162,24 @@ class array:  # pylint: disable=C0103
             self._impl = obj
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
-        elif isinstance(obj, (bool, Real)):
+        elif hasattr(obj, "__dlpack_device__") and getattr(obj, "shape", None) == ():
+            device_type, _ = obj.__dlpack_device__()
+            if (
+                isinstance(device_type, enum.Enum) and device_type.value == 1
+            ) or device_type == 1:
+                self._impl = np.array(obj)
+                self._shape, self._dtype = (), self._impl.dtype
+            elif (
+                isinstance(device_type, enum.Enum) and device_type.value == 2
+            ) or device_type == 2:
+                cp = _import.cupy()
+                self._impl = cp.array(obj)
+                self._shape, self._dtype = (), self._impl.dtype
+            else:
+                msg = f"unsupported __dlpack_device__ type: {device_type}"
+                raise TypeError(msg)
+
+        elif isinstance(obj, (bool, numbers.Complex)):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
@@ -169,7 +187,7 @@ class array:  # pylint: disable=C0103
             self._impl = ak.Array(obj)
             self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
-        if not isinstance(dtype, np.dtype):
+        if dtype is not None and not isinstance(dtype, np.dtype):
             dtype = np.dtype(dtype)
 
         if dtype is not None and dtype != self._dtype:
@@ -188,8 +206,8 @@ class array:  # pylint: disable=C0103
             msg = f"dtype must not have a shape: dtype.shape = {self._dtype.shape}"
             raise TypeError(msg)
 
-        if not issubclass(self._dtype.type, np.number):
-            msg = f"dtype must be numeric: dtype.type = {self._dtype.type}"
+        if self._dtype.type not in numeric_types:
+            msg = f"dtype must be numeric (bool, [u]int*, float*, complex*): dtype.type = {self._dtype.type}"
             raise TypeError(msg)
 
         if device is not None:
@@ -197,7 +215,7 @@ class array:  # pylint: disable=C0103
                 self._impl = ak.to_backend(self._impl, device)
             elif isinstance(self._impl, np.ndarray) and device == "cuda":
                 cp = _import.cupy()
-                self._impl = cp.array(self._impl.item())
+                self._impl = cp.array(self._impl)
 
         assert copy is None, "TODO"
 
@@ -207,7 +225,7 @@ class array:  # pylint: disable=C0103
         """
 
         if len(self._shape) == 0:
-            return f"{self._impl.item()}"
+            return f"{self._impl}"
         elif len(self._shape) == 1:
             return f"{ak._prettyprint.valuestr(self._impl, 1, 80)}"
         else:
@@ -222,7 +240,7 @@ class array:  # pylint: disable=C0103
         """
 
         if len(self._shape) == 0:
-            return f"ragged.array({self._impl.item()})"
+            return f"ragged.array({self._impl})"
         elif len(self._shape) == 1:
             return f"ragged.array({ak._prettyprint.valuestr(self._impl, 1, 80 - 14)})"
         else:
@@ -266,7 +284,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 1"
 
     @property
     def ndim(self) -> int:
@@ -329,7 +347,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 2"
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -340,7 +358,11 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__abs__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        return ns.abs(self)
 
     def __add__(self, other: int | float | array, /) -> array:
         """
@@ -350,7 +372,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.add(self, other)
 
     def __and__(self, other: int | bool | array, /) -> array:
         """
@@ -360,7 +389,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_and(self, other)
 
     def __array_namespace__(self, *, api_version: None | str = None) -> Any:
         """
@@ -369,8 +405,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__array_namespace__.html
         """
 
-        assert api_version, "TODO"
-        assert False, "TODO"
+        import ragged  # pylint: disable=C0415,R0401
+
+        if api_version is not None and api_version != ragged.__array_api_version__:
+            msg = f"api_version {api_version!r} is not implemented; {ragged.__array_api_version__ = }"
+            raise NotImplementedError(msg)
+
+        return ragged
 
     def __bool__(self) -> bool:  # FIXME pylint: disable=E0304
         """
@@ -379,7 +420,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__bool__.html
         """
 
-        assert False, "TODO"
+        return bool(self._impl)
 
     def __complex__(self) -> complex:
         """
@@ -388,7 +429,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__complex__.html
         """
 
-        assert False, "TODO"
+        return complex(self._impl)  # type: ignore[arg-type]
 
     def __dlpack__(self, *, stream: None | int | Any = None) -> PyCapsule:
         """
@@ -406,7 +447,7 @@ class array:  # pylint: disable=C0103
         """
 
         assert stream, "TODO"
-        assert False, "TODO"
+        assert False, "TODO 9"
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -418,7 +459,7 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 10"
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -428,7 +469,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.equal(self, other)
 
     def __float__(self) -> float:
         """
@@ -437,7 +485,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__float__.html
         """
 
-        assert False, "TODO"
+        return float(self._impl)  # type: ignore[arg-type]
 
     def __floordiv__(self, other: int | float | array, /) -> array:
         """
@@ -447,7 +495,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.floor_divide(self, other)
 
     def __ge__(self, other: int | float | array, /) -> array:
         """
@@ -457,7 +512,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.greater_equal(self, other)
 
     def __getitem__(self, key: GetSliceKey, /) -> array:
         """
@@ -466,7 +528,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 15"
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
@@ -476,7 +538,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.greater(self, other)
 
     def __index__(self) -> int:  # FIXME pylint: disable=E0305
         """
@@ -485,7 +554,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__index__.html
         """
 
-        assert False, "TODO"
+        return self._impl.__index__()  # type: ignore[no-any-return, union-attr]
 
     def __int__(self) -> int:
         """
@@ -494,7 +563,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__int__.html
         """
 
-        assert False, "TODO"
+        return int(self._impl)  # type: ignore[arg-type]
 
     def __invert__(self) -> array:
         """
@@ -503,7 +572,11 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__invert__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        return ns.bitwise_invert(self)
 
     def __le__(self, other: int | float | array, /) -> array:
         """
@@ -513,7 +586,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__le__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.less_equal(self, other)
 
     def __lshift__(self, other: int | array, /) -> array:
         """
@@ -523,7 +603,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lshift__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_left_shift(self, other)
 
     def __lt__(self, other: int | float | array, /) -> array:
         """
@@ -533,7 +620,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__lt__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.less(self, other)
 
     def __matmul__(self, other: array, /) -> array:
         """
@@ -542,7 +636,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 22"
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -552,7 +646,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mod__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.remainder(self, other)
 
     def __mul__(self, other: int | float | array, /) -> array:
         """
@@ -562,7 +663,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__mul__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.multiply(self, other)
 
     def __ne__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -572,7 +680,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ne__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.not_equal(self, other)
 
     def __neg__(self) -> array:
         """
@@ -581,7 +696,11 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__neg__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        return ns.negative(self)
 
     def __or__(self, other: int | bool | array, /) -> array:
         """
@@ -591,7 +710,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__or__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_or(self, other)
 
     def __pos__(self) -> array:
         """
@@ -600,7 +726,11 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pos__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        return ns.positive(self)
 
     def __pow__(self, other: int | float | array, /) -> array:
         """
@@ -612,7 +742,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__pow__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.pow(self, other)
 
     def __rshift__(self, other: int | array, /) -> array:
         """
@@ -622,7 +759,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__rshift__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_right_shift(self, other)
 
     def __setitem__(
         self, key: SetSliceKey, value: int | float | bool | array, /
@@ -633,7 +777,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        assert False, "TODO"
+        assert False, "TODO 31"
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
@@ -643,7 +787,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__sub__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.subtract(self, other)
 
     def __truediv__(self, other: int | float | array, /) -> array:
         """
@@ -653,7 +804,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__truediv__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.divide(self, other)
 
     def __xor__(self, other: int | bool | array, /) -> array:
         """
@@ -663,7 +821,14 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__xor__.html
         """
 
-        assert False, "TODO"
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_elementwise_functions as ns,
+        )
+
+        if not isinstance(other, array):
+            other = array(other, device=self._device)
+
+        return ns.bitwise_xor(self, other)
 
     def to_device(self, device: Device, /, *, stream: None | int | Any = None) -> array:
         """
@@ -680,20 +845,25 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.to_device.html
         """
 
-        if isinstance(self._impl, ak.Array) and device != ak.backend(self._impl):
-            assert stream is None, "TODO"
-            impl = ak.to_backend(self._impl, device)
+        if isinstance(self._impl, ak.Array):
+            if device != ak.backend(self._impl):
+                assert stream is None, "TODO"
+                impl = ak.to_backend(self._impl, device)
+            else:
+                impl = self._impl
 
         elif isinstance(self._impl, np.ndarray):
+            # self._impl is a NumPy 0-dimensional array
             if device == "cuda":
                 assert stream is None, "TODO"
                 cp = _import.cupy()
-                impl = cp.array(self._impl.item())
+                impl = cp.array(self._impl)
             else:
                 impl = self._impl
 
         else:
-            impl = np.array(self._impl.item()) if device == "cpu" else self._impl
+            # self._impl is a CuPy 0-dimensional array
+            impl = self._impl.get() if device == "cpu" else self._impl  # type: ignore[union-attr]
 
         return self._new(impl, self._shape, self._dtype, device)
 
@@ -709,6 +879,10 @@ class array:  # pylint: disable=C0103
 
         out = self + other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __isub__(self, other: int | float | array, /) -> array:
@@ -721,6 +895,10 @@ class array:  # pylint: disable=C0103
 
         out = self - other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imul__(self, other: int | float | array, /) -> array:
@@ -733,6 +911,10 @@ class array:  # pylint: disable=C0103
 
         out = self * other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __itruediv__(self, other: int | float | array, /) -> array:
@@ -745,6 +927,10 @@ class array:  # pylint: disable=C0103
 
         out = self / other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ifloordiv__(self, other: int | float | array, /) -> array:
@@ -757,6 +943,10 @@ class array:  # pylint: disable=C0103
 
         out = self // other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ipow__(self, other: int | float | array, /) -> array:
@@ -769,6 +959,10 @@ class array:  # pylint: disable=C0103
 
         out = self**other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imod__(self, other: int | float | array, /) -> array:
@@ -781,6 +975,10 @@ class array:  # pylint: disable=C0103
 
         out = self % other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imatmul__(self, other: array, /) -> array:
@@ -793,6 +991,10 @@ class array:  # pylint: disable=C0103
 
         out = self @ other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __iand__(self, other: int | bool | array, /) -> array:
@@ -805,6 +1007,10 @@ class array:  # pylint: disable=C0103
 
         out = self & other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ior__(self, other: int | bool | array, /) -> array:
@@ -817,6 +1023,10 @@ class array:  # pylint: disable=C0103
 
         out = self | other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ixor__(self, other: int | bool | array, /) -> array:
@@ -829,6 +1039,10 @@ class array:  # pylint: disable=C0103
 
         out = self ^ other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ilshift__(self, other: int | array, /) -> array:
@@ -841,6 +1055,10 @@ class array:  # pylint: disable=C0103
 
         out = self << other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __irshift__(self, other: int | array, /) -> array:
@@ -853,6 +1071,10 @@ class array:  # pylint: disable=C0103
 
         out = self >> other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     # reflected operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#reflected-operators
@@ -870,3 +1092,50 @@ class array:  # pylint: disable=C0103
     __rxor__ = __xor__
     __rlshift__ = __lshift__
     __rrshift__ = __rshift__
+
+
+def _unbox(*inputs: array) -> tuple[ak.Array | SupportsDLPack, ...]:
+    if len(inputs) > 1 and any(type(inputs[0]) is not type(x) for x in inputs):
+        types = "\n".join(f"{type(x).__module__}.{type(x).__name__}" for x in inputs)
+        msg = f"mixed array types: {types}"
+        raise TypeError(msg)
+
+    return tuple(x._impl for x in inputs)  # pylint: disable=W0212
+
+
+def _box(
+    cls: type[array],
+    output: ak.Array | np.number | SupportsDLPack,
+    *,
+    dtype: None | Dtype = None,
+) -> array:
+    if isinstance(output, ak.Array):
+        impl = output
+        shape, dtype_observed = _shape_dtype(output.layout)
+        if dtype is not None and dtype != dtype_observed:
+            impl = ak.values_astype(impl, dtype)
+        else:
+            dtype = dtype_observed
+        device = ak.backend(output)
+
+    elif isinstance(output, np.number):
+        impl = np.array(output)
+        shape = output.shape
+        dtype_observed = output.dtype
+        if dtype is not None and dtype != dtype_observed:
+            impl = impl.astype(dtype)
+        else:
+            dtype = dtype_observed
+        device = "cpu"
+
+    else:
+        impl = output
+        shape = output.shape  # type: ignore[union-attr]
+        dtype_observed = output.dtype  # type: ignore[union-attr]
+        if dtype is not None and dtype != dtype_observed:
+            impl = impl.astype(dtype)
+        else:
+            dtype = dtype_observed
+        device = "cpu" if isinstance(output, np.ndarray) else "cuda"
+
+    return cls._new(impl, shape, dtype, device)  # pylint: disable=W0212

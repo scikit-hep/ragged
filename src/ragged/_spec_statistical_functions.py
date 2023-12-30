@@ -38,7 +38,7 @@ def max(  # pylint: disable=W0622
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 134"
 
 
 def mean(
@@ -69,7 +69,7 @@ def mean(
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 135"
 
 
 def min(  # pylint: disable=W0622
@@ -100,7 +100,7 @@ def min(  # pylint: disable=W0622
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 136"
 
 
 def prod(
@@ -158,7 +158,7 @@ def prod(
     assert axis, "TODO"
     assert dtype, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 137"
 
 
 def std(
@@ -209,7 +209,7 @@ def std(
     assert axis, "TODO"
     assert correction, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 138"
 
 
 def sum(  # pylint: disable=W0622
@@ -267,7 +267,7 @@ def sum(  # pylint: disable=W0622
     assert axis, "TODO"
     assert dtype, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 139"
 
 
 def var(
@@ -316,4 +316,4 @@ def var(
     assert axis, "TODO"
     assert correction, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 140"

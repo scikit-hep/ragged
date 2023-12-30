@@ -24,7 +24,7 @@ def broadcast_arrays(*arrays: array) -> list[array]:
     """
 
     assert arrays, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 114"
 
 
 def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
@@ -45,7 +45,7 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
 
     assert x, "TODO"
     assert shape, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 115"
 
 
 def concat(
@@ -73,7 +73,7 @@ def concat(
 
     assert arrays, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 116"
 
 
 def expand_dims(x: array, /, *, axis: int = 0) -> array:
@@ -102,7 +102,7 @@ def expand_dims(x: array, /, *, axis: int = 0) -> array:
 
     assert x, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 117"
 
 
 def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
@@ -126,7 +126,7 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
 
     assert x, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 118"
 
 
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
@@ -147,7 +147,7 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
 
     assert x, "TODO"
     assert axes, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 119"
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
@@ -175,7 +175,7 @@ def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) ->
     assert x, "TODO"
     assert shape, "TODO"
     assert copy, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 120"
 
 
 def roll(
@@ -216,7 +216,7 @@ def roll(
     assert x, "TODO"
     assert shift, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 121"
 
 
 def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
@@ -236,7 +236,7 @@ def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
 
     assert x, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 122"
 
 
 def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array:
@@ -268,4 +268,4 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
 
     assert arrays, "TODO"
     assert axis, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 123"

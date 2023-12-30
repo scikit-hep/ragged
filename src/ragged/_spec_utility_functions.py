@@ -46,7 +46,7 @@ def all(  # pylint: disable=W0622
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 141"
 
 
 def any(  # pylint: disable=W0622
@@ -86,4 +86,4 @@ def any(  # pylint: disable=W0622
     assert x, "TODO"
     assert axis, "TODO"
     assert keepdims, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 142"

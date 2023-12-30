@@ -6,7 +6,11 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import warnings
+
+import numpy as np
+
+from ._spec_array_object import _box, _unbox, array
 
 
 def abs(x: array, /) -> array:  # pylint: disable=W0622
@@ -36,8 +40,7 @@ def abs(x: array, /) -> array:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.abs.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.absolute(*_unbox(x)))
 
 
 def acos(x: array, /) -> array:
@@ -66,8 +69,7 @@ def acos(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.acos.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arccos(*_unbox(x)))
 
 
 def acosh(x: array, /) -> array:
@@ -102,8 +104,7 @@ def acosh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.acosh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arccosh(*_unbox(x)))
 
 
 def add(x1: array, x2: array, /) -> array:
@@ -122,9 +123,7 @@ def add(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.add.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.add(*_unbox(x1, x2)))
 
 
 def asin(x: array, /) -> array:
@@ -153,8 +152,7 @@ def asin(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.asin.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arcsin(*_unbox(x)))
 
 
 def asinh(x: array, /) -> array:
@@ -183,8 +181,7 @@ def asinh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.asinh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arcsinh(*_unbox(x)))
 
 
 def atan(x: array, /) -> array:
@@ -209,8 +206,7 @@ def atan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arctan(*_unbox(x)))
 
 
 def atan2(x1: array, x2: array, /) -> array:
@@ -251,9 +247,7 @@ def atan2(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atan2.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.arctan2(*_unbox(x1, x2)))
 
 
 def atanh(x: array, /) -> array:
@@ -282,8 +276,7 @@ def atanh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.atanh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.arctanh(*_unbox(x)))
 
 
 def bitwise_and(x1: array, x2: array, /) -> array:
@@ -303,9 +296,7 @@ def bitwise_and(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_and.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.bitwise_and(*_unbox(x1, x2)))
 
 
 def bitwise_invert(x: array, /) -> array:
@@ -322,8 +313,7 @@ def bitwise_invert(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_invert.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.invert(*_unbox(x)))
 
 
 def bitwise_left_shift(x1: array, x2: array, /) -> array:
@@ -344,9 +334,7 @@ def bitwise_left_shift(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_left_shift.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.left_shift(*_unbox(x1, x2)))
 
 
 def bitwise_or(x1: array, x2: array, /) -> array:
@@ -366,9 +354,7 @@ def bitwise_or(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_or.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.bitwise_or(*_unbox(x1, x2)))
 
 
 def bitwise_right_shift(x1: array, x2: array, /) -> array:
@@ -390,9 +376,7 @@ def bitwise_right_shift(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_right_shift.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.right_shift(*_unbox(x1, x2)))
 
 
 def bitwise_xor(x1: array, x2: array, /) -> array:
@@ -412,9 +396,7 @@ def bitwise_xor(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.bitwise_xor.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.bitwise_xor(*_unbox(x1, x2)))
 
 
 def ceil(x: array, /) -> array:
@@ -432,8 +414,7 @@ def ceil(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.ceil(*_unbox(x)), dtype=x.dtype)
 
 
 def conj(x: array, /) -> array:
@@ -462,8 +443,7 @@ def conj(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.conj.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.conjugate(*_unbox(x)))
 
 
 def cos(x: array, /) -> array:
@@ -483,8 +463,7 @@ def cos(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.cos.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.cos(*_unbox(x)))
 
 
 def cosh(x: array, /) -> array:
@@ -507,8 +486,7 @@ def cosh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.cosh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.cosh(*_unbox(x)))
 
 
 def divide(x1: array, x2: array, /) -> array:
@@ -527,9 +505,7 @@ def divide(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.divide.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.divide(*_unbox(x1, x2)))
 
 
 def equal(x1: array, x2: array, /) -> array:
@@ -549,9 +525,7 @@ def equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.equal(*_unbox(x1, x2)))
 
 
 def exp(x: array, /) -> array:
@@ -571,8 +545,7 @@ def exp(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.exp.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.exp(*_unbox(x)))
 
 
 def expm1(x: array, /) -> array:
@@ -594,8 +567,7 @@ def expm1(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.expm1.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.expm1(*_unbox(x)))
 
 
 def floor(x: array, /) -> array:
@@ -614,8 +586,7 @@ def floor(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.floor(*_unbox(x)), dtype=x.dtype)
 
 
 def floor_divide(x1: array, x2: array, /) -> array:
@@ -636,9 +607,7 @@ def floor_divide(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor_divide.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.floor_divide(*_unbox(x1, x2)))
 
 
 def greater(x1: array, x2: array, /) -> array:
@@ -658,9 +627,7 @@ def greater(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.greater.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.greater(*_unbox(x1, x2)))
 
 
 def greater_equal(x1: array, x2: array, /) -> array:
@@ -680,9 +647,7 @@ def greater_equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.greater_equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.greater_equal(*_unbox(x1, x2)))
 
 
 def imag(x: array, /) -> array:
@@ -702,8 +667,14 @@ def imag(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.imag.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    (a,) = _unbox(x)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return _box(
+            type(x),
+            (a - np.conjugate(a)) / 2j,
+            dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
+        )
 
 
 def isfinite(x: array, /) -> array:
@@ -720,8 +691,7 @@ def isfinite(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isfinite.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.isfinite(*_unbox(x)))
 
 
 def isinf(x: array, /) -> array:
@@ -739,8 +709,7 @@ def isinf(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isinf.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.isinf(*_unbox(x)))
 
 
 def isnan(x: array, /) -> array:
@@ -758,8 +727,7 @@ def isnan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isnan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.isnan(*_unbox(x)))
 
 
 def less(x1: array, x2: array, /) -> array:
@@ -779,9 +747,7 @@ def less(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.less.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.less(*_unbox(x1, x2)))
 
 
 def less_equal(x1: array, x2: array, /) -> array:
@@ -801,9 +767,7 @@ def less_equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.less_equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.less_equal(*_unbox(x1, x2)))
 
 
 def log(x: array, /) -> array:
@@ -822,8 +786,7 @@ def log(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.log(*_unbox(x)))
 
 
 def log1p(x: array, /) -> array:
@@ -846,8 +809,7 @@ def log1p(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log1p.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.log1p(*_unbox(x)))
 
 
 def log2(x: array, /) -> array:
@@ -866,8 +828,7 @@ def log2(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log2.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.log2(*_unbox(x)))
 
 
 def log10(x: array, /) -> array:
@@ -886,8 +847,7 @@ def log10(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.log10.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.log10(*_unbox(x)))
 
 
 def logaddexp(x1: array, x2: array, /) -> array:
@@ -907,9 +867,7 @@ def logaddexp(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logaddexp.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.logaddexp(*_unbox(x1, x2)))
 
 
 def logical_and(x1: array, x2: array, /) -> array:
@@ -928,9 +886,7 @@ def logical_and(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_and.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.logical_and(*_unbox(x1, x2)))
 
 
 def logical_not(x: array, /) -> array:
@@ -947,8 +903,7 @@ def logical_not(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_not.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.logical_not(*_unbox(x)))
 
 
 def logical_or(x1: array, x2: array, /) -> array:
@@ -967,9 +922,7 @@ def logical_or(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_or.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.logical_or(*_unbox(x1, x2)))
 
 
 def logical_xor(x1: array, x2: array, /) -> array:
@@ -988,9 +941,7 @@ def logical_xor(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.logical_xor.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.logical_xor(*_unbox(x1, x2)))
 
 
 def multiply(x1: array, x2: array, /) -> array:
@@ -1009,9 +960,7 @@ def multiply(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.multiply.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.multiply(*_unbox(x1, x2)))
 
 
 def negative(x: array, /) -> array:
@@ -1029,8 +978,7 @@ def negative(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.negative.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.negative(*_unbox(x)))
 
 
 def not_equal(x1: array, x2: array, /) -> array:
@@ -1050,9 +998,7 @@ def not_equal(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.not_equal.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.not_equal(*_unbox(x1, x2)))
 
 
 def positive(x: array, /) -> array:
@@ -1070,8 +1016,7 @@ def positive(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.positive.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.positive(*_unbox(x)))
 
 
 def pow(x1: array, x2: array, /) -> array:  # pylint: disable=W0622
@@ -1094,9 +1039,7 @@ def pow(x1: array, x2: array, /) -> array:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.pow.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.power(*_unbox(x1, x2)))
 
 
 def real(x: array, /) -> array:
@@ -1116,8 +1059,14 @@ def real(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.real.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    (a,) = _unbox(x)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return _box(
+            type(x),
+            (a + np.conjugate(a)) / 2,
+            dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
+        )
 
 
 def remainder(x1: array, x2: array, /) -> array:
@@ -1139,9 +1088,7 @@ def remainder(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.remainder.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.remainder(*_unbox(x1, x2)))
 
 
 def round(x: array, /) -> array:  # pylint: disable=W0622
@@ -1167,8 +1114,24 @@ def round(x: array, /) -> array:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.round.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    (a,) = _unbox(x)
+    if x.dtype in (np.complex64, np.complex128):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            a_conj = np.conjugate(a)
+            dt = np.dtype(f"f{x.dtype.itemsize // 2}")
+            re = _box(type(x), (a + a_conj) / 2, dtype=dt)
+            im = _box(type(x), (a - a_conj) / 2j, dtype=dt)
+            return add(round(re), multiply(round(im), array(1j, device=x.device)))
+
+    else:
+        frac, whole = np.modf(a)
+        abs_frac = np.absolute(frac)
+        return _box(
+            type(x),
+            whole
+            + ((abs_frac == 0.5) * (whole % 2 != 0) + (abs_frac > 0.5)) * np.sign(frac),
+        )
 
 
 def sign(x: array, /) -> array:
@@ -1193,8 +1156,7 @@ def sign(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sign.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.sign(*_unbox(x)))
 
 
 def sin(x: array, /) -> array:
@@ -1214,8 +1176,7 @@ def sin(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sin.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.sin(*_unbox(x)))
 
 
 def sinh(x: array, /) -> array:
@@ -1238,8 +1199,7 @@ def sinh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sinh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.sinh(*_unbox(x)))
 
 
 def square(x: array, /) -> array:
@@ -1260,8 +1220,7 @@ def square(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.square.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.square(*_unbox(x)))
 
 
 def sqrt(x: array, /) -> array:
@@ -1280,8 +1239,7 @@ def sqrt(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sqrt.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.sqrt(*_unbox(x)))
 
 
 def subtract(x1: array, x2: array, /) -> array:
@@ -1303,9 +1261,7 @@ def subtract(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.subtract.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO"
+    return _box(type(x1), np.subtract(*_unbox(x1, x2)))
 
 
 def tan(x: array, /) -> array:
@@ -1325,8 +1281,7 @@ def tan(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tan.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.tan(*_unbox(x)))
 
 
 def tanh(x: array, /) -> array:
@@ -1352,8 +1307,7 @@ def tanh(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tanh.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.tanh(*_unbox(x)))
 
 
 def trunc(x: array, /) -> array:
@@ -1371,5 +1325,4 @@ def trunc(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.trunc.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO"
+    return _box(type(x), np.trunc(*_unbox(x)))

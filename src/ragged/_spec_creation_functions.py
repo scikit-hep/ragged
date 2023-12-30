@@ -58,7 +58,7 @@ def arange(
     assert step, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 35"
 
 
 def asarray(
@@ -139,7 +139,7 @@ def empty(
     assert shape, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 36"
 
 
 def empty_like(
@@ -164,7 +164,7 @@ def empty_like(
     assert x, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 37"
 
 
 def eye(
@@ -201,7 +201,7 @@ def eye(
     assert k, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 38"
 
 
 def from_dlpack(x: object, /) -> array:
@@ -218,7 +218,7 @@ def from_dlpack(x: object, /) -> array:
     """
 
     assert x, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 39"
 
 
 def full(
@@ -257,7 +257,7 @@ def full(
     assert fill_value, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 40"
 
 
 def full_like(
@@ -290,7 +290,7 @@ def full_like(
     assert fill_value, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 41"
 
 
 def linspace(
@@ -349,7 +349,7 @@ def linspace(
     assert dtype, "TODO"
     assert device, "TODO"
     assert endpoint, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 42"
 
 
 def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
@@ -390,7 +390,7 @@ def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
 
     assert arrays, "TODO"
     assert indexing, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 43"
 
 
 def ones(
@@ -417,7 +417,7 @@ def ones(
     assert shape, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 44"
 
 
 def ones_like(
@@ -443,7 +443,7 @@ def ones_like(
     assert x, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 45"
 
 
 def tril(x: array, /, *, k: int = 0) -> array:
@@ -468,7 +468,7 @@ def tril(x: array, /, *, k: int = 0) -> array:
 
     assert x, "TODO"
     assert k, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 46"
 
 
 def triu(x: array, /, *, k: int = 0) -> array:
@@ -493,7 +493,7 @@ def triu(x: array, /, *, k: int = 0) -> array:
 
     assert x, "TODO"
     assert k, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 47"
 
 
 def zeros(
@@ -520,7 +520,7 @@ def zeros(
     assert shape, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 48"
 
 
 def zeros_like(
@@ -546,4 +546,4 @@ def zeros_like(
     assert x, "TODO"
     assert dtype, "TODO"
     assert device, "TODO"
-    assert False, "TODO"
+    assert False, "TODO 49"

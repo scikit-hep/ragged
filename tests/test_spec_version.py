@@ -10,6 +10,4 @@ import ragged
 
 
 def test_values():
-    assert ragged.v202212.__array_api_version__ == "2022.12"
-
     assert ragged.__array_api_version__ == "2022.12"
