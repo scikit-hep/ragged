@@ -879,6 +879,10 @@ class array:  # pylint: disable=C0103
 
         out = self + other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __isub__(self, other: int | float | array, /) -> array:
@@ -891,6 +895,10 @@ class array:  # pylint: disable=C0103
 
         out = self - other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imul__(self, other: int | float | array, /) -> array:
@@ -903,6 +911,10 @@ class array:  # pylint: disable=C0103
 
         out = self * other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __itruediv__(self, other: int | float | array, /) -> array:
@@ -915,6 +927,10 @@ class array:  # pylint: disable=C0103
 
         out = self / other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ifloordiv__(self, other: int | float | array, /) -> array:
@@ -927,6 +943,10 @@ class array:  # pylint: disable=C0103
 
         out = self // other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ipow__(self, other: int | float | array, /) -> array:
@@ -939,6 +959,10 @@ class array:  # pylint: disable=C0103
 
         out = self**other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imod__(self, other: int | float | array, /) -> array:
@@ -951,6 +975,10 @@ class array:  # pylint: disable=C0103
 
         out = self % other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __imatmul__(self, other: array, /) -> array:
@@ -963,6 +991,10 @@ class array:  # pylint: disable=C0103
 
         out = self @ other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __iand__(self, other: int | bool | array, /) -> array:
@@ -975,6 +1007,10 @@ class array:  # pylint: disable=C0103
 
         out = self & other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ior__(self, other: int | bool | array, /) -> array:
@@ -987,6 +1023,10 @@ class array:  # pylint: disable=C0103
 
         out = self | other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ixor__(self, other: int | bool | array, /) -> array:
@@ -999,6 +1039,10 @@ class array:  # pylint: disable=C0103
 
         out = self ^ other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __ilshift__(self, other: int | array, /) -> array:
@@ -1011,6 +1055,10 @@ class array:  # pylint: disable=C0103
 
         out = self << other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     def __irshift__(self, other: int | array, /) -> array:
@@ -1023,6 +1071,10 @@ class array:  # pylint: disable=C0103
 
         out = self >> other
         self._impl, self._device = out._impl, out._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
         return self
 
     # reflected operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#reflected-operators

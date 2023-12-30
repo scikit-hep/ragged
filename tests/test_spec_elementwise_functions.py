@@ -208,6 +208,16 @@ def test_add_method(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_add_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.add(first(x), first(y))
+    x += y
+    assert first(x) == z
+    assert x.dtype == z.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_asin(device, x_lt1):
     result = ragged.asin(x_lt1.to_device(device))
     assert type(result) is type(x_lt1)
@@ -271,6 +281,16 @@ def test_bitwise_and_method(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_and_inplace_method(device, x_int, y_int):
+    x_int = x_int.to_device(device)
+    y_int = y_int.to_device(device)
+    z_int = xp.bitwise_and(first(x_int), first(y_int))
+    x_int &= y_int
+    assert first(x_int) == z_int
+    assert x_int.dtype == z_int.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_invert(device, x_int):
     result = ragged.bitwise_invert(x_int.to_device(device))
     assert type(result) is type(x_int)
@@ -307,6 +327,16 @@ def test_bitwise_left_shift_method(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_left_shift_inplace_method(device, x_int, y_int):
+    x_int = x_int.to_device(device)
+    y_int = y_int.to_device(device)
+    z_int = xp.bitwise_left_shift(first(x_int), first(y_int))
+    x_int <<= y_int
+    assert first(x_int) == z_int
+    assert x_int.dtype == z_int.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_or(device, x_int, y_int):
     result = ragged.bitwise_or(x_int.to_device(device), y_int.to_device(device))
     assert type(result) is type(x_int) is type(y_int)
@@ -322,6 +352,16 @@ def test_bitwise_or_method(device, x_int, y_int):
     assert result.shape in (x_int.shape, y_int.shape)
     assert xp.bitwise_or(first(x_int), first(y_int)) == first(result)
     assert xp.bitwise_or(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_or_inplace_method(device, x_int, y_int):
+    x_int = x_int.to_device(device)
+    y_int = y_int.to_device(device)
+    z_int = xp.bitwise_or(first(x_int), first(y_int))
+    x_int |= y_int
+    assert first(x_int) == z_int
+    assert x_int.dtype == z_int.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -345,6 +385,16 @@ def test_bitwise_right_shift_method(device, x_int, y_int):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_bitwise_right_shift_inplace_method(device, x_int, y_int):
+    x_int = x_int.to_device(device)
+    y_int = y_int.to_device(device)
+    z_int = xp.bitwise_right_shift(first(x_int), first(y_int))
+    x_int >>= y_int
+    assert first(x_int) == z_int
+    assert x_int.dtype == z_int.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_bitwise_xor(device, x_int, y_int):
     result = ragged.bitwise_xor(x_int.to_device(device), y_int.to_device(device))
     assert type(result) is type(x_int) is type(y_int)
@@ -360,6 +410,16 @@ def test_bitwise_xor_method(device, x_int, y_int):
     assert result.shape in (x_int.shape, y_int.shape)
     assert xp.bitwise_xor(first(x_int), first(y_int)) == first(result)
     assert xp.bitwise_xor(first(x_int), first(y_int)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_bitwise_xor_inplace_method(device, x_int, y_int):
+    x_int = x_int.to_device(device)
+    y_int = y_int.to_device(device)
+    z_int = xp.bitwise_xor(first(x_int), first(y_int))
+    x_int ^= y_int
+    assert first(x_int) == z_int
+    assert x_int.dtype == z_int.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -423,6 +483,16 @@ def test_divide_method(device, x, y):
     assert result.shape in (x.shape, y.shape)
     assert xp.divide(first(x), first(y)) == first(result)
     assert xp.divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_divide_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.divide(first(x), first(y))
+    x /= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -495,6 +565,16 @@ def test_floor_divide_method(device, x, y):
     assert result.shape in (x.shape, y.shape)
     assert xp.floor_divide(first(x), first(y)) == first(result)
     assert xp.floor_divide(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_floor_divide_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.floor_divide(first(x), first(y))
+    x //= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -715,6 +795,16 @@ def test_multiply_method(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_multiply_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.multiply(first(x), first(y))
+    x *= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_negative(device, x):
     result = ragged.negative(x.to_device(device))
     assert type(result) is type(x)
@@ -787,6 +877,16 @@ def test_pow_method(device, x, y):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_pow_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.pow(first(x), first(y))
+    x **= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
+
+
+@pytest.mark.parametrize("device", devices)
 def test_real(device, x_complex):
     result = ragged.real(x_complex.to_device(device))
     assert type(result) is type(x_complex)
@@ -811,6 +911,16 @@ def test_remainder_method(device, x, y):
     assert result.shape in (x.shape, y.shape)
     assert xp.remainder(first(x), first(y)) == first(result)
     assert xp.remainder(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_remainder_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.remainder(first(x), first(y))
+    x %= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -883,6 +993,16 @@ def test_subtract(device, x, y):
     assert result.shape in (x.shape, y.shape)
     assert xp.subtract(first(x), first(y)) == first(result)
     assert xp.subtract(first(x), first(y)).dtype == result.dtype
+
+
+@pytest.mark.parametrize("device", devices)
+def test_subtract_inplace_method(device, x, y):
+    x = x.to_device(device)
+    y = y.to_device(device)
+    z = xp.subtract(first(x), first(y))
+    x -= y
+    assert first(x) == z
+    assert x.dtype == z.dtype
 
 
 @pytest.mark.parametrize("device", devices)
