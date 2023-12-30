@@ -179,7 +179,7 @@ class array:  # pylint: disable=C0103
                 msg = f"unsupported __dlpack_device__ type: {device_type}"
                 raise TypeError(msg)
 
-        elif isinstance(obj, (bool, numbers.Real)):
+        elif isinstance(obj, (bool, numbers.Complex)):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
