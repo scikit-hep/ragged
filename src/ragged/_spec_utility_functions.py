@@ -6,7 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/utility_functions.html
 
 from __future__ import annotations
 
-import awkward as ak
+import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
 from ._spec_statistical_functions import _regularize_axis
@@ -51,10 +51,10 @@ def all(  # pylint: disable=W0622
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
         for axis_item in axis[::-1]:
-            out = ak.all(out, axis=axis_item, keepdims=keepdims)
+            out = np.all(out, axis=axis_item, keepdims=keepdims)
         return _box(type(x), out)
     else:
-        return _box(type(x), ak.all(*_unbox(x), axis=axis, keepdims=keepdims))
+        return _box(type(x), np.all(*_unbox(x), axis=axis, keepdims=keepdims))
 
 
 def any(  # pylint: disable=W0622
@@ -96,7 +96,7 @@ def any(  # pylint: disable=W0622
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
         for axis_item in axis[::-1]:
-            out = ak.any(out, axis=axis_item, keepdims=keepdims)
+            out = np.any(out, axis=axis_item, keepdims=keepdims)
         return _box(type(x), out)
     else:
-        return _box(type(x), ak.any(*_unbox(x), axis=axis, keepdims=keepdims))
+        return _box(type(x), np.any(*_unbox(x), axis=axis, keepdims=keepdims))

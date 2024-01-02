@@ -6,7 +6,19 @@ https://data-apis.org/array-api/latest/API_specification/searching_functions.htm
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import awkward as ak
+import numpy as np
+
+from ._spec_array_object import _box, _unbox, array
+
+
+def _remove_optiontype(x: ak.contents.Content) -> ak.contents.Content:
+    if x.is_list:
+        return x.copy(content=_remove_optiontype(x.content))
+    elif x.is_option:
+        return x.content
+    else:
+        return x
 
 
 def argmax(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> array:
@@ -34,10 +46,21 @@ def argmax(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> a
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.argmax.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 124"
+    out = np.argmax(*_unbox(x), axis=axis, keepdims=keepdims)
+
+    if out is None:
+        msg = "cannot compute argmax of an array with no data"
+        raise ValueError(msg)
+
+    if isinstance(out, ak.Array):
+        if ak.any(ak.is_none(out, axis=-1)):
+            msg = f"cannot compute argmax at axis={axis} because some lists at this depth have zero length"
+            raise ValueError(msg)
+        out = ak.Array(
+            _remove_optiontype(out.layout), behavior=out.behavior, attrs=out.attrs
+        )
+
+    return _box(type(x), out)
 
 
 def argmin(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> array:
@@ -65,10 +88,21 @@ def argmin(x: array, /, *, axis: None | int = None, keepdims: bool = False) -> a
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.argmin.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 125"
+    out = np.argmin(*_unbox(x), axis=axis, keepdims=keepdims)
+
+    if out is None:
+        msg = "cannot compute argmin of an array with no data"
+        raise ValueError(msg)
+
+    if isinstance(out, ak.Array):
+        if ak.any(ak.is_none(out, axis=-1)):
+            msg = f"cannot compute argmin at axis={axis} because some lists at this depth have zero length"
+            raise ValueError(msg)
+        out = ak.Array(
+            _remove_optiontype(out.layout), behavior=out.behavior, attrs=out.attrs
+        )
+
+    return _box(type(x), out)
 
 
 def nonzero(x: array, /) -> tuple[array, ...]:
