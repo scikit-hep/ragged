@@ -32,6 +32,9 @@ def _regularize_axis(
             out.append(x + ndim if x < 0 else x)
             if not 0 < out[-1] < ndim:
                 msg = f"axis {x} is out of bounds for an array with {ndim} dimensions"
+        if len(out) == 0:
+            msg = "at least one axis must be specified"
+            raise ak.errors.AxisError(msg)
         return tuple(sorted(out))
 
 
@@ -89,8 +92,6 @@ def max(  # pylint: disable=W0622
     """
 
     axis = _regularize_axis(axis, x.ndim)
-    if axis == ():
-        return x
 
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
@@ -130,8 +131,6 @@ def mean(
     """
 
     axis = _regularize_axis(axis, x.ndim)
-    if axis == ():
-        return x
 
     if isinstance(axis, tuple):
         sumwx = ak.sum(*_unbox(x), axis=axis[-1], keepdims=keepdims)
@@ -173,8 +172,6 @@ def min(  # pylint: disable=W0622
     """
 
     axis = _regularize_axis(axis, x.ndim)
-    if axis == ():
-        return x
 
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
@@ -242,8 +239,6 @@ def prod(
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
     arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
-    if axis == ():
-        return arr
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)
@@ -358,8 +353,6 @@ def sum(  # pylint: disable=W0622
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
     arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
-    if axis == ():
-        return arr
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)
@@ -413,8 +406,6 @@ def var(
     """
 
     axis = _regularize_axis(axis, x.ndim)
-    if axis == ():
-        return x
 
     if isinstance(axis, tuple):
         sumwxx = ak.sum(np.square(*_unbox(x)), axis=axis[-1], keepdims=keepdims)
