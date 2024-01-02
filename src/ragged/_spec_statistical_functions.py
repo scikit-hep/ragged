@@ -52,6 +52,17 @@ def _regularize_dtype(dtype: None | Dtype, array_dtype: Dtype) -> Dtype:
         return dtype
 
 
+def _ensure_dtype(data: array, dtype: Dtype) -> array:
+    if data.dtype == dtype:
+        return data
+    else:
+        (tmp,) = _unbox(data)
+        if isinstance(tmp, ak.Array):
+            return _box(type(data), ak.values_astype(tmp, dtype))
+        else:
+            return _box(type(data), tmp.astype(dtype))  # type: ignore[union-attr]
+
+
 def max(  # pylint: disable=W0622
     x: array, /, *, axis: None | int | tuple[int, ...] = None, keepdims: bool = False
 ) -> array:
@@ -78,6 +89,8 @@ def max(  # pylint: disable=W0622
     """
 
     axis = _regularize_axis(axis, x.ndim)
+    if axis == ():
+        return x
 
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
@@ -116,10 +129,22 @@ def mean(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.mean.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 135"
+    axis = _regularize_axis(axis, x.ndim)
+    if axis == ():
+        return x
+
+    if isinstance(axis, tuple):
+        numerator = ak.sum(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        denominator = ak.count(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        for axis_item in axis[-2::-1]:
+            numerator = ak.sum(numerator, axis=axis_item, keepdims=keepdims)
+            denominator = ak.sum(denominator, axis=axis_item, keepdims=keepdims)
+    else:
+        numerator = ak.sum(*_unbox(x), axis=axis, keepdims=keepdims)
+        denominator = ak.count(*_unbox(x), axis=axis, keepdims=keepdims)
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return _ensure_dtype(_box(type(x), numerator / denominator), x.dtype)
 
 
 def min(  # pylint: disable=W0622
@@ -148,6 +173,8 @@ def min(  # pylint: disable=W0622
     """
 
     axis = _regularize_axis(axis, x.ndim)
+    if axis == ():
+        return x
 
     if isinstance(axis, tuple):
         (out,) = _unbox(x)
@@ -215,6 +242,8 @@ def prod(
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
     arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+    if axis == ():
+        return arr
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)
@@ -330,6 +359,8 @@ def sum(  # pylint: disable=W0622
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
     arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+    if axis == ():
+        return arr
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)

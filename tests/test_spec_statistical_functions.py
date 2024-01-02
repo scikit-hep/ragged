@@ -63,6 +63,68 @@ def test_max():
     )
 
 
+def test_mean():
+    data = ragged.array(
+        [[[0, 1.1, 2.2], []], [], [[3.3, 4.4], [5.5], [6.6, 7.7, 8.8, 9.9]]]
+    )
+    assert ragged.mean(data, axis=None).tolist() == pytest.approx(4.95)
+    assert (
+        ragged.mean(data, axis=0).tolist()  # type: ignore[comparison-overlap]
+        == ragged.mean(data, axis=-3).tolist()
+        == [
+            pytest.approx([1.65, 2.75, 2.2]),
+            pytest.approx([5.5]),
+            pytest.approx([6.6, 7.7, 8.8, 9.9]),
+        ]
+    )
+    assert (
+        ragged.mean(data, axis=1).tolist()  # type: ignore[comparison-overlap]
+        == ragged.mean(data, axis=-2).tolist()
+        == [
+            pytest.approx([0, 1.1, 2.2]),
+            pytest.approx([]),
+            pytest.approx([5.13333, 6.05, 8.8, 9.9]),
+        ]
+    )
+    assert (
+        ragged.mean(data, axis=2).tolist()  # type: ignore[comparison-overlap]
+        == [
+            pytest.approx([1.1, ragged.nan], nan_ok=True),
+            pytest.approx([]),
+            pytest.approx([3.85, 5.5, 8.25]),
+        ]
+    )
+    assert (
+        ragged.mean(data, axis=-1).tolist()  # type: ignore[comparison-overlap]
+        == [
+            pytest.approx([1.1, ragged.nan], nan_ok=True),
+            pytest.approx([]),
+            pytest.approx([3.85, 5.5, 8.25]),
+        ]
+    )
+    assert (
+        ragged.mean(data, axis=(0, 1)).tolist()
+        == ragged.mean(data, axis=(1, 0)).tolist()
+        == pytest.approx([3.85, 4.4, 5.5, 9.9])
+    )
+    assert (
+        ragged.mean(data, axis=(0, 2)).tolist()
+        == ragged.mean(data, axis=(2, 0)).tolist()
+        == pytest.approx([2.2, 5.5, 8.25])
+    )
+    assert ragged.mean(data, axis=(1, 2)).tolist() == pytest.approx(
+        [1.1, ragged.nan, 6.6], nan_ok=True
+    )
+    assert ragged.mean(data, axis=(2, 1)).tolist() == pytest.approx(
+        [1.1, ragged.nan, 6.6], nan_ok=True
+    )
+    assert (
+        ragged.mean(data, axis=(0, 1, 2)).tolist()
+        == ragged.mean(data, axis=(-1, 0, 1)).tolist()
+        == pytest.approx(4.95)
+    )
+
+
 def test_min():
     data = ragged.array(
         [[[0, 1.1, 2.2], []], [], [[3.3, 4.4], [5.5], [6.6, 7.7, 8.8, 9.9]]]
