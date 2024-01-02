@@ -134,17 +134,17 @@ def mean(
         return x
 
     if isinstance(axis, tuple):
-        numerator = ak.sum(*_unbox(x), axis=axis[-1], keepdims=keepdims)
-        denominator = ak.count(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        sumwx = ak.sum(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        sumw = ak.count(*_unbox(x), axis=axis[-1], keepdims=keepdims)
         for axis_item in axis[-2::-1]:
-            numerator = ak.sum(numerator, axis=axis_item, keepdims=keepdims)
-            denominator = ak.sum(denominator, axis=axis_item, keepdims=keepdims)
+            sumwx = ak.sum(sumwx, axis=axis_item, keepdims=keepdims)
+            sumw = ak.sum(sumw, axis=axis_item, keepdims=keepdims)
     else:
-        numerator = ak.sum(*_unbox(x), axis=axis, keepdims=keepdims)
-        denominator = ak.count(*_unbox(x), axis=axis, keepdims=keepdims)
+        sumwx = ak.sum(*_unbox(x), axis=axis, keepdims=keepdims)
+        sumw = ak.count(*_unbox(x), axis=axis, keepdims=keepdims)
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        return _ensure_dtype(_box(type(x), numerator / denominator), x.dtype)
+        return _ensure_dtype(_box(type(x), sumwx / sumw), x.dtype)
 
 
 def min(  # pylint: disable=W0622
@@ -298,11 +298,10 @@ def std(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.std.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert correction, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 138"
+    return _box(
+        type(x),
+        np.sqrt(*_unbox(var(x, axis=axis, correction=correction, keepdims=keepdims))),
+    )
 
 
 def sum(  # pylint: disable=W0622
@@ -413,8 +412,25 @@ def var(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.var.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert correction, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 140"
+    axis = _regularize_axis(axis, x.ndim)
+    if axis == ():
+        return x
+
+    if isinstance(axis, tuple):
+        sumwxx = ak.sum(np.square(*_unbox(x)), axis=axis[-1], keepdims=keepdims)
+        sumwx = ak.sum(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        sumw = ak.count(*_unbox(x), axis=axis[-1], keepdims=keepdims)
+        for axis_item in axis[-2::-1]:
+            sumwxx = ak.sum(sumwxx, axis=axis_item, keepdims=keepdims)
+            sumwx = ak.sum(sumwx, axis=axis_item, keepdims=keepdims)
+            sumw = ak.sum(sumw, axis=axis_item, keepdims=keepdims)
+    else:
+        sumwxx = ak.sum(np.square(*_unbox(x)), axis=axis, keepdims=keepdims)
+        sumwx = ak.sum(*_unbox(x), axis=axis, keepdims=keepdims)
+        sumw = ak.count(*_unbox(x), axis=axis, keepdims=keepdims)
+
+    with np.errstate(invalid="ignore", divide="ignore"):
+        out = sumwxx / sumw - np.square(sumwx / sumw)
+        if correction is not None and correction != 0:
+            out *= sumw / (sumw - correction)
+        return _ensure_dtype(_box(type(x), out), x.dtype)
