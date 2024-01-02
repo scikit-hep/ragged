@@ -6,8 +6,50 @@ https://data-apis.org/array-api/latest/API_specification/statistical_functions.h
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import numbers
+
+import awkward as ak
+import numpy as np
+
+from ._spec_array_object import _box, _unbox, array
 from ._typing import Dtype
+
+
+def _regularize_axis(
+    axis: None | int | tuple[int, ...], ndim: int
+) -> None | int | tuple[int, ...]:
+    if axis is None:
+        return axis
+    elif isinstance(axis, numbers.Integral):
+        out = axis + ndim if axis < 0 else axis  # type: ignore[operator]
+        if not 0 <= out < ndim:
+            msg = f"axis {axis} is out of bounds for an array with {ndim} dimensions"
+            raise ak.errors.AxisError(msg)
+        return out  # type: ignore[no-any-return]
+    else:
+        out = []
+        for x in axis:  # type: ignore[union-attr]
+            out.append(x + ndim if x < 0 else x)
+            if not 0 < out[-1] < ndim:
+                msg = f"axis {x} is out of bounds for an array with {ndim} dimensions"
+        return tuple(sorted(out))
+
+
+def _regularize_dtype(dtype: None | Dtype, array_dtype: Dtype) -> Dtype:
+    if dtype is None:
+        if array_dtype.kind in ("b", "i"):
+            return np.dtype(np.int64)
+        elif array_dtype.kind == "u":
+            return np.dtype(np.uint64)
+        elif array_dtype.kind == "f":
+            return np.dtype(np.float64)
+        elif array_dtype.kind == "c":
+            return np.dtype(np.complex128)
+        else:
+            msg = f"unrecognized dtype.kind: {array_dtype.kind}"
+            raise AssertionError(msg)
+    else:
+        return dtype
 
 
 def max(  # pylint: disable=W0622
@@ -263,11 +305,17 @@ def sum(  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sum.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert dtype, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 139"
+    axis = _regularize_axis(axis, x.ndim)
+    dtype = _regularize_dtype(dtype, x.dtype)
+    arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(arr)
+        for axis_item in axis[::-1]:
+            out = ak.sum(out, axis=axis_item, keepdims=keepdims)
+        return _box(type(x), out)
+    else:
+        return _box(type(x), ak.sum(*_unbox(arr), axis=axis, keepdims=keepdims))
 
 
 def var(
