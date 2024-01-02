@@ -249,6 +249,11 @@ class array:  # pylint: disable=C0103
             )
             return f"ragged.array([\n    {prep}\n])"
 
+    def tolist(
+        self,
+    ) -> bool | int | float | complex | NestedSequence[bool | int | float | complex]:
+        return self._impl.tolist()  # type: ignore[no-any-return,union-attr]
+
     # Attributes: https://data-apis.org/array-api/latest/API_specification/array_object.html#attributes
 
     @property

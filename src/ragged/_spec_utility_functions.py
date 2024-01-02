@@ -6,7 +6,10 @@ https://data-apis.org/array-api/latest/API_specification/utility_functions.html
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import numpy as np
+
+from ._spec_array_object import _box, _unbox, array
+from ._spec_statistical_functions import _regularize_axis
 
 
 def all(  # pylint: disable=W0622
@@ -43,10 +46,15 @@ def all(  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.all.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 141"
+    axis = _regularize_axis(axis, x.ndim)
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(x)
+        for axis_item in axis[::-1]:
+            out = np.all(out, axis=axis_item, keepdims=keepdims)
+        return _box(type(x), out)
+    else:
+        return _box(type(x), np.all(*_unbox(x), axis=axis, keepdims=keepdims))
 
 
 def any(  # pylint: disable=W0622
@@ -83,7 +91,12 @@ def any(  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.any.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 142"
+    axis = _regularize_axis(axis, x.ndim)
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(x)
+        for axis_item in axis[::-1]:
+            out = np.any(out, axis=axis_item, keepdims=keepdims)
+        return _box(type(x), out)
+    else:
+        return _box(type(x), np.any(*_unbox(x), axis=axis, keepdims=keepdims))
