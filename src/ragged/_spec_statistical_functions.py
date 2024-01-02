@@ -77,10 +77,18 @@ def max(  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.max.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 134"
+    axis = _regularize_axis(axis, x.ndim)
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(x)
+        for axis_item in axis[::-1]:
+            out = ak.max(out, axis=axis_item, keepdims=keepdims, mask_identity=False)
+        return _box(type(x), out)
+    else:
+        return _box(
+            type(x),
+            ak.max(*_unbox(x), axis=axis, keepdims=keepdims, mask_identity=False),
+        )
 
 
 def mean(
@@ -139,10 +147,18 @@ def min(  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.min.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 136"
+    axis = _regularize_axis(axis, x.ndim)
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(x)
+        for axis_item in axis[::-1]:
+            out = ak.min(out, axis=axis_item, keepdims=keepdims, mask_identity=False)
+        return _box(type(x), out)
+    else:
+        return _box(
+            type(x),
+            ak.min(*_unbox(x), axis=axis, keepdims=keepdims, mask_identity=False),
+        )
 
 
 def prod(
@@ -196,11 +212,17 @@ def prod(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.prod.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert dtype, "TODO"
-    assert keepdims, "TODO"
-    assert False, "TODO 137"
+    axis = _regularize_axis(axis, x.ndim)
+    dtype = _regularize_dtype(dtype, x.dtype)
+    arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+
+    if isinstance(axis, tuple):
+        (out,) = _unbox(arr)
+        for axis_item in axis[::-1]:
+            out = ak.prod(out, axis=axis_item, keepdims=keepdims)
+        return _box(type(x), out)
+    else:
+        return _box(type(x), ak.prod(*_unbox(arr), axis=axis, keepdims=keepdims))
 
 
 def std(
