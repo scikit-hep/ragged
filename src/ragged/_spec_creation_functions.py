@@ -6,9 +6,14 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 
 from __future__ import annotations
 
-import awkward as ak
+import enum
 
-from ._spec_array_object import array
+import awkward as ak
+import numpy as np
+
+from . import _import
+from ._import import device_namespace
+from ._spec_array_object import _box, array
 from ._typing import (
     Device,
     Dtype,
@@ -53,12 +58,8 @@ def arange(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.arange.html
     """
 
-    start  # noqa: B018, pylint: disable=W0104
-    stop  # noqa: B018, pylint: disable=W0104
-    step  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 35")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.arange(start, stop, step, dtype=dtype))
 
 
 def asarray(
@@ -137,10 +138,8 @@ def empty(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.empty.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 36")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.empty(shape, dtype=dtype))
 
 
 def empty_like(
@@ -197,12 +196,8 @@ def eye(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.eye.html
     """
 
-    n_rows  # noqa: B018, pylint: disable=W0104
-    n_cols  # noqa: B018, pylint: disable=W0104
-    k  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 38")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.eye(n_rows, n_cols, k, dtype=dtype))
 
 
 def from_dlpack(x: object, /) -> array:
@@ -218,8 +213,21 @@ def from_dlpack(x: object, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.from_dlpack.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 39")  # noqa: EM101
+    device_type, _ = x.__dlpack_device__()  # type: ignore[attr-defined]
+    if (
+        isinstance(device_type, enum.Enum) and device_type.value == 1
+    ) or device_type == 1:
+        y = np.from_dlpack(x)
+    elif (
+        isinstance(device_type, enum.Enum) and device_type.value == 2
+    ) or device_type == 2:
+        cp = _import.cupy()
+        y = cp.from_dlpack(x)
+    else:
+        msg = f"unsupported __dlpack_device__ type: {device_type}"
+        raise TypeError(msg)
+
+    return _box(array, y)
 
 
 def full(
@@ -254,11 +262,8 @@ def full(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.full.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    fill_value  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 40")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.full(shape, fill_value, dtype=dtype))
 
 
 def full_like(
@@ -344,13 +349,10 @@ def linspace(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.linspace.html
     """
 
-    start  # noqa: B018, pylint: disable=W0104
-    stop  # noqa: B018, pylint: disable=W0104
-    num  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    endpoint  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 42")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(
+        array, ns.linspace(start, stop, num=num, endpoint=endpoint, dtype=dtype)
+    )
 
 
 def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
@@ -415,10 +417,8 @@ def ones(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 44")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.ones(shape, dtype=dtype))
 
 
 def ones_like(
@@ -518,10 +518,8 @@ def zeros(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 48")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.zeros(shape, dtype=dtype))
 
 
 def zeros_like(

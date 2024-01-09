@@ -13,6 +13,8 @@ import numpy as np
 from ._spec_array_object import array
 from ._typing import Dtype
 
+_type = type
+
 
 def astype(x: array, dtype: Dtype, /, *, copy: bool = True) -> array:
     """
@@ -56,9 +58,7 @@ def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.can_cast.html
     """
 
-    from_  # noqa: B018, pylint: disable=W0104
-    to  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 51")  # noqa: EM101
+    return bool(np.can_cast(from_, to))
 
 
 @dataclass
@@ -114,8 +114,16 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.finfo.html
     """
 
-    type  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 52")  # noqa: EM101
+    if not isinstance(type, np.dtype):
+        if not isinstance(type, _type) and hasattr(type, "dtype"):
+            out = np.finfo(type.dtype)
+        else:
+            out = np.finfo(np.dtype(type))
+    else:
+        out = np.finfo(type)
+    return finfo_object(
+        out.bits, out.eps, out.max, out.min, out.smallest_normal, out.dtype
+    )
 
 
 @dataclass
@@ -155,8 +163,14 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.iinfo.html
     """
 
-    type  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 53")  # noqa: EM101
+    if not isinstance(type, np.dtype):
+        if not isinstance(type, _type) and hasattr(type, "dtype"):
+            out = np.iinfo(type.dtype)
+        else:
+            out = np.iinfo(np.dtype(type))
+    else:
+        out = np.iinfo(type)
+    return iinfo_object(out.bits, out.max, out.min, out.dtype)
 
 
 def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
@@ -218,5 +232,4 @@ def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.result_type.html
     """
 
-    arrays_and_dtypes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 55")  # noqa: EM101
+    return np.result_type(*arrays_and_dtypes)

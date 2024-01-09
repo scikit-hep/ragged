@@ -440,6 +440,10 @@ def test_ceil_int(device, x_int):
     assert xp.ceil(first(x_int)).dtype == result.dtype
 
 
+@pytest.mark.skipif(
+    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
 def test_conj(device, x_complex):
     result = ragged.conj(x_complex.to_device(device))
@@ -623,6 +627,10 @@ def test_greater_equal_method(device, x, y):
     assert xp.greater_equal(first(x), first(y)).dtype == result.dtype
 
 
+@pytest.mark.skipif(
+    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
 def test_imag(device, x_complex):
     result = ragged.imag(x_complex.to_device(device))
@@ -886,6 +894,10 @@ def test_pow_inplace_method(device, x, y):
     assert x.dtype == z.dtype
 
 
+@pytest.mark.skipif(
+    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
 def test_real(device, x_complex):
     result = ragged.real(x_complex.to_device(device))
@@ -932,6 +944,10 @@ def test_round(device, x):
     assert xp.round(first(x)).dtype == result.dtype
 
 
+@pytest.mark.skipif(
+    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
 def test_round_complex(device, x_complex):
     result = ragged.round(x_complex.to_device(device))

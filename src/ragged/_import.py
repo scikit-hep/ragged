@@ -4,6 +4,20 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
+
+from ._typing import Device
+
+
+def device_namespace(device: None | Device = None) -> tuple[Device, Any]:
+    if device is None or device == "cpu":
+        return "cpu", np
+    elif device == "cuda":
+        return "cuda", cupy()
+
+    msg = f"unrecognized device: {device!r}"  # type: ignore[unreachable]
+    raise ValueError(msg)
+
 
 def cupy() -> Any:
     try:
