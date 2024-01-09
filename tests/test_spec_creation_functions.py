@@ -56,6 +56,14 @@ def test_empty(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_empty_ndim0(device):
+    a = ragged.empty((), device=device)
+    assert a.ndim == 0
+    assert a.shape == ()
+    assert isinstance(a._impl, ns[device].ndarray)
+
+
+@pytest.mark.parametrize("device", devices)
 def test_eye(device):
     a = ragged.eye(3, 5, k=1, device=device)
     assert a.tolist() == [[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]]
@@ -78,6 +86,15 @@ def test_full(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_full_ndim0(device):
+    a = ragged.full((), 3, device=device)
+    assert a.ndim == 0
+    assert a.shape == ()
+    assert a == 3
+    assert isinstance(a._impl, ns[device].ndarray)
+
+
+@pytest.mark.parametrize("device", devices)
 def test_linspace(device):
     a = ragged.linspace(5, 8, 5, device=device)
     assert a.tolist() == [5, 5.75, 6.5, 7.25, 8]
@@ -92,7 +109,25 @@ def test_ones(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_ones_ndim0(device):
+    a = ragged.ones((), device=device)
+    assert a.ndim == 0
+    assert a.shape == ()
+    assert a == 1
+    assert isinstance(a._impl, ns[device].ndarray)
+
+
+@pytest.mark.parametrize("device", devices)
 def test_zeros(device):
     a = ragged.zeros(5, device=device)
     assert a.tolist() == [0, 0, 0, 0, 0]
     assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("device", devices)
+def test_zeros_ndim0(device):
+    a = ragged.zeros((), device=device)
+    assert a.ndim == 0
+    assert a.shape == ()
+    assert a == 0
+    assert isinstance(a._impl, ns[device].ndarray)
