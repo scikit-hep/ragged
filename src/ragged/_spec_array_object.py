@@ -1144,5 +1144,7 @@ def _box(
         else:
             dtype = dtype_observed
         device = "cpu" if isinstance(output, np.ndarray) else "cuda"
+        if shape != ():
+            impl = ak.Array(impl)
 
     return cls._new(impl, shape, dtype, device)  # pylint: disable=W0212

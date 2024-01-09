@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import awkward as ak
 
-from ._spec_array_object import array
+from ._import import device_namespace
+from ._spec_array_object import _box, array
 from ._typing import (
     Device,
     Dtype,
@@ -53,12 +54,8 @@ def arange(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.arange.html
     """
 
-    start  # noqa: B018, pylint: disable=W0104
-    stop  # noqa: B018, pylint: disable=W0104
-    step  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 35")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.arange(start, stop, step, dtype=dtype))
 
 
 def asarray(
