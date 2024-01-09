@@ -37,7 +37,7 @@ def take(x: array, indices: array, /, *, axis: None | int = None) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.take.html
     """
 
-    assert x, "TODO"
-    assert indices, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 109"
+    x  # noqa: B018, pylint: disable=W0104
+    indices  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 109")  # noqa: EM101

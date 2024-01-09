@@ -47,8 +47,8 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_all.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 128"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 128")  # noqa: EM101
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -78,8 +78,8 @@ def unique_counts(x: array, /) -> tuple[array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_counts.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 129"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 129")  # noqa: EM101
 
 
 unique_inverse_result = namedtuple(  # pylint: disable=C0103
@@ -109,8 +109,8 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_inverse.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 130"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 130")  # noqa: EM101
 
 
 def unique_values(x: array, /) -> array:
@@ -129,5 +129,5 @@ def unique_values(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_values.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 131"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 131")  # noqa: EM101

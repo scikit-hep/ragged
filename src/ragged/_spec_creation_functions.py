@@ -53,12 +53,12 @@ def arange(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.arange.html
     """
 
-    assert start, "TODO"
-    assert stop, "TODO"
-    assert step, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 35"
+    start  # noqa: B018, pylint: disable=W0104
+    stop  # noqa: B018, pylint: disable=W0104
+    step  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 35")  # noqa: EM101
 
 
 def asarray(
@@ -112,6 +112,7 @@ def asarray(
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.asarray.html
     """
+
     return array(obj, dtype=dtype, device=device, copy=copy)
 
 
@@ -136,10 +137,10 @@ def empty(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.empty.html
     """
 
-    assert shape, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 36"
+    shape  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 36")  # noqa: EM101
 
 
 def empty_like(
@@ -161,10 +162,10 @@ def empty_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.empty_like.html
     """
 
-    assert x, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 37"
+    x  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 37")  # noqa: EM101
 
 
 def eye(
@@ -196,12 +197,12 @@ def eye(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.eye.html
     """
 
-    assert n_rows, "TODO"
-    assert n_cols, "TODO"
-    assert k, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 38"
+    n_rows  # noqa: B018, pylint: disable=W0104
+    n_cols  # noqa: B018, pylint: disable=W0104
+    k  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 38")  # noqa: EM101
 
 
 def from_dlpack(x: object, /) -> array:
@@ -217,8 +218,8 @@ def from_dlpack(x: object, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.from_dlpack.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 39"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 39")  # noqa: EM101
 
 
 def full(
@@ -253,11 +254,11 @@ def full(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.full.html
     """
 
-    assert shape, "TODO"
-    assert fill_value, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 40"
+    shape  # noqa: B018, pylint: disable=W0104
+    fill_value  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 40")  # noqa: EM101
 
 
 def full_like(
@@ -286,11 +287,11 @@ def full_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.full_like.html
     """
 
-    assert x, "TODO"
-    assert fill_value, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 41"
+    x  # noqa: B018, pylint: disable=W0104
+    fill_value  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 41")  # noqa: EM101
 
 
 def linspace(
@@ -343,13 +344,13 @@ def linspace(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.linspace.html
     """
 
-    assert start, "TODO"
-    assert stop, "TODO"
-    assert num, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert endpoint, "TODO"
-    assert False, "TODO 42"
+    start  # noqa: B018, pylint: disable=W0104
+    stop  # noqa: B018, pylint: disable=W0104
+    num  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    endpoint  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 42")  # noqa: EM101
 
 
 def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
@@ -388,9 +389,9 @@ def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.meshgrid.html
     """
 
-    assert arrays, "TODO"
-    assert indexing, "TODO"
-    assert False, "TODO 43"
+    arrays  # noqa: B018, pylint: disable=W0104
+    indexing  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 43")  # noqa: EM101
 
 
 def ones(
@@ -414,10 +415,10 @@ def ones(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones.html
     """
 
-    assert shape, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 44"
+    shape  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 44")  # noqa: EM101
 
 
 def ones_like(
@@ -440,10 +441,10 @@ def ones_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones_like.html
     """
 
-    assert x, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 45"
+    x  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 45")  # noqa: EM101
 
 
 def tril(x: array, /, *, k: int = 0) -> array:
@@ -466,9 +467,9 @@ def tril(x: array, /, *, k: int = 0) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tril.html
     """
 
-    assert x, "TODO"
-    assert k, "TODO"
-    assert False, "TODO 46"
+    x  # noqa: B018, pylint: disable=W0104
+    k  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 46")  # noqa: EM101
 
 
 def triu(x: array, /, *, k: int = 0) -> array:
@@ -491,9 +492,9 @@ def triu(x: array, /, *, k: int = 0) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.triu.html
     """
 
-    assert x, "TODO"
-    assert k, "TODO"
-    assert False, "TODO 47"
+    x  # noqa: B018, pylint: disable=W0104
+    k  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 47")  # noqa: EM101
 
 
 def zeros(
@@ -517,10 +518,10 @@ def zeros(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros.html
     """
 
-    assert shape, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 48"
+    shape  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 48")  # noqa: EM101
 
 
 def zeros_like(
@@ -543,7 +544,7 @@ def zeros_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros_like.html
     """
 
-    assert x, "TODO"
-    assert dtype, "TODO"
-    assert device, "TODO"
-    assert False, "TODO 49"
+    x  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    device  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 49")  # noqa: EM101

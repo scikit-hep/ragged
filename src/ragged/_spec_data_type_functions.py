@@ -34,10 +34,10 @@ def astype(x: array, dtype: Dtype, /, *, copy: bool = True) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.astype.html
     """
 
-    assert x, "TODO"
-    assert dtype, "TODO"
-    assert copy, "TODO"
-    assert False, "TODO 50"
+    x  # noqa: B018, pylint: disable=W0104
+    dtype  # noqa: B018, pylint: disable=W0104
+    copy  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 50")  # noqa: EM101
 
 
 def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
@@ -56,9 +56,9 @@ def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.can_cast.html
     """
 
-    assert from_, "TODO"
-    assert to, "TODO"
-    assert False, "TODO 51"
+    from_  # noqa: B018, pylint: disable=W0104
+    to  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 51")  # noqa: EM101
 
 
 @dataclass
@@ -114,8 +114,8 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.finfo.html
     """
 
-    assert type, "TODO"
-    assert False, "TODO 52"
+    type  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 52")  # noqa: EM101
 
 
 @dataclass
@@ -155,8 +155,8 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.iinfo.html
     """
 
-    assert type, "TODO"
-    assert False, "TODO 53"
+    type  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 53")  # noqa: EM101
 
 
 def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
@@ -199,9 +199,9 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
-    assert dtype, "TODO"
-    assert kind, "TODO"
-    assert False, "TODO 54"
+    dtype  # noqa: B018, pylint: disable=W0104
+    kind  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 54")  # noqa: EM101
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
@@ -218,5 +218,5 @@ def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.result_type.html
     """
 
-    assert arrays_and_dtypes, "TODO"
-    assert False, "TODO 55"
+    arrays_and_dtypes  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 55")  # noqa: EM101

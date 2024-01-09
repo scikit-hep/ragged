@@ -23,8 +23,8 @@ def broadcast_arrays(*arrays: array) -> list[array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_arrays.html
     """
 
-    assert arrays, "TODO"
-    assert False, "TODO 114"
+    arrays  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 114")  # noqa: EM101
 
 
 def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
@@ -43,9 +43,9 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_to.html
     """
 
-    assert x, "TODO"
-    assert shape, "TODO"
-    assert False, "TODO 115"
+    x  # noqa: B018, pylint: disable=W0104
+    shape  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 115")  # noqa: EM101
 
 
 def concat(
@@ -71,9 +71,9 @@ def concat(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.concat.html
     """
 
-    assert arrays, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 116"
+    arrays  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 116")  # noqa: EM101
 
 
 def expand_dims(x: array, /, *, axis: int = 0) -> array:
@@ -100,9 +100,9 @@ def expand_dims(x: array, /, *, axis: int = 0) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.expand_dims.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 117"
+    x  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 117")  # noqa: EM101
 
 
 def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
@@ -124,9 +124,9 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.flip.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 118"
+    x  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 118")  # noqa: EM101
 
 
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
@@ -145,9 +145,9 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    assert x, "TODO"
-    assert axes, "TODO"
-    assert False, "TODO 119"
+    x  # noqa: B018, pylint: disable=W0104
+    axes  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 119")  # noqa: EM101
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
@@ -172,10 +172,10 @@ def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) ->
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.reshape.html
     """
 
-    assert x, "TODO"
-    assert shape, "TODO"
-    assert copy, "TODO"
-    assert False, "TODO 120"
+    x  # noqa: B018, pylint: disable=W0104
+    shape  # noqa: B018, pylint: disable=W0104
+    copy  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 120")  # noqa: EM101
 
 
 def roll(
@@ -213,10 +213,10 @@ def roll(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
 
-    assert x, "TODO"
-    assert shift, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 121"
+    x  # noqa: B018, pylint: disable=W0104
+    shift  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 121")  # noqa: EM101
 
 
 def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
@@ -234,9 +234,9 @@ def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.squeeze.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 122"
+    x  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 122")  # noqa: EM101
 
 
 def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array:
@@ -266,6 +266,6 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.stack.html
     """
 
-    assert arrays, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 123"
+    arrays  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 123")  # noqa: EM101
