@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import enum
 import numbers
-from typing import TYPE_CHECKING, Any, Tuple, Union
+from typing import TYPE_CHECKING, Any, Union
 
 import awkward as ak
 import numpy as np
@@ -68,12 +68,12 @@ GetSliceKey = Union[
     slice,
     ellipsis,
     None,
-    Tuple[Union[int, slice, ellipsis, None], ...],
+    tuple[Union[int, slice, ellipsis, None], ...],
     "array",
 ]
 
 SetSliceKey = Union[
-    int, slice, ellipsis, Tuple[Union[int, slice, ellipsis], ...], "array"
+    int, slice, ellipsis, tuple[Union[int, slice, ellipsis], ...], "array"
 ]
 
 
