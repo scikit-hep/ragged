@@ -13,6 +13,8 @@ import numpy as np
 from ._spec_array_object import array
 from ._typing import Dtype
 
+_type = type
+
 
 def astype(x: array, dtype: Dtype, /, *, copy: bool = True) -> array:
     """
@@ -113,7 +115,7 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     """
 
     if not isinstance(type, np.dtype):
-        if not isinstance(type, __builtins__["type"]) and hasattr(type, "dtype"):  # type: ignore[index]
+        if not isinstance(type, _type) and hasattr(type, "dtype"):  # type: ignore[index]
             out = np.finfo(type.dtype)
         else:
             out = np.finfo(np.dtype(type))
@@ -162,7 +164,7 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     """
 
     if not isinstance(type, np.dtype):
-        if not isinstance(type, __builtins__["type"]) and hasattr(type, "dtype"):  # type: ignore[index]
+        if not isinstance(type, _type) and hasattr(type, "dtype"):  # type: ignore[index]
             out = np.iinfo(type.dtype)
         else:
             out = np.iinfo(np.dtype(type))
@@ -230,5 +232,4 @@ def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.result_type.html
     """
 
-    arrays_and_dtypes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 55")  # noqa: EM101
+    return np.result_type(*arrays_and_dtypes)

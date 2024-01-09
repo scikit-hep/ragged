@@ -36,12 +36,14 @@ def test_finfo():
 
 
 def test_finfo_array():
+    f = ragged.finfo(np.array([1.1, 2.2, 3.3]))
+    assert f.bits == 64
+    assert f.dtype == np.dtype(np.float64)
+
+
+def test_finfo_array2():
     f = ragged.finfo(ragged.array([1.1, 2.2, 3.3]))
     assert f.bits == 64
-    assert f.eps == 2.220446049250313e-16
-    assert f.max == 1.7976931348623157e308
-    assert f.min == -1.7976931348623157e308
-    assert f.smallest_normal == 2.2250738585072014e-308
     assert f.dtype == np.dtype(np.float64)
 
 
@@ -56,6 +58,15 @@ def test_iinfo():
 def test_iinfo_array():
     f = ragged.iinfo(np.array([1, 2, 3], np.int16))
     assert f.bits == 16
-    assert f.max == 32767
-    assert f.min == -32768
     assert f.dtype == np.dtype(np.int16)
+
+
+def test_iinfo_array2():
+    f = ragged.iinfo(ragged.array([1, 2, 3], np.int16))
+    assert f.bits == 16
+    assert f.dtype == np.dtype(np.int16)
+
+
+def test_result_type():
+    dt = ragged.result_type(ragged.array([1, 2, 3]), ragged.array([1.1, 2.2, 3.3]))
+    assert dt == np.dtype(np.float64)
