@@ -34,7 +34,9 @@ jobs:
           pipx run nox -s pylint
 
   checks:
-    name: "py:${{ matrix.python-version }} np:${{ matrix.numpy-version }} os:${{ matrix.runs-on }}"
+    name:
+      "py:${{ matrix.python-version }} np:${{ matrix.numpy-version }} os:${{
+      matrix.runs-on }}"
     runs-on: ${{ matrix.runs-on }}
     needs: [pre-commit]
     strategy:
