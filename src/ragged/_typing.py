@@ -45,23 +45,7 @@ class SupportsDLPack(Protocol):
 
 Shape = tuple[Optional[int], ...]
 
-Dtype = np.dtype[
-    Union[
-        np.bool_,
-        np.int8,
-        np.int16,
-        np.int32,
-        np.int64,
-        np.uint8,
-        np.uint16,
-        np.uint32,
-        np.uint64,
-        np.float32,
-        np.float64,
-        np.complex64,
-        np.complex128,
-    ]
-]
+Dtype = np.dtype
 
 numeric_types = (
     np.bool_,
