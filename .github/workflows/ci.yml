@@ -52,7 +52,7 @@ jobs:
             runs-on: ubuntu-latest
           - python-version: "3.9"
             numpy-version: "1.18.0"
-            runs-on: ubuntu-latest
+            runs-on: ubuntu-20.04
 
     env:
       PIP_ONLY_BINARY: numpy
