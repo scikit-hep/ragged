@@ -70,6 +70,9 @@ def test_eye(device):
     assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
 
 
+@pytest.mark.skipif(
+    not hasattr(np, "from_dlpack"), reason=f"np.from_dlpack not in {np.__version__}"
+)
 @pytest.mark.parametrize("device", devices)
 def test_from_dlpack(device):
     a = ns[device].array([1, 2, 3, 4, 5])
