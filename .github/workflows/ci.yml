@@ -45,13 +45,13 @@ jobs:
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
         include:
-          - python-version: pypy-3.10
-            numpy-version: latest
+          - python-version: "pypy-3.10"
+            numpy-version: "latest"
             runs-on: ubuntu-latest
 
         include:
-          - python-version: 3.9
-            numpy-version: 1.18.0
+          - python-version: "3.9"
+            numpy-version: "1.18.0"
             runs-on: ubuntu-latest
 
     steps:
