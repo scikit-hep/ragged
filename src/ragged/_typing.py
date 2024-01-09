@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import enum
 import sys
-from typing import Any, Literal, Optional, Protocol, Tuple, TypeVar
+from typing import Any, Literal, Optional, Protocol, Tuple, TypeVar, Union
 
 import numpy as np
 
@@ -45,7 +45,23 @@ class SupportsDLPack(Protocol):
 
 Shape = Tuple[Optional[int], ...]
 
-Dtype = np.dtype
+Dtype = np.dtype[
+    Union[
+        np.bool_,
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+        np.float32,
+        np.float64,
+        np.complex64,
+        np.complex128,
+    ]
+]
 
 numeric_types = (
     np.bool_,
