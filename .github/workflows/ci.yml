@@ -34,7 +34,7 @@ jobs:
           pipx run nox -s pylint
 
   checks:
-    name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
+    name: py:${{ matrix.python-version }} np:${{ matrix.numpy-version }} os:${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
     needs: [pre-commit]
     strategy:
@@ -51,6 +51,9 @@ jobs:
           - python-version: "3.9"
             numpy-version: "1.18.0"
             runs-on: ubuntu-latest
+
+    env:
+      PIP_ONLY_BINARY: numpy
 
     steps:
       - uses: actions/checkout@v4
