@@ -68,3 +68,31 @@ def test_from_dlpack(device):
     b = ragged.from_dlpack(a)
     assert b.tolist() == [1, 2, 3, 4, 5]
     assert isinstance(b._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("device", devices)
+def test_full(device):
+    a = ragged.full(5, 3, device=device)
+    assert a.tolist() == [3, 3, 3, 3, 3]
+    assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("device", devices)
+def test_linspace(device):
+    a = ragged.linspace(5, 8, 5, device=device)
+    assert a.tolist() == [5, 5.75, 6.5, 7.25, 8]
+    assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("device", devices)
+def test_ones(device):
+    a = ragged.ones(5, device=device)
+    assert a.tolist() == [1, 1, 1, 1, 1]
+    assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]
+
+
+@pytest.mark.parametrize("device", devices)
+def test_zeros(device):
+    a = ragged.zeros(5, device=device)
+    assert a.tolist() == [0, 0, 0, 0, 0]
+    assert isinstance(a._impl.layout.data, ns[device].ndarray)  # type: ignore[union-attr]

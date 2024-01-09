@@ -262,11 +262,8 @@ def full(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.full.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    fill_value  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 40")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.full(shape, fill_value, dtype=dtype))
 
 
 def full_like(
@@ -352,13 +349,10 @@ def linspace(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.linspace.html
     """
 
-    start  # noqa: B018, pylint: disable=W0104
-    stop  # noqa: B018, pylint: disable=W0104
-    num  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    endpoint  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 42")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(
+        array, ns.linspace(start, stop, num=num, endpoint=endpoint, dtype=dtype)
+    )
 
 
 def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
@@ -423,10 +417,8 @@ def ones(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 44")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.ones(shape, dtype=dtype))
 
 
 def ones_like(
@@ -526,10 +518,8 @@ def zeros(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros.html
     """
 
-    shape  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 48")  # noqa: EM101
+    device, ns = device_namespace(device)
+    return _box(array, ns.zeros(shape, dtype=dtype))
 
 
 def zeros_like(
