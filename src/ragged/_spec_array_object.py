@@ -217,7 +217,8 @@ class array:  # pylint: disable=C0103
                 cp = _import.cupy()
                 self._impl = cp.array(self._impl)
 
-        assert copy is None, "TODO"
+        if copy is not None:
+            raise NotImplementedError("TODO 1")  # noqa: EM101
 
     def __str__(self) -> str:
         """
@@ -289,7 +290,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        assert False, "TODO 1"
+        raise NotImplementedError("TODO 2")  # noqa: EM101
 
     @property
     def ndim(self) -> int:
@@ -352,7 +353,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        assert False, "TODO 2"
+        raise NotImplementedError("TODO 3")  # noqa: EM101
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -451,8 +452,7 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack__.html
         """
 
-        assert stream, "TODO"
-        assert False, "TODO 9"
+        raise NotImplementedError("TODO 4")  # noqa: EM101
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -464,7 +464,7 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        assert False, "TODO 10"
+        raise NotImplementedError("TODO 10")  # noqa: EM101
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -533,7 +533,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        assert False, "TODO 15"
+        raise NotImplementedError("TODO 15")  # noqa: EM101
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
@@ -641,7 +641,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
 
-        assert False, "TODO 22"
+        raise NotImplementedError("TODO 22")  # noqa: EM101
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -782,7 +782,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        assert False, "TODO 31"
+        raise NotImplementedError("TODO 31")  # noqa: EM101
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
@@ -852,7 +852,8 @@ class array:  # pylint: disable=C0103
 
         if isinstance(self._impl, ak.Array):
             if device != ak.backend(self._impl):
-                assert stream is None, "TODO"
+                if stream is not None:
+                    raise NotImplementedError("TODO 124")  # noqa: EM101
                 impl = ak.to_backend(self._impl, device)
             else:
                 impl = self._impl
@@ -860,7 +861,8 @@ class array:  # pylint: disable=C0103
         elif isinstance(self._impl, np.ndarray):
             # self._impl is a NumPy 0-dimensional array
             if device == "cuda":
-                assert stream is None, "TODO"
+                if stream is not None:
+                    raise NotImplementedError("TODO 125")  # noqa: EM101
                 cp = _import.cupy()
                 impl = cp.array(self._impl)
             else:

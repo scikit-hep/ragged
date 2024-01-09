@@ -34,11 +34,11 @@ def argsort(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.argsort.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert descending, "TODO"
-    assert stable, "TODO"
-    assert False, "TODO 132"
+    x  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    descending  # noqa: B018, pylint: disable=W0104
+    stable  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 132")  # noqa: EM101
 
 
 def sort(
@@ -66,8 +66,8 @@ def sort(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sort.html
     """
 
-    assert x, "TODO"
-    assert axis, "TODO"
-    assert descending, "TODO"
-    assert stable, "TODO"
-    assert False, "TODO 133"
+    x  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    descending  # noqa: B018, pylint: disable=W0104
+    stable  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 133")  # noqa: EM101

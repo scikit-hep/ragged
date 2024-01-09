@@ -73,9 +73,9 @@ def matmul(x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matmul.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 110"
+    x1  # noqa: B018, pylint: disable=W0104
+    x2  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 110")  # noqa: EM101
 
 
 def matrix_transpose(x: array, /) -> array:
@@ -93,8 +93,8 @@ def matrix_transpose(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 111"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 111")  # noqa: EM101
 
 
 def tensordot(
@@ -140,10 +140,10 @@ def tensordot(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tensordot.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert axes, "TODO"
-    assert False, "TODO 112"
+    x1  # noqa: B018, pylint: disable=W0104
+    x2  # noqa: B018, pylint: disable=W0104
+    axes  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 112")  # noqa: EM101
 
 
 def vecdot(x1: array, x2: array, /, *, axis: int = -1) -> array:
@@ -184,7 +184,7 @@ def vecdot(x1: array, x2: array, /, *, axis: int = -1) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.vecdot.html
     """
 
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert axis, "TODO"
-    assert False, "TODO 113"
+    x1  # noqa: B018, pylint: disable=W0104
+    x2  # noqa: B018, pylint: disable=W0104
+    axis  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 113")  # noqa: EM101

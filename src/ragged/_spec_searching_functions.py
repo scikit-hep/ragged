@@ -123,8 +123,8 @@ def nonzero(x: array, /) -> tuple[array, ...]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.nonzero.html
     """
 
-    assert x, "TODO"
-    assert False, "TODO 126"
+    x  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 126")  # noqa: EM101
 
 
 def where(condition: array, x1: array, x2: array, /) -> array:
@@ -146,7 +146,7 @@ def where(condition: array, x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.where.html
     """
 
-    assert condition, "TODO"
-    assert x1, "TODO"
-    assert x2, "TODO"
-    assert False, "TODO 127"
+    condition  # noqa: B018, pylint: disable=W0104
+    x1  # noqa: B018, pylint: disable=W0104
+    x2  # noqa: B018, pylint: disable=W0104
+    raise NotImplementedError("TODO 127")  # noqa: EM101
