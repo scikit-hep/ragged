@@ -115,7 +115,7 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     """
 
     if not isinstance(type, np.dtype):
-        if not isinstance(type, _type) and hasattr(type, "dtype"):  # type: ignore[index]
+        if not isinstance(type, _type) and hasattr(type, "dtype"):
             out = np.finfo(type.dtype)
         else:
             out = np.finfo(np.dtype(type))
@@ -164,7 +164,7 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     """
 
     if not isinstance(type, np.dtype):
-        if not isinstance(type, _type) and hasattr(type, "dtype"):  # type: ignore[index]
+        if not isinstance(type, _type) and hasattr(type, "dtype"):
             out = np.iinfo(type.dtype)
         else:
             out = np.iinfo(np.dtype(type))
