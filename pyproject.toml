@@ -11,7 +11,7 @@ authors = [
 description = "Ragged array library, complying with Python API specification."
 readme = "README.md"
 license.file = "LICENSE"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -88,7 +89,7 @@ report.exclude_also = [
 
 [tool.mypy]
 files = ["src", "tests"]
-python_version = "3.9"
+python_version = "3.8"
 warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
@@ -157,7 +158,7 @@ isort.required-imports = ["from __future__ import annotations"]
 
 
 [tool.pylint]
-py-version = "3.9"
+py-version = "3.8"
 ignore-paths = [".*/_version.py"]
 reports.output-format = "colorized"
 similarities.ignore-imports = "yes"
