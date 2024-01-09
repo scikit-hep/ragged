@@ -6,6 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/elementwise_functions.h
 
 from __future__ import annotations
 
+import types
 import warnings
 from typing import Any
 
@@ -14,7 +15,73 @@ import numpy as np
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    import numpy.array_api as xp
+    try:
+        import numpy.array_api as xp
+
+        real_xp = True
+    except ModuleNotFoundError:
+        real_xp = False
+        xp = types.ModuleType("array_api")
+        xp.asarray = np.asarray
+        xp.abs = np.abs
+        xp.acos = np.arccos
+        xp.acosh = np.arccosh
+        xp.add = np.add
+        xp.asin = np.arcsin
+        xp.asinh = np.arcsinh
+        xp.atan = np.arctan
+        xp.atan2 = np.arctan2
+        xp.atanh = np.arctanh
+        xp.bitwise_and = np.bitwise_and
+        xp.bitwise_invert = np.invert
+        xp.bitwise_left_shift = np.left_shift
+        xp.bitwise_or = np.bitwise_or
+        xp.bitwise_right_shift = np.right_shift
+        xp.bitwise_xor = np.bitwise_xor
+        xp.ceil = np.ceil
+        xp.conj = np.conj
+        xp.cos = np.cos
+        xp.cosh = np.cosh
+        xp.divide = np.divide
+        xp.equal = np.equal
+        xp.exp = np.exp
+        xp.expm1 = np.expm1
+        xp.floor = np.floor
+        xp.floor_divide = np.floor_divide
+        xp.greater = np.greater
+        xp.greater_equal = np.greater_equal
+        xp.imag = np.imag
+        xp.isfinite = np.isfinite
+        xp.isinf = np.isinf
+        xp.isnan = np.isnan
+        xp.less = np.less
+        xp.less_equal = np.less_equal
+        xp.log = np.log
+        xp.log1p = np.log1p
+        xp.log2 = np.log2
+        xp.log10 = np.log10
+        xp.logaddexp = np.logaddexp
+        xp.logical_and = np.logical_and
+        xp.logical_not = np.logical_not
+        xp.logical_or = np.logical_or
+        xp.logical_xor = np.logical_xor
+        xp.multiply = np.multiply
+        xp.negative = np.negative
+        xp.not_equal = np.not_equal
+        xp.positive = np.positive
+        xp.pow = np.power
+        xp.real = np.real
+        xp.remainder = np.remainder
+        xp.round = np.round
+        xp.sign = np.sign
+        xp.sin = np.sin
+        xp.sinh = np.sinh
+        xp.square = np.square
+        xp.sqrt = np.sqrt
+        xp.subtract = np.subtract
+        xp.tan = np.tan
+        xp.tanh = np.tanh
+        xp.trunc = np.trunc
 
 import pytest
 
@@ -437,7 +504,8 @@ def test_ceil_int(device, x_int):
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.ceil(first(x_int)) == first(result)
-    assert xp.ceil(first(x_int)).dtype == result.dtype
+    if real_xp:
+        assert xp.ceil(first(x_int)).dtype == result.dtype
 
 
 @pytest.mark.parametrize("device", devices)
@@ -546,7 +614,8 @@ def test_floor_int(device, x_int):
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.floor(first(x_int)) == first(result)
-    assert xp.floor(first(x_int)).dtype == result.dtype
+    if real_xp:
+        assert xp.floor(first(x_int)).dtype == result.dtype
 
 
 @pytest.mark.parametrize("device", devices)

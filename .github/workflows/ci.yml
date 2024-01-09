@@ -54,9 +54,6 @@ jobs:
             numpy-version: "1.19.3"
             runs-on: ubuntu-latest
 
-    env:
-      PIP_ONLY_BINARY: numpy
-
     steps:
       - uses: actions/checkout@v4
         with:
