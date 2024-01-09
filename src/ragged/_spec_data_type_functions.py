@@ -56,9 +56,7 @@ def can_cast(from_: Dtype | array, to: Dtype, /) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.can_cast.html
     """
 
-    from_  # noqa: B018, pylint: disable=W0104
-    to  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 51")  # noqa: EM101
+    return bool(np.can_cast(from_, to))
 
 
 @dataclass
@@ -114,8 +112,16 @@ def finfo(type: Dtype | array, /) -> finfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.finfo.html
     """
 
-    type  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 52")  # noqa: EM101
+    if not isinstance(type, np.dtype):
+        if not isinstance(type, __builtins__["type"]) and hasattr(type, "dtype"):  # type: ignore[index]
+            out = np.finfo(type.dtype)
+        else:
+            out = np.finfo(np.dtype(type))
+    else:
+        out = np.finfo(type)
+    return finfo_object(
+        out.bits, out.eps, out.max, out.min, out.smallest_normal, out.dtype
+    )
 
 
 @dataclass
@@ -155,8 +161,14 @@ def iinfo(type: Dtype | array, /) -> iinfo_object:  # pylint: disable=W0622
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.iinfo.html
     """
 
-    type  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 53")  # noqa: EM101
+    if not isinstance(type, np.dtype):
+        if not isinstance(type, __builtins__["type"]) and hasattr(type, "dtype"):  # type: ignore[index]
+            out = np.iinfo(type.dtype)
+        else:
+            out = np.iinfo(np.dtype(type))
+    else:
+        out = np.iinfo(type)
+    return iinfo_object(out.bits, out.max, out.min, out.dtype)
 
 
 def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
