@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import enum
 import sys
-from typing import Any, Literal, Optional, Protocol, TypeVar, Union
+from typing import Any, Literal, Optional, Protocol, TypeVar
 
 import numpy as np
 
