@@ -6,7 +6,9 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import awkward as ak
+
+from ._spec_array_object import _box, _unbox, array
 
 
 def broadcast_arrays(*arrays: array) -> list[array]:
@@ -23,8 +25,14 @@ def broadcast_arrays(*arrays: array) -> list[array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_arrays.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 114")  # noqa: EM101
+    impls = _unbox(*arrays)
+    if all(not isinstance(x, ak.Array) for x in impls):
+        return [_box(type(arrays[i]), x) for i, x in enumerate(impls)]
+    else:
+        out = [x if isinstance(x, ak.Array) else x.reshape((1,)) for x in impls]  # type: ignore[union-attr]
+        return [
+            _box(type(arrays[i]), x) for i, x in enumerate(ak.broadcast_arrays(*out))
+        ]
 
 
 def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
