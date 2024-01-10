@@ -79,9 +79,27 @@ def concat(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.concat.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 116")  # noqa: EM101
+    if len(arrays) == 0:
+        msg = "need at least one array to concatenate"
+        raise ValueError(msg)
+
+    first = arrays[0]
+    if not all(first.ndim == x.ndim for x in arrays[1:]):
+        msg = "all the input arrays must have the same number of dimensions"
+        raise ValueError(msg)
+
+    if first.ndim == 0:
+        msg = "zero-dimensional arrays cannot be concatenated"
+        raise ValueError(msg)
+
+    impls = _unbox(*arrays)
+    assert all(isinstance(x, ak.Array) for x in impls)
+
+    if axis is None:
+        impls = [ak.ravel(x) for x in impls]  # type: ignore[assignment]
+        axis = 0
+
+    return _box(type(first), ak.concatenate(impls, axis=axis))
 
 
 def expand_dims(x: array, /, *, axis: int = 0) -> array:
