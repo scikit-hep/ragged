@@ -1149,6 +1149,7 @@ def _box(
     output: ak.Array | np.number | SupportsDLPack,
     *,
     dtype: None | Dtype = None,
+    device: None | Device = None,
 ) -> array:
     if isinstance(output, ak.Array):
         impl = output
@@ -1157,7 +1158,11 @@ def _box(
             impl = ak.values_astype(impl, dtype)
         else:
             dtype = dtype_observed
-        device = ak.backend(output)
+        device_observed = ak.backend(output)
+        if device is None:
+            device = device_observed
+        elif device != device_observed:
+            output = ak.to_backend(output, device)
 
     elif isinstance(output, np.number):
         impl = np.array(output)
@@ -1167,7 +1172,12 @@ def _box(
             impl = impl.astype(dtype)
         else:
             dtype = dtype_observed
-        device = "cpu"
+        device_observed = "cpu"
+        if device is None:
+            device = device_observed
+        elif device != device_observed:
+            cp = _import.cupy()
+            output = cp.array(output)
 
     else:
         impl = output
@@ -1177,7 +1187,16 @@ def _box(
             impl = impl.astype(dtype)
         else:
             dtype = dtype_observed
-        device = "cpu" if isinstance(output, np.ndarray) else "cuda"
+        device_observed = "cpu" if isinstance(output, np.ndarray) else "cuda"
+        if device is None:
+            device = device_observed
+        elif device != device_observed:
+            if device == "cpu":
+                output = np.array(output)
+            else:
+                cp = _import.cupy()
+                output = cp.array(output)
+
         if shape != ():
             impl = ak.Array(impl)
 

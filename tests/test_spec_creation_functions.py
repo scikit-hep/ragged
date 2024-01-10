@@ -64,6 +64,15 @@ def test_empty_ndim0(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_empty_like(device):
+    a = ragged.array([[1, 2, 3], [], [4, 5]], device=device)
+    b = ragged.empty_like(a)
+    assert (b * 0).tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
+    assert a.dtype == b.dtype
+    assert a.device == b.device
+
+
+@pytest.mark.parametrize("device", devices)
 def test_eye(device):
     a = ragged.eye(3, 5, k=1, device=device)
     assert a.tolist() == [[0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0]]

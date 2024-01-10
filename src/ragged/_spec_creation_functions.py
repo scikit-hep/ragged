@@ -13,7 +13,7 @@ import numpy as np
 
 from . import _import
 from ._import import device_namespace
-from ._spec_array_object import _box, array
+from ._spec_array_object import _box, _unbox, array
 from ._typing import (
     Device,
     Dtype,
@@ -161,10 +161,12 @@ def empty_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.empty_like.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 37")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if isinstance(impl, ak.Array):
+        return _box(type(x), ak.zeros_like(impl), dtype=dtype, device=device)
+    else:
+        _, ns = device_namespace(x.device if device is None else device)
+        return _box(type(x), ns.empty_like(impl), dtype=dtype, device=device)
 
 
 def eye(
