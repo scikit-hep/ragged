@@ -9,6 +9,7 @@ from __future__ import annotations
 import awkward as ak
 import numpy as np
 
+from ._import import device_namespace
 from ._spec_array_object import _box, _unbox, array
 
 
@@ -146,7 +147,20 @@ def where(condition: array, x1: array, x2: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.where.html
     """
 
-    condition  # noqa: B018, pylint: disable=W0104
-    x1  # noqa: B018, pylint: disable=W0104
-    x2  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 127")  # noqa: EM101
+    if condition.ndim == x1.ndim == x2.ndim == 0:
+        cond_impl, x1_impl, x2_impl = _unbox(condition, x1, x2)
+        _, ns = device_namespace(condition.device)
+        return _box(type(condition), ns.where(cond_impl, x1_impl, x2_impl))
+
+    else:
+        cond_impl, x1_impl, x2_impl = _unbox(condition, x1, x2)
+        if not isinstance(cond_impl, ak.Array):
+            cond_impl = ak.Array(cond_impl.reshape((1,)))  # type: ignore[union-attr]
+        if not isinstance(x1_impl, ak.Array):
+            x1_impl = ak.Array(x1_impl.reshape((1,)))  # type: ignore[union-attr]
+        if not isinstance(x2_impl, ak.Array):
+            x2_impl = ak.Array(x2_impl.reshape((1,)))  # type: ignore[union-attr]
+
+        cond_impl, x1_impl, x2_impl = ak.broadcast_arrays(cond_impl, x1_impl, x2_impl)
+
+        return _box(type(condition), ak.where(cond_impl, x1_impl, x2_impl))
