@@ -124,8 +124,11 @@ def nonzero(x: array, /) -> tuple[array, ...]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.nonzero.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 126")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if not isinstance(impl, ak.Array):
+        impl = ak.Array(impl.reshape((1,)))  # type: ignore[union-attr]
+
+    return tuple(_box(type(x), item) for item in ak.where(impl))
 
 
 def where(condition: array, x1: array, x2: array, /) -> array:
