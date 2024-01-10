@@ -107,6 +107,15 @@ def test_full_ndim0(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_full_like(device):
+    a = ragged.array([[1, 2, 3], [], [4, 5]], device=device)
+    b = ragged.full_like(a, 5)
+    assert b.tolist() == [[5, 5, 5], [], [5, 5]]  # type: ignore[comparison-overlap]
+    assert a.dtype == b.dtype
+    assert a.device == b.device
+
+
+@pytest.mark.parametrize("device", devices)
 def test_linspace(device):
     a = ragged.linspace(5, 8, 5, device=device)
     assert a.tolist() == [5, 5.75, 6.5, 7.25, 8]
@@ -130,6 +139,15 @@ def test_ones_ndim0(device):
 
 
 @pytest.mark.parametrize("device", devices)
+def test_ones_like(device):
+    a = ragged.array([[1, 2, 3], [], [4, 5]], device=device)
+    b = ragged.ones_like(a)
+    assert b.tolist() == [[1, 1, 1], [], [1, 1]]  # type: ignore[comparison-overlap]
+    assert a.dtype == b.dtype
+    assert a.device == b.device
+
+
+@pytest.mark.parametrize("device", devices)
 def test_zeros(device):
     a = ragged.zeros(5, device=device)
     assert a.tolist() == [0, 0, 0, 0, 0]
@@ -143,3 +161,12 @@ def test_zeros_ndim0(device):
     assert a.shape == ()
     assert a == 0
     assert isinstance(a._impl, ns[device].ndarray)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_zeros_like(device):
+    a = ragged.array([[1, 2, 3], [], [4, 5]], device=device)
+    b = ragged.zeros_like(a)
+    assert b.tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
+    assert a.dtype == b.dtype
+    assert a.device == b.device

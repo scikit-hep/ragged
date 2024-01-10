@@ -294,11 +294,12 @@ def full_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.full_like.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    fill_value  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 41")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if isinstance(impl, ak.Array):
+        return _box(type(x), ak.full_like(impl, fill_value), dtype=dtype, device=device)
+    else:
+        _, ns = device_namespace(x.device if device is None else device)
+        return _box(type(x), ns.full_like(impl, fill_value), dtype=dtype, device=device)
 
 
 def linspace(
@@ -443,10 +444,12 @@ def ones_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ones_like.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 45")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if isinstance(impl, ak.Array):
+        return _box(type(x), ak.ones_like(impl), dtype=dtype, device=device)
+    else:
+        _, ns = device_namespace(x.device if device is None else device)
+        return _box(type(x), ns.ones_like(impl), dtype=dtype, device=device)
 
 
 def tril(x: array, /, *, k: int = 0) -> array:
@@ -544,7 +547,9 @@ def zeros_like(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.zeros_like.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    dtype  # noqa: B018, pylint: disable=W0104
-    device  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 49")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if isinstance(impl, ak.Array):
+        return _box(type(x), ak.zeros_like(impl), dtype=dtype, device=device)
+    else:
+        _, ns = device_namespace(x.device if device is None else device)
+        return _box(type(x), ns.zeros_like(impl), dtype=dtype, device=device)
