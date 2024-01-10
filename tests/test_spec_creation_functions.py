@@ -69,7 +69,7 @@ def test_empty_like(device):
     b = ragged.empty_like(a)
     assert (b * 0).tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
-    assert a.device == b.device
+    assert a.device == b.device == device
 
 
 @pytest.mark.parametrize("device", devices)
@@ -112,7 +112,7 @@ def test_full_like(device):
     b = ragged.full_like(a, 5)
     assert b.tolist() == [[5, 5, 5], [], [5, 5]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
-    assert a.device == b.device
+    assert a.device == b.device == device
 
 
 @pytest.mark.parametrize("device", devices)
@@ -144,7 +144,7 @@ def test_ones_like(device):
     b = ragged.ones_like(a)
     assert b.tolist() == [[1, 1, 1], [], [1, 1]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
-    assert a.device == b.device
+    assert a.device == b.device == device
 
 
 @pytest.mark.parametrize("device", devices)
@@ -169,4 +169,4 @@ def test_zeros_like(device):
     b = ragged.zeros_like(a)
     assert b.tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
-    assert a.device == b.device
+    assert a.device == b.device == device
