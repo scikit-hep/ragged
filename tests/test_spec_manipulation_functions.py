@@ -6,6 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 
 from __future__ import annotations
 
+import awkward as ak
 import pytest
 
 import ragged
@@ -85,3 +86,17 @@ def test_concat(x, y):
             [],
             [4.4, 5.5, 4.4, 5.5],
         ]
+
+
+@pytest.mark.parametrize("axis", [0, 1, 2])
+def test_expand_dims(x, axis):
+    if 0 <= axis <= x.ndim:
+        a = ragged.expand_dims(x, axis=axis)
+        assert a.shape == x.shape[:axis] + (1,) + x.shape[axis:]
+        assert str(a._impl.type) == " * ".join(  # type: ignore[union-attr]
+            ["var" if ai is None else str(ai) for ai in a.shape] + [str(a.dtype)]
+        )
+
+    else:
+        with pytest.raises(ak.errors.AxisError):
+            ragged.expand_dims(x, axis=axis)

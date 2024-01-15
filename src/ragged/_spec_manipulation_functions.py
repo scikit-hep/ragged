@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import awkward as ak
+import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
 
@@ -126,9 +127,23 @@ def expand_dims(x: array, /, *, axis: int = 0) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.expand_dims.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 117")  # noqa: EM101
+    original_axis = axis
+    if axis < 0:
+        axis += x.ndim + 1
+    if not 0 <= axis <= x.ndim:
+        msg = (
+            f"axis {original_axis} is out of bounds for array of dimension {x.ndim + 1}"
+        )
+        raise ak.errors.AxisError(msg)
+
+    slicer = (slice(None),) * axis + (np.newaxis,)
+    shape = x.shape[:axis] + (1,) + x.shape[axis:]
+
+    out = x._impl[slicer]  # type: ignore[index], pylint: disable=W0212
+    if not isinstance(out, ak.Array):
+        out = ak.Array(out)
+
+    return type(x)._new(out, shape, x.dtype, x.device)  # pylint: disable=W0212
 
 
 def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
