@@ -6,8 +6,10 @@ https://data-apis.org/array-api/latest/API_specification/array_object.html
 
 from __future__ import annotations
 
+import copy as copy_lib
 import enum
 import numbers
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Union
 
 import awkward as ak
@@ -81,6 +83,10 @@ class array:  # pylint: disable=C0103
     """
     Ragged array class and constructor.
 
+    In addition to satisfying the Array API, a `ragged.array` is a `Collection`,
+    meaning that it is `Sized`, `Iterable`, and a `Container`. The `len` and
+    `iter` functions, as well as the `x in array` syntax all work.
+
     https://data-apis.org/array-api/latest/API_specification/array_object.html
     """
 
@@ -93,7 +99,9 @@ class array:  # pylint: disable=C0103
     _device: Device
 
     @classmethod
-    def _new(cls, impl: ak.Array, shape: Shape, dtype: Dtype, device: Device) -> array:
+    def _new(
+        cls, impl: ak.Array | SupportsDLPack, shape: Shape, dtype: Dtype, device: Device
+    ) -> array:
         """
         Simple/fast array constructor for internal code.
         """
@@ -225,8 +233,8 @@ class array:  # pylint: disable=C0103
             else:
                 self._device = "cuda"
 
-        if copy is not None:
-            raise NotImplementedError("TODO 1")  # noqa: EM101
+        if copy and isinstance(self._impl, ak.Array):
+            self._impl = copy_lib.deepcopy(self._impl)
 
     def __str__(self) -> str:
         """
@@ -257,6 +265,49 @@ class array:  # pylint: disable=C0103
                 "\n ", "\n    "
             )
             return f"ragged.array([\n    {prep}\n])"
+
+    # Typical properties and methods for an array, but not part of the Array API
+
+    def __contains__(self, other: bool | int | float | complex) -> bool:
+        if isinstance(self._impl, ak.Array):
+            flat = ak.flatten(self._impl, axis=None)
+            assert isinstance(flat.layout, NumpyArray)  # pylint: disable=E1101
+            return other in flat.layout.data  # pylint: disable=E1101
+        else:
+            return other in self._impl  # type: ignore[operator]
+
+    def __len__(self) -> int:
+        if isinstance(self._impl, ak.Array):
+            return len(self._impl)
+        else:
+            msg = "len() of unsized object"
+            raise TypeError(msg)
+
+    def __iter__(self) -> Iterator[array]:
+        if isinstance(self._impl, ak.Array):
+            t = type(self)
+            sh = self._shape[1:]
+            dt = self._dtype
+            dev = self._device
+            if sh == ():
+                for x in self._impl:
+                    yield t._new(x, (), dt, dev)
+            else:
+                for x in self._impl:
+                    yield t._new(x, (len(x), *sh), dt, dev)
+        else:
+            msg = "iteration over a 0-d array"
+            raise TypeError(msg)
+
+    def item(self) -> bool | int | float | complex:
+        if self.size == 1:
+            if isinstance(self._impl, ak.Array):
+                return ak.flatten(self._impl, axis=None)[0].item()  # type: ignore[no-any-return]
+            else:
+                return self._impl.item()  # type: ignore[no-any-return,union-attr]
+        else:
+            msg = "can only convert an array of size 1 to a Python scalar"
+            raise ValueError(msg)
 
     def tolist(
         self,
@@ -460,7 +511,11 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack__.html
         """
 
-        raise NotImplementedError("TODO 4")  # noqa: EM101
+        buf = self._impl
+        if isinstance(buf, ak.Array):
+            buf = ak.to_numpy(buf) if ak.backend(buf) == "cpu" else ak.to_cupy(buf)
+
+        return buf.__dlpack__(stream=stream)  # type: ignore[arg-type]
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -472,7 +527,15 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        raise NotImplementedError("TODO 10")  # noqa: EM101
+        buf = self._impl
+        if isinstance(buf, ak.Array):
+            buf = buf.layout
+            while isinstance(buf, (ListArray, ListOffsetArray, RegularArray)):
+                buf = buf.content
+            assert isinstance(buf, NumpyArray)
+            buf = buf.data
+
+        return buf.__dlpack_device__()
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -541,7 +604,22 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        raise NotImplementedError("TODO 15")  # noqa: EM101
+        if isinstance(key, tuple):
+            for item in key:
+                if not isinstance(
+                    item, (numbers.Integral, slice, type(...), type(None))
+                ):
+                    msg = f"ragged.array sliced as arr[item1, item2, ...] can only have int, slice, ellipsis, None (np.newaxis) as items, not {item!r}"
+                    raise TypeError(msg)
+        elif not isinstance(
+            key, (numbers.Integral, slice, type(...), type(None), array)
+        ):
+            key = array(key)  # attempt to cast unknown key type as ragged.array
+
+        if isinstance(key, array):
+            key = key._impl  # type: ignore[assignment]
+
+        return _box(type(self), self._impl[key])  # type: ignore[index]
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
@@ -790,7 +868,8 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        raise NotImplementedError("TODO 31")  # noqa: EM101
+        msg = "ragged.array is an immutable type; its values cannot be assigned to"
+        raise TypeError(msg)
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
@@ -853,26 +932,42 @@ class array:  # pylint: disable=C0103
                 main memory; if `"cuda"`, the array is backed by CuPy and
                 resides in CUDA global memory.
             stream: CuPy Stream object (https://docs.cupy.dev/en/stable/reference/generated/cupy.cuda.Stream.html)
-                for `device="cuda"`.
+                for `device="cuda"`. Ignored if output `device` is `"cpu"`. If
+                this argument is an integer, it is interpreted as the pointer
+                address of a `cudaStream_t` object.
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.to_device.html
         """
 
+        if isinstance(stream, numbers.Integral):
+            cp = _import.cupy()
+            stream = cp.cuda.ExternalStream(stream)
+
+        if stream is not None:
+            t = type(stream)
+            if not t.__module__.startswith("cupy.") or t.__name__ != "Stream":
+                msg = f"stream object must be a cupy.cuda.Stream, not {stream!r}"
+                raise TypeError(msg)
+
         if isinstance(self._impl, ak.Array):
             if device != ak.backend(self._impl):
                 if stream is not None:
-                    raise NotImplementedError("TODO 124")  # noqa: EM101
-                impl = ak.to_backend(self._impl, device)
+                    with stream:
+                        impl = ak.to_backend(self._impl, device)
+                else:
+                    impl = ak.to_backend(self._impl, device)
             else:
                 impl = self._impl
 
         elif isinstance(self._impl, np.ndarray):
             # self._impl is a NumPy 0-dimensional array
             if device == "cuda":
-                if stream is not None:
-                    raise NotImplementedError("TODO 125")  # noqa: EM101
                 cp = _import.cupy()
-                impl = cp.array(self._impl)
+                if stream is not None:
+                    with stream:
+                        impl = cp.array(self._impl)
+                else:
+                    impl = cp.array(self._impl)
             else:
                 impl = self._impl
 

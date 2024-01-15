@@ -6,7 +6,10 @@ https://data-apis.org/array-api/latest/API_specification/indexing_functions.html
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import awkward as ak
+import numpy as np
+
+from ._spec_array_object import _box, array
 
 
 def take(x: array, indices: array, /, *, axis: None | int = None) -> array:
@@ -37,7 +40,27 @@ def take(x: array, indices: array, /, *, axis: None | int = None) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.take.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    indices  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 109")  # noqa: EM101
+    if axis is None:
+        if x.ndim <= 1:
+            axis = 0
+        else:
+            msg = f"for an {x.ndim}-dimensional array (greater than 1-dimensional), the 'axis' argument is required"
+            raise TypeError(msg)
+
+    original_axis = axis
+    if axis < 0:
+        axis += x.ndim + 1
+    if not 0 <= axis < x.ndim:
+        msg = f"axis {original_axis} is out of bounds for array of dimension {x.ndim}"
+        raise ak.errors.AxisError(msg)
+
+    toslice = x._impl  # pylint: disable=W0212
+    if not isinstance(toslice, ak.Array):
+        toslice = ak.Array(toslice[np.newaxis])  # type: ignore[index]
+
+    if not isinstance(indices, array):
+        indices = array(indices)  # type: ignore[unreachable]
+    indexarray = indices._impl  # pylint: disable=W0212
+
+    slicer = (slice(None),) * axis + (indexarray,)
+    return _box(type(x), toslice[slicer])

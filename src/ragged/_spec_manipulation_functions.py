@@ -6,7 +6,10 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 
 from __future__ import annotations
 
+import numbers
+
 import awkward as ak
+import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
 
@@ -123,12 +126,28 @@ def expand_dims(x: array, /, *, axis: int = 0) -> array:
     Returns:
         An expanded output array having the same data type as `x`.
 
+    This is the opposite of `ragged.squeeze`.
+
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.expand_dims.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 117")  # noqa: EM101
+    original_axis = axis
+    if axis < 0:
+        axis += x.ndim + 1
+    if not 0 <= axis <= x.ndim:
+        msg = (
+            f"axis {original_axis} is out of bounds for array of dimension {x.ndim + 1}"
+        )
+        raise ak.errors.AxisError(msg)
+
+    slicer = (slice(None),) * axis + (np.newaxis,)
+    shape = x.shape[:axis] + (1,) + x.shape[axis:]
+
+    out = x._impl[slicer]  # type: ignore[index] # pylint: disable=W0212
+    if not isinstance(out, ak.Array):
+        out = ak.Array(out)
+
+    return x._new(out, shape, x.dtype, x.device)  # pylint: disable=W0212
 
 
 def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
@@ -257,12 +276,46 @@ def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
     Returns:
         An output array having the same data type and elements as `x`.
 
+    This is the opposite of `ragged.expand_dims`.
+
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.squeeze.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 122")  # noqa: EM101
+    if isinstance(axis, numbers.Integral):
+        axis = (axis,)  # type: ignore[assignment]
+
+    posaxis = []
+    for axisitem in axis:  # type: ignore[union-attr]
+        posaxisitem = axisitem + x.ndim if axisitem < 0 else axisitem
+        if not 0 <= posaxisitem < x.ndim and not posaxisitem == x.ndim == 0:
+            msg = f"axis {axisitem} is out of bounds for array of dimension {x.ndim}"
+            raise ak.errors.AxisError(msg)
+        posaxis.append(posaxisitem)
+
+    if not isinstance(x._impl, ak.Array):  # pylint: disable=W0212
+        return x._new(x._impl, x._shape, x._dtype, x._device)  # pylint: disable=W0212
+
+    out = x._impl  # pylint: disable=W0212
+    shape = list(x.shape)
+    for i, shapeitem in reversed(list(enumerate(x.shape))):
+        if i in posaxis:
+            if shapeitem is None:
+                if not np.all(ak.num(out, axis=i) == 1):
+                    msg = "cannot select an axis to squeeze out which has size not equal to one"
+                    raise ValueError(msg)
+                else:
+                    out = out[(slice(None),) * i + (0,)]
+                    del shape[i]
+
+            elif shapeitem == 1:
+                out = out[(slice(None),) * i + (0,)]
+                del shape[i]
+
+            else:
+                msg = "cannot select an axis to squeeze out which has size not equal to one"
+                raise ValueError(msg)
+
+    return x._new(out, tuple(shape), x.dtype, x.device)  # pylint: disable=W0212
 
 
 def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array:

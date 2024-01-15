@@ -146,6 +146,7 @@ ignore = [
   "ISC001",   # Conflicts with formatter
   "RET505",   # I like my if (return) elif (return) else (return) pattern
   "PLR5501",  # I like my if (return) elif (return) else (return) pattern
+  "RET506",   # I like my if (raise) elif ... else ... pattern
 ]
 isort.required-imports = ["from __future__ import annotations"]
 # Uncomment if using a _compat.typing backport
@@ -170,6 +171,7 @@ messages_control.disable = [
   "missing-class-docstring",
   "missing-function-docstring",
   "R1705",   # I like my if (return) elif (return) else (return) pattern
+  "R1720",   # I like my if (raise) elif ... else ... pattern
   "R0801",   # Different files can have similar lines; that's okay
   "C0302",   # I can have as many lines as I want; what's it with you?
 ]
