@@ -38,6 +38,41 @@ def test_item():
     assert a == 123
 
 
+def test_contains():
+    a = ragged.array([[1, 2, 3], [], [4, 5]])
+    assert 4 in a
+    assert 6 not in a
+
+    b = a[0, 0]
+    assert 1 in b
+    assert 2 not in b
+
+
+def test_len():
+    assert len(ragged.array([1, 2, 3])) == 3
+    with pytest.raises(TypeError, match="unsized object"):
+        len(ragged.array(123))
+
+
+def test_iter():
+    a = list(ragged.array([1, 2, 3]))
+    assert isinstance(a[0], ragged.array)
+    assert isinstance(a[1], ragged.array)
+    assert isinstance(a[2], ragged.array)
+    assert a[0] == 1
+    assert a[1] == 2
+    assert a[2] == 3
+
+    b = list(ragged.array([[1], [2, 3]]))
+    assert isinstance(b[0], ragged.array)
+    assert isinstance(b[1], ragged.array)
+    assert b[0].tolist() == [1]
+    assert b[1].tolist() == [2, 3]
+
+    with pytest.raises(TypeError, match="0-d array"):
+        list(ragged.array(123))
+
+
 def test_namespace():
     assert ragged.array(123).__array_namespace__() is ragged
     assert (

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import enum
 import numbers
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any, Union
 
 import awkward as ak
@@ -81,6 +82,10 @@ class array:  # pylint: disable=C0103
     """
     Ragged array class and constructor.
 
+    In addition to satisfying the Array API, a `ragged.array` is a `Collection`,
+    meaning that it is `Sized`, `Iterable`, and a `Container`. The `len` and
+    `iter` functions, as well as the `x in array` syntax all work.
+
     https://data-apis.org/array-api/latest/API_specification/array_object.html
     """
 
@@ -93,7 +98,9 @@ class array:  # pylint: disable=C0103
     _device: Device
 
     @classmethod
-    def _new(cls, impl: ak.Array, shape: Shape, dtype: Dtype, device: Device) -> array:
+    def _new(
+        cls, impl: ak.Array | SupportsDLPack, shape: Shape, dtype: Dtype, device: Device
+    ) -> array:
         """
         Simple/fast array constructor for internal code.
         """
@@ -260,10 +267,36 @@ class array:  # pylint: disable=C0103
 
     # Typical properties and methods for an array, but not part of the Array API
 
-    def tolist(
-        self,
-    ) -> bool | int | float | complex | NestedSequence[bool | int | float | complex]:
-        return self._impl.tolist()  # type: ignore[no-any-return,union-attr]
+    def __contains__(self, other: bool | int | float | complex) -> bool:
+        if isinstance(self._impl, ak.Array):
+            flat = ak.flatten(self._impl, axis=None)
+            assert isinstance(flat.layout, NumpyArray)  # pylint: disable=E1101
+            return other in flat.layout.data  # pylint: disable=E1101
+        else:
+            return other in self._impl  # type: ignore[operator]
+
+    def __len__(self) -> int:
+        if isinstance(self._impl, ak.Array):
+            return len(self._impl)
+        else:
+            msg = "len() of unsized object"
+            raise TypeError(msg)
+
+    def __iter__(self) -> Iterator[array]:
+        if isinstance(self._impl, ak.Array):
+            t = type(self)
+            sh = self._shape[1:]
+            dt = self._dtype
+            dev = self._device
+            if sh == ():
+                for x in self._impl:
+                    yield t._new(x, (), dt, dev)
+            else:
+                for x in self._impl:
+                    yield t._new(x, (len(x), *sh), dt, dev)
+        else:
+            msg = "iteration over a 0-d array"
+            raise TypeError(msg)
 
     def item(self) -> bool | int | float | complex:
         if self.size == 1:
@@ -274,6 +307,11 @@ class array:  # pylint: disable=C0103
         else:
             msg = "can only convert an array of size 1 to a Python scalar"
             raise ValueError(msg)
+
+    def tolist(
+        self,
+    ) -> bool | int | float | complex | NestedSequence[bool | int | float | complex]:
+        return self._impl.tolist()  # type: ignore[no-any-return,union-attr]
 
     # Attributes: https://data-apis.org/array-api/latest/API_specification/array_object.html#attributes
 
