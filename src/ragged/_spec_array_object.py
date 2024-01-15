@@ -565,7 +565,22 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__getitem__.html
         """
 
-        raise NotImplementedError("TODO 15")  # noqa: EM101
+        if isinstance(key, tuple):
+            for item in key:
+                if not isinstance(
+                    item, (numbers.Integral, slice, type(...), type(None))
+                ):
+                    msg = f"ragged.array sliced as arr[item1, item2, ...] can only have int, slice, ellipsis, None (np.newaxis) as items, not {item!r}"
+                    raise TypeError(msg)
+        elif not isinstance(
+            key, (numbers.Integral, slice, type(...), type(None), array)
+        ):
+            key = array(key)  # attempt to cast unknown key type as ragged.array
+
+        if isinstance(key, array):
+            key = key._impl  # type: ignore[assignment]
+
+        return _box(type(self), self._impl[key])  # type: ignore[index]
 
     def __gt__(self, other: int | float | array, /) -> array:
         """
