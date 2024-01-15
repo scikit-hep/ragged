@@ -62,6 +62,9 @@ def test_complex():
 def test_dlpack(device):
     lib = np if device == "cpu" else cp
 
+    if not hasattr(lib, "from_dlpack"):
+        return
+
     a = ragged.array(lib.arange(2 * 3 * 5).reshape(2, 3, 5), device=device)
     assert a.device == device
     assert isinstance(a._impl.layout.data, lib.ndarray)  # type: ignore[union-attr]
