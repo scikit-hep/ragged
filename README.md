@@ -1,11 +1,11 @@
 # ragged
 
 [![Actions Status][actions-badge]][actions-link]
-<!-- [![Documentation Status][rtd-badge]][rtd-link] -->
 [![PyPI version][pypi-version]][pypi-link]
-<!-- [![Conda-Forge][conda-badge]][conda-link] -->
 [![PyPI platforms][pypi-platforms]][pypi-link]
 [![GitHub Discussion][github-discussions-badge]][github-discussions-link]
+<!-- [![Documentation Status][rtd-badge]][rtd-link] -->
+<!-- [![Conda-Forge][conda-badge]][conda-link] -->
 
 <!-- SPHINX-START -->
 
@@ -25,7 +25,7 @@
 
 ## Introduction
 
-Ragged is a library for manipulating ragged arrays as though they were NumPy or CuPy arrays, following the [Array API specification](https://data-apis.org/array-api/latest/API_specification).
+**Ragged** is a library for manipulating ragged arrays as though they were **NumPy** or **CuPy** arrays, following the [Array API specification](https://data-apis.org/array-api/latest/API_specification).
 
 For example, this is a [ragged/jagged array](https://en.wikipedia.org/wiki/Jagged_array):
 
@@ -55,13 +55,13 @@ but `a.shape` has non-integer dimensions to account for the fact that some of it
 (4, None, None)
 ```
 
-In general, a `ragged.array` can have any mixture of regular and irregular dimensions, though `shape[0]` (the length) is always an integer. This convention follows the Array API's specification for [array.shape](https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.shape.html#array_api.array.shape), which must be a tuple of `int` or `None`:
+In general, a `ragged.array` can have any mixture of regular and irregular dimensions, though `shape[0]` (the length) is always an integer. This convention follows the **Array API**'s specification for [array.shape](https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.shape.html#array_api.array.shape), which must be a tuple of `int` or `None`:
 
 ```python
 array.shape: Tuple[Optional[int], ...]
 ```
 
-(Our use of `None` to indicate a dimension without a single-valued size differs from the Array API's intention of specifying dimensions of _unknown_ size, but it follows the technical specification. Array API-consuming libraries can try using Ragged to find out if they are ragged-ready.)
+(Our use of `None` to indicate a dimension without a single-valued size differs from the **Array API**'s intention of specifying dimensions of _unknown_ size, but it follows the technical specification. **Array API**-consuming libraries can try using **Ragged** to find out if they are ragged-ready.)
 
 All of the normal elementwise and reducing functions apply, as well as slices:
 
@@ -88,6 +88,9 @@ ragged.array([
     [28.6, 9.9]
 ])
 
+>>> a[-1, 0, 2]
+ragged.array(7.7)
+
 >>> a[a * 10 % 2 == 0]
 ragged.array([
     [[2.2], []],
@@ -97,22 +100,22 @@ ragged.array([
 ])
 ```
 
-All of the methods, attributes, and functions in the Array API will be implemented for Ragged, as well as conveniences that are not required by the Array API. See [open issues marked "todo"](https://github.com/jpivarski/ragged/issues?q=is%3Aissue+is%3Aopen+label%3Atodo) for Array API functions that still need to be written (out of 120 in total).
+All of the methods, attributes, and functions in the **Array API** will be implemented for **Ragged**, as well as conveniences that are not required by the **Array API**. See [open issues marked "todo"](https://github.com/jpivarski/ragged/issues?q=is%3Aissue+is%3Aopen+label%3Atodo) for **Array API** functions that still need to be written (out of 120 in total).
 
-Ragged has two `device` values, `"cpu"` (backed by NumPy) and `"cuda"` (backed by CuPy). Eventually, all operations will be identical for CPU and GPU.
+**Ragged** has two `device` values, `"cpu"` (backed by **NumPy**) and `"cuda"` (backed by **CuPy**). Eventually, all operations will be identical for CPU and GPU.
 
 ## Implementation
 
-Ragged is implemented using Awkward Array ([code](https://github.com/scikit-hep/awkward), [docs](https://awkward-array.org/)), which is an array library for arbitrary tree-like (JSON-like) data. Because of its generality, Awkward Array cannot follow the Array API—in fact, its array objects can't have separate `dtype` and `shape` attributes (the array `type` can't be factorized). Ragged is therefore
+**Ragged** is implemented using **Awkward Array** ([code](https://github.com/scikit-hep/awkward), [docs](https://awkward-array.org/)), which is an array library for arbitrary tree-like (JSON-like) data. Because of its generality, **Awkward Array** cannot follow the **Array API**—in fact, its array objects can't have separate `dtype` and `shape` attributes (the array `type` can't be factorized). **Ragged** is therefore
 
-- a _specialization_ of Awkward Array for numeric data in fixed-length and variable-length lists, and
-- a _formalization_ to adhere to the Array API and its fully typed protocols.
+- a _specialization_ of **Awkward Array** for numeric data in fixed-length and variable-length lists, and
+- a _formalization_ to adhere to the **Array API** and its fully typed protocols.
 
 See [Why does this library exist?](https://github.com/jpivarski/ragged/discussions/6) under the [Discussions](https://github.com/jpivarski/ragged/discussions) tab for more details.
 
-Ragged is a thin wrapper around Awkward Array, restricting it to ragged arrays and transforming its function arguments and return values to fit the specification.
+**Ragged** is a thin wrapper around **Awkward Array**, restricting it to ragged arrays and transforming its function arguments and return values to fit the specification.
 
-Awkward Array, in turn, is time- and memory-efficient, ready for big datasets. Consider the following:
+**Awkward Array**, in turn, is time- and memory-efficient, ready for big datasets. Consider the following:
 
 ```python
 import gc      # control for garbage collection
@@ -181,11 +184,11 @@ time: 4.180 sec
 time: 0.082 sec
 ```
 
-Awkward Array and Ragged are generally smaller and faster than their Python equivalents for the same reasons that NumPy is smaller and faster than Python lists. See Awkward Array [papers and presentations](https://awkward-array.org/doc/main/getting-started/papers-and-talks.html) for more.
+**Awkward Array** and **Ragged** are generally smaller and faster than their Python equivalents for the same reasons that **NumPy** is smaller and faster than Python lists. See **Awkward Array** [papers and presentations](https://awkward-array.org/doc/main/getting-started/papers-and-talks.html) for more.
 
 ## Installation
 
-Ragged is on PyPI:
+**Ragged** is on PyPI:
 
 ```bash
 pip install ragged
