@@ -258,10 +258,22 @@ class array:  # pylint: disable=C0103
             )
             return f"ragged.array([\n    {prep}\n])"
 
+    # Typical properties and methods for an array, but not part of the Array API
+
     def tolist(
         self,
     ) -> bool | int | float | complex | NestedSequence[bool | int | float | complex]:
         return self._impl.tolist()  # type: ignore[no-any-return,union-attr]
+
+    def item(self) -> bool | int | float | complex:
+        if self.size == 1:
+            if isinstance(self._impl, ak.Array):
+                return ak.flatten(self._impl, axis=None)[0].item()  # type: ignore[no-any-return]
+            else:
+                return self._impl.item()  # type: ignore[no-any-return,union-attr]
+        else:
+            msg = "can only convert an array of size 1 to a Python scalar"
+            raise ValueError(msg)
 
     # Attributes: https://data-apis.org/array-api/latest/API_specification/array_object.html#attributes
 
@@ -460,7 +472,11 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack__.html
         """
 
-        raise NotImplementedError("TODO 4")  # noqa: EM101
+        buf = self._impl
+        if isinstance(buf, ak.Array):
+            buf = ak.to_numpy(buf) if ak.backend(buf) == "cpu" else ak.to_cupy(buf)
+
+        return buf.__dlpack__(stream=stream)  # type: ignore[arg-type]
 
     def __dlpack_device__(self) -> tuple[enum.Enum, int]:
         """
@@ -472,7 +488,15 @@ class array:  # pylint: disable=C0103
             https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__dlpack_device__.html
         """
 
-        raise NotImplementedError("TODO 10")  # noqa: EM101
+        buf = self._impl
+        if isinstance(buf, ak.Array):
+            buf = buf.layout
+            while isinstance(buf, (ListArray, ListOffsetArray, RegularArray)):
+                buf = buf.content
+            assert isinstance(buf, NumpyArray)
+            buf = buf.data
+
+        return buf.__dlpack_device__()
 
     def __eq__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """

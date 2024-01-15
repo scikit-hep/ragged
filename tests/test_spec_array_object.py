@@ -6,13 +6,36 @@ https://data-apis.org/array-api/latest/API_specification/array_object.html
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 import ragged
 
+devices = ["cpu"]
+try:
+    import cupy as cp
+
+    devices.append("cuda")
+except ModuleNotFoundError:
+    cp = None
+
 
 def test_existence():
     assert ragged.array is not None
+
+
+def test_item():
+    a = ragged.array(np.asarray(123)).item()
+    assert isinstance(a, int)
+    assert a == 123
+
+    a = ragged.array(np.asarray([123])).item()
+    assert isinstance(a, int)
+    assert a == 123
+
+    a = ragged.array(np.asarray([[123]])).item()
+    assert isinstance(a, int)
+    assert a == 123
 
 
 def test_namespace():
@@ -33,6 +56,31 @@ def test_bool():
 def test_complex():
     assert isinstance(complex(ragged.array(1.1 + 0.1j)), complex)
     assert complex(ragged.array(1.1 + 0.1j)) == 1.1 + 0.1j
+
+
+@pytest.mark.parametrize("device", devices)
+def test_dlpack(device):
+    lib = np if device == "cpu" else cp
+
+    a = ragged.array(lib.arange(2 * 3 * 5).reshape(2, 3, 5), device=device)
+    assert a.device == device
+    assert isinstance(a._impl.layout.data, lib.ndarray)  # type: ignore[union-attr]
+
+    b = lib.from_dlpack(a)
+    assert isinstance(b, lib.ndarray)
+    assert b.shape == a.shape
+    assert b.dtype == a.dtype
+    assert b.tolist() == a.tolist()
+
+    a = ragged.array(lib.asarray(123), device=device)
+    assert a.device == device
+    assert isinstance(a._impl, lib.ndarray)
+
+    b = lib.from_dlpack(a)
+    assert isinstance(b, lib.ndarray)
+    assert b.shape == a.shape
+    assert b.dtype == a.dtype
+    assert b.item() == a.item() == 123
 
 
 def test_float():
