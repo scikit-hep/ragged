@@ -100,3 +100,12 @@ def test_expand_dims(x, axis):
     else:
         with pytest.raises(ak.errors.AxisError):
             ragged.expand_dims(x, axis=axis)
+
+
+@pytest.mark.parametrize("axis", [0, 1, 2])
+def test_squeeze(x, axis):
+    if 0 <= axis <= x.ndim:
+        a = ragged.expand_dims(x, axis=axis)
+        b = ragged.squeeze(a, axis=axis)
+        assert b.shape == x.shape
+        assert b.tolist() == x.tolist()
