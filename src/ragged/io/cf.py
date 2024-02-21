@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import awkward as ak
-import numpy as np
 
-from .._spec_array_object import array, _unbox, _box
 from .._import import device_namespace
+from .._spec_array_object import _box, _unbox, array
 
 
-def to_cf_contiguous(x: array) -> Tuple[array, array]:
+def to_cf_contiguous(x: array) -> tuple[array, array]:
     if x.ndim != 2:
         raise NotImplementedError
 
@@ -29,7 +26,7 @@ def from_cf_contiguous(content: array, counts: array) -> array:
     return _box(type(content), ak.unflatten(cont, cnts))
 
 
-def to_cf_indexed(x: array) -> Tuple[array, array]:
+def to_cf_indexed(x: array) -> tuple[array, array]:
     if x.ndim != 2:
         raise NotImplementedError
 
@@ -51,7 +48,7 @@ def from_cf_indexed(content: array, index: array) -> array:
     counts = ns.zeros(ak.max(ind) + 1, dtype=ns.int64)
     ns.add.at(counts, ns.asarray(ind), 1)
 
-    return _box(type(content), ak.unflatten(cont[ns.argsort(ind)], counts))
+    return _box(type(content), ak.unflatten(cont[ns.argsort(ind)], counts))  # type: ignore[index]
 
 
 __all__ = ["to_cf_contiguous", "from_cf_contiguous", "to_cf_indexed", "from_cf_indexed"]
