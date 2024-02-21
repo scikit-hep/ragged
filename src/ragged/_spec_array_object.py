@@ -1236,6 +1236,8 @@ def _unbox(*inputs: array) -> tuple[ak.Array | SupportsDLPack, ...]:
         msg = f"mixed array types: {types}"
         raise TypeError(msg)
 
+    # FIXME: either complain about mixed devices or cast to a common device
+
     return tuple(x._impl for x in inputs)  # pylint: disable=W0212
 
 
