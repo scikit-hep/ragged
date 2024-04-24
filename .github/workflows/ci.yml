@@ -44,7 +44,7 @@ jobs:
       matrix:
         python-version: ["3.9", "3.12"]
         numpy-version: ["latest"]
-        runs-on: [ubuntu-latest, macos-latest, windows-latest]
+        runs-on: [ubuntu-latest, macos-13, windows-latest]
 
         include:
           - python-version: "pypy-3.10"
