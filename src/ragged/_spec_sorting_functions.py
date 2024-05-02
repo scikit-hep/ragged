@@ -6,7 +6,9 @@ https://data-apis.org/array-api/latest/API_specification/sorting_functions.html
 
 from __future__ import annotations
 
-from ._spec_array_object import array
+import awkward as ak
+
+from ._spec_array_object import _box, _unbox, array
 
 
 def argsort(
@@ -34,11 +36,12 @@ def argsort(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.argsort.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    descending  # noqa: B018, pylint: disable=W0104
-    stable  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 132")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if not isinstance(impl, ak.Array):
+        msg = f"axis {axis} is out of bounds for array of dimension 0"
+        raise ak.errors.AxisError(msg)
+    out = ak.argsort(impl, axis=axis, ascending=not descending, stable=stable)
+    return _box(type(x), out)
 
 
 def sort(
@@ -66,8 +69,9 @@ def sort(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.sort.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    descending  # noqa: B018, pylint: disable=W0104
-    stable  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 133")  # noqa: EM101
+    (impl,) = _unbox(x)
+    if not isinstance(impl, ak.Array):
+        msg = f"axis {axis} is out of bounds for array of dimension 0"
+        raise ak.errors.AxisError(msg)
+    out = ak.sort(impl, axis=axis, ascending=not descending, stable=stable)
+    return _box(type(x), out)
