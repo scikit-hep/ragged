@@ -74,10 +74,17 @@ jobs:
       - name: Print NumPy version
         run: python -c 'import numpy as np; print(np.__version__)'
 
-      - name: Test package
+      - name: Test package (PyPy)
+        if: matrix.python-version == 'pypy-3.10'
+        run: >-
+          python -m pytest -ra --durations=20
+
+      - name: Test package (CPython)
+        if: matrix.python-version != 'pypy-3.10'
         run: >-
           python -m pytest -ra --cov --cov-report=xml --cov-report=term
           --durations=20
 
       - name: Upload coverage report
+        if: matrix.python-version != 'pypy-3.10'
         uses: codecov/codecov-action@v4.0.1
