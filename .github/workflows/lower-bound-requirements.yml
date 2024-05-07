@@ -1,9 +1,10 @@
 name: Minimum supported dependencies
 
 on:
-  # Run weekly at 1:23 UTC
-  schedule:
-    - cron: "23 1 * * 0"
+  pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
