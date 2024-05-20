@@ -80,4 +80,4 @@ jobs:
           --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4.3.0
+        uses: codecov/codecov-action@v4.4.0
