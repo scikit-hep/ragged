@@ -14,3 +14,6 @@ def test_existence():
     assert ragged.matrix_transpose is not None
     assert ragged.tensordot is not None
     assert ragged.vecdot is not None
+
+def test_hello():
+    print("Hello world!")
