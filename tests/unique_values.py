@@ -2,7 +2,7 @@ import numpy as np
 import awkward as ak
 import ragged 
 
-def unique_values1d(arr):
+def unique_values(arr):
     if not isinstance(arr, ragged.array):
         print("Input is not a ragged array")
 
