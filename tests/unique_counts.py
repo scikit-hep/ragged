@@ -1,7 +1,12 @@
+import awkward as ak
+import ragged
+import numpy as np
+
+
 def unique_counts(arr):
     if not isinstance(arr, ragged.array):
         print("Input is not a ragged array")
-
+        return None
     if len(arr)==1:
         return [(arr[0], 1)]
 

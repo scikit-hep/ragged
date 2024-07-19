@@ -9,7 +9,7 @@ def unique_values(arr):
     if len(arr)==1:
         return arr
 
-    arr_flat=ak.ravel(arr)
+    arr_flat=ak.ravel(arr._impl)
     arr_np = ak.to_numpy(arr_flat)
     unique_np = np.unique(arr_np)
     unique_arr = ak.from_numpy(unique_np)
