@@ -60,9 +60,8 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
         return ragged.array(x), ragged.array([0]), ragged.array([0]), ragged.array([1])
     
     x_flat=ak.ravel(x._impl)   
-    values, indices, counts = np.unique(x_flat.layout.data, return_index=True, return_counts=True)   
-    sorted_indices = np.argsort(indices)
-    inverse_indices = values[sorted_indices]
+    values, indices, inverse_indices, counts = np.unique(x_flat.layout.data, return_index=True, return_inverse=True, return_counts=True)
+    
     return ragged.array(values),ragged.array(indices), ragged.array(inverse_indices), ragged.array(counts)
 
 
@@ -138,10 +137,7 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
        return ragged.array(x), ragged.array([0])
 
     x_flat=ak.ravel(x._impl)
-    values, first_indices = np.unique(x_flat.layout.data, return_index=True)
-    
-    sorted_indices = np.argsort(first_indices)
-    inverse_indices = first_indices[sorted_indices]
+    values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)
     
     return ragged.array(values), ragged.array(inverse_indices)
 
