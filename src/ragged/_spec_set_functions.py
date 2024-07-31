@@ -55,13 +55,20 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     if not isinstance(x, ragged.array):
         err = f"Expected ragged type but got {type(x)}"
         raise TypeError(err)
-        
-    if len(x)==1:
+
+    if len(x) == 1:
         return ragged.array(x), ragged.array([0]), ragged.array([0]), ragged.array([1])
-    
-    x_flat=ak.ravel(x._impl)   
-    values, indices, inverse_indices, counts = np.unique(x_flat.layout.data, return_index=True, return_inverse=True, return_counts=True)   
-    return ragged.array(values),ragged.array(indices), ragged.array(inverse_indices), ragged.array(counts)
+
+    x_flat = ak.ravel(x._impl)
+    values, indices, inverse_indices, counts = np.unique(
+        x_flat.layout.data, return_index=True, return_inverse=True, return_counts=True
+    )
+    return (
+        ragged.array(values),
+        ragged.array(indices),
+        ragged.array(inverse_indices),
+        ragged.array(counts),
+    )
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -94,7 +101,7 @@ def unique_counts(x: array, /) -> tuple[array, array]:
         err = f"Expected ragged type but got {type(x)}"
         raise TypeError(err)
 
-    if len(x)==1:
+    if len(x) == 1:
         return ragged.array(x), ragged.array([1])
 
     x_flat = ak.ravel(x._impl)
@@ -131,13 +138,13 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     if not isinstance(x, ragged.array):
         err = f"Expected ragged type but got {type(x)}"
         raise TypeError(err)
-    
-    if len(x) == 1:
-       return ragged.array(x), ragged.array([0])
 
-    x_flat=ak.ravel(x._impl)
+    if len(x) == 1:
+        return ragged.array(x), ragged.array([0])
+
+    x_flat = ak.ravel(x._impl)
     values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)
-    
+
     return ragged.array(values), ragged.array(inverse_indices)
 
 
@@ -159,10 +166,10 @@ def unique_values(x: array, /) -> array:
     if not isinstance(x, ragged.array):
         err = f"Expected ragged type but got {type(x)}"
         raise TypeError(err)
-    
-    if len(x)==1:
+
+    if len(x) == 1:
         return ragged.array(x)
-    
+
     x_flat = ak.ravel(x._impl)
     values = np.unique(x_flat.layout.data)
 
