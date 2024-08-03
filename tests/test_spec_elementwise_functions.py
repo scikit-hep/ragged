@@ -11,6 +11,10 @@ from typing import Any
 
 import awkward as ak
 import numpy as np
+
+import pytest
+
+import ragged
 """
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -25,9 +29,6 @@ if np.lib.NumpyVersion(np.__version__) < '2.0.0b1':
     has_complex_dtype = True if (np.dtype("complex128") in xp._dtypes._all_dtypes) else False
 else:
   xp = np
-import pytest
-
-import ragged
 
 devices = ["cpu"]
 try:
