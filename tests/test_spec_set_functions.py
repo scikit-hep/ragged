@@ -29,7 +29,8 @@ def test_existence():
 
 # unique_values tests
 def test_can_take_none():
-    assert ragged.unique_values(None) == None
+    with pytest.raises(TypeError):
+        assert ragged.unique_values(None) is None
 
 
 def test_can_take_list():
