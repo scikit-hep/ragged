@@ -53,8 +53,7 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     """
 
     if not isinstance(x, ragged.array):
-        err = f"Expected ragged type but got {type(x)}"
-        raise TypeError(err)
+        raise TypeError(f"Expected ragged type but got {type(x)}")
 
     if len(x) == 1:
         return ragged.array(x), ragged.array([0]), ragged.array([0]), ragged.array([1])
@@ -98,8 +97,7 @@ def unique_counts(x: array, /) -> tuple[array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_counts.html
     """
     if not isinstance(x, ragged.array):
-        err = f"Expected ragged type but got {type(x)}"
-        raise TypeError(err)
+        raise TypeError(f"Expected ragged type but got {type(x)}")
 
     if len(x) == 1:
         return ragged.array(x), ragged.array([1])
@@ -136,8 +134,7 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_inverse.html
     """
     if not isinstance(x, ragged.array):
-        err = f"Expected ragged type but got {type(x)}"
-        raise TypeError(err)
+        raise TypeError(f"Expected ragged type but got {type(x)}")
 
     if len(x) == 1:
         return ragged.array(x), ragged.array([0])
@@ -164,8 +161,7 @@ def unique_values(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_values.html
     """
     if not isinstance(x, ragged.array):
-        err = f"Expected ragged type but got {type(x)}"
-        raise TypeError(err)
+        raise TypeError(f"Expected ragged type but got {type(x)}")
 
     if len(x) == 1:
         return ragged.array(x)
