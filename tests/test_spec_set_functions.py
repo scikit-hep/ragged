@@ -10,7 +10,7 @@ import awkward as ak
 import pytest
 
 import ragged
-
+import re
 # Specific algorithm for unique_values:
 # 1 take an input array
 # 2 flatten input_array unless its 1d
@@ -29,12 +29,12 @@ def test_existence():
 
 # unique_values tests
 def test_can_take_none():
-    with pytest.raises(TypeError):
+   with pytest.raises(TypeError, match=f"Expected ragged type but got {type(None)}"):
         assert ragged.unique_values(None) is None
 
 
 def test_can_take_list():
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=f"Expected ragged type but got <class 'list'>"):
         assert ragged.unique_values([1, 2, 4, 3, 4, 5, 6, 20])
 
 
@@ -44,7 +44,7 @@ def test_can_take_empty_arr():
 
 
 def test_can_take_moredimensions():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError,match=re.escape("the truth value of an array whose length is not 1 is ambiguous; use ak.any() or ak.all()")):
         assert ragged.unique_values(ragged.array([[1, 2, 3, 4], [5, 6]]))
 
 
@@ -93,12 +93,12 @@ def test_can_count_scalar():
 
 
 # unique_inverse tests
-def test_can_take_none():
+def test_can_inverse_none():
     with pytest.raises(TypeError):
         assert ragged.unique_inverse(None) is None
 
 
-def test_can_take_list():
+def test_can_inverse_list():
     with pytest.raises(TypeError):
         assert ragged.unique_inverse([1, 2, 4, 3, 4, 5, 6, 20]) is None
 
