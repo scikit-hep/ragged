@@ -51,6 +51,7 @@ def first(x: ragged.array) -> Any:
     out = ak.flatten(x._impl, axis=None)[0] if x.shape != () else x._impl
     return xp.asarray(out.item(), dtype=x.dtype)
 
+
 def _wrapper(t: np.dtype, /) -> np.dtype:
     if t in [np.int8, np.uint8, np.bool_, bool]:
         return np.float16
