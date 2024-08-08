@@ -413,8 +413,16 @@ def ceil(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
-
-    return _box(type(x), np.ceil(*_unbox(x)), dtype=x.dtype)
+    def _wrapper(dtype):
+        if dtype in [np.int8, np.uint8, np.bool_, np.bool]:
+            return np.float16
+        elif dtype in [np.int16, np.uint16]:
+            return np.float32
+        elif dtype in [np.int32, np.uint32, np.int64, np.uint64]:
+            return np.float64
+        else:
+            return dtype
+    return _box(type(x), np.ceil(*_unbox(x)), _wrapper(x.dtype))
 
 
 def conj(x: array, /) -> array:
