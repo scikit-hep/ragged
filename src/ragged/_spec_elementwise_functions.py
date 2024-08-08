@@ -414,17 +414,17 @@ def ceil(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
 
-    # def _wrapper(t: np.dtype, /) -> np.dtype:
-    #     if t in [np.int8, np.uint8, np.bool_, bool]:
-    #         return np.float16
-    #     elif t in [np.int16, np.uint16]:
-    #         return np.float32
-    #     elif t in [np.int32, np.uint32, np.int64, np.uint64]:
-    #         return np.float64
-    #     else:
-    #         return t
+    def _wrapper(t: np.dtype, /) -> np.dtype:
+        if t in [np.int8, np.uint8, np.bool_, bool]:
+            return np.float16
+        elif t in [np.int16, np.uint16]:
+            return np.float32
+        elif t in [np.int32, np.uint32, np.int64, np.uint64]:
+            return np.float64
+        else:
+            return t
 
-    return _box(type(x), np.ceil(*_unbox(x)), dtype=x.dtype)
+    return _box(type(x), np.ceil(*_unbox(x)), dtype=_wrapper(x.dtype))
 
 
 def conj(x: array, /) -> array:
@@ -596,17 +596,17 @@ def floor(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor.html
     """
 
-    # def _wrapper(t: np.dtype, /) -> np.dtype:
-    #     if t in [np.int8, np.uint8, np.bool_, bool]:
-    #         return np.float16
-    #     elif t in [np.int16, np.uint16]:
-    #         return np.float32
-    #     elif t in [np.int32, np.uint32, np.int64, np.uint64]:
-    #         return np.float64
-    #     else:
-    #         return t
+    def _wrapper(t: np.dtype, /) -> np.dtype:
+        if t in [np.int8, np.uint8, np.bool_, bool]:
+            return np.float16
+        elif t in [np.int16, np.uint16]:
+            return np.float32
+        elif t in [np.int32, np.uint32, np.int64, np.uint64]:
+            return np.float64
+        else:
+            return t
 
-    return _box(type(x), np.floor(*_unbox(x)), dtype=x.dtype)
+    return _box(type(x), np.floor(*_unbox(x)), dtype=_wrapper(x.dtype))
 
 
 def floor_divide(x1: array, x2: array, /) -> array:
