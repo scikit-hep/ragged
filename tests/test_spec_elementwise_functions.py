@@ -49,6 +49,17 @@ def first(x: ragged.array) -> Any:
     return xp.asarray(out.item(), dtype=x.dtype)
 
 
+def _wrapper(t: np.dtype, /) -> np.dtype:
+    if t in [np.int8, np.uint8, np.bool_, bool]:
+        return np.float16
+    elif t in [np.int16, np.uint16]:
+        return np.float32
+    elif t in [np.int32, np.uint32, np.int64, np.uint64]:
+        return np.float64
+    else:
+        return t
+
+
 def test_existence():
     assert ragged.abs is not None
     assert ragged.acos is not None
@@ -394,8 +405,8 @@ def test_ceil_int(device, x_int):
     result = ragged.ceil(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.ceil(first(x_int)) == first(result)
-    assert xp.ceil(first(x_int)).dtype == result.dtype
+    assert xp.ceil(first(x_int)) == first(result).astype(_wrapper(first(result).dtype))
+    assert xp.ceil(first(x_int)).dtype == _wrapper(result.dtype)
 
 
 @pytest.mark.skipif(
@@ -507,8 +518,8 @@ def test_floor_int(device, x_int):
     result = ragged.floor(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.floor(first(x_int)) == first(result)
-    assert xp.floor(first(x_int)).dtype == result.dtype
+    assert xp.floor(first(x_int)) == first(result).astype(_wrapper(first(result).dtype))
+    assert xp.floor(first(x_int)).dtype == _wrapper(result.dtype)
 
 
 @pytest.mark.parametrize("device", devices)
