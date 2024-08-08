@@ -31,11 +31,14 @@ has_complex_dtype = True
 #     xp = np
 devices = ["cpu"]
 try:
-    import numpy.array_api as xp
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import numpy.array_api as xp
 
-    has_complex_dtype = np.dtype("complex128") in xp._dtypes._all_dtypes
+        has_complex_dtype = np.dtype("complex128") in xp._dtypes._all_dtypes
 except ModuleNotFoundError:
     import numpy as xp  # noqa: ICN001
+
 try:
     import cupy as cp
 
@@ -47,7 +50,6 @@ except ModuleNotFoundError:
 def first(x: ragged.array) -> Any:
     out = ak.flatten(x._impl, axis=None)[0] if x.shape != () else x._impl
     return xp.asarray(out.item(), dtype=x.dtype)
-
 
 def _wrapper(t: np.dtype, /) -> np.dtype:
     if t in [np.int8, np.uint8, np.bool_, bool]:
