@@ -415,6 +415,9 @@ def ceil(x: array, /) -> array:
     """
 
     def _wrapper(t: np.dtype, /) -> np.dtype:
+        if hasattr(np, "array_api"):
+            return t
+
         if t in [np.int8, np.uint8, np.bool_, bool]:
             return np.float16
         elif t in [np.int16, np.uint16]:
@@ -597,6 +600,9 @@ def floor(x: array, /) -> array:
     """
 
     def _wrapper(t: np.dtype, /) -> np.dtype:
+        if hasattr(np, "array_api"):
+            return t
+
         if t in [np.int8, np.uint8, np.bool_, bool]:
             return np.float16
         elif t in [np.int16, np.uint16]:

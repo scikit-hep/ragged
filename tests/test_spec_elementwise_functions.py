@@ -22,14 +22,6 @@ import ragged
 has_complex_dtype = True
 numpy_has_array_api = False
 
-# if np.lib.NumpyVersion(np.__version__) < "2.0.0b1":
-#     with warnings.catch_warnings():
-#         warnings.simplefilter("ignore")
-#         import array_api_strict as xp  # type: ignore[import-not-found]
-
-#         has_complex_dtype = np.dtype("complex128") in xp._dtypes._all_dtypes
-# else:
-#     xp = np
 devices = ["cpu"]
 
 try:
@@ -407,7 +399,8 @@ def test_ceil(device, x):
 
 
 @pytest.mark.skipif(
-    not numpy_has_array_api, reason=f"testing in numpy version {np.__version__}"
+    not numpy_has_array_api,
+    reason=f"testing only in numpy version 1, but got numpy version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
 def test_ceil_int_1(device, x_int):
@@ -419,7 +412,8 @@ def test_ceil_int_1(device, x_int):
 
 
 @pytest.mark.skipif(
-    numpy_has_array_api, reason=f"testing in numpy version {np.__version__}"
+    numpy_has_array_api,
+    reason=f"testing only in numpy version 2, but got numpy version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
 def test_ceil_int_2(device, x_int):
@@ -535,7 +529,8 @@ def test_floor(device, x):
 
 
 @pytest.mark.skipif(
-    not numpy_has_array_api, reason=f"testing in numpy version {np.__version__}"
+    not numpy_has_array_api,
+    reason=f"testing only in numpy version 1, but got numpy version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
 def test_floor_int_1(device, x_int):
@@ -549,7 +544,8 @@ def test_floor_int_1(device, x_int):
 
 
 @pytest.mark.skipif(
-    numpy_has_array_api, reason=f"testing in numpy version {np.__version__}"
+    numpy_has_array_api,
+    reason=f"testing only in numpy version 2, but got numpy version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
 def test_floor_int_2(device, x_int):
