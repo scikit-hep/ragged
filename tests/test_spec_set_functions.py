@@ -6,18 +6,12 @@ https://data-apis.org/array-api/latest/API_specification/set_functions.html
 
 from __future__ import annotations
 
+import re
+
 import awkward as ak
 import pytest
 
 import ragged
-import re
-# Specific algorithm for unique_values:
-# 1 take an input array
-# 2 flatten input_array unless its 1d
-# 3 {remember the first element, loop through the rest of the list to see if there are copies
-#    if yes then discard it and repeat the step
-#    if not then add it to the output and repeat the step}
-# 4 once the cycle is over return an array of unique elements in the input array (the output must be of the same type as input array)
 
 
 def test_existence():
@@ -28,23 +22,35 @@ def test_existence():
 
 
 # unique_values tests
-#def test_can_take_none():
-#   with pytest.raises(TypeError, match=f"Expected ragged type but got {type(None)}"):
-#        assert ragged.unique_values(None) is None
+def test_can_take_none():
+    with pytest.raises(TypeError):
+        assert ragged.unique_values(ragged.array(None)) is None
 
 
 def test_can_take_list():
-    with pytest.raises(TypeError, match=f"Expected ragged type but got <class 'list'>"):
-        assert ragged.unique_values([1, 2, 4, 3, 4, 5, 6, 20])
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "the truth value of an array whose length is not 1 is ambiguous;"
+        ),
+    ):
+        assert ragged.unique_values(
+            ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
+        ) == ragged.array([1, 2, 3, 4, 5, 6, 20])
 
 
-#def test_can_take_empty_arr():
-#    with pytest.raises(TypeError):
-#        assert ragged.unique_values(ragged.array([]))
+def test_can_take_empty_arr():
+    with pytest.raises(TypeError):
+        assert ragged.unique_values(ragged.array([])) == ragged.array([])
 
 
 def test_can_take_moredimensions():
-    with pytest.raises(ValueError,match=re.escape("the truth value of an array whose length is not 1 is ambiguous; use ak.any() or ak.all()")):
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "the truth value of an array whose length is not 1 is ambiguous;"
+        ),
+    ):
         assert ragged.unique_values(ragged.array([[1, 2, 3, 4], [5, 6]]))
 
 
@@ -55,14 +61,16 @@ def test_can_take_1d_array():
 
 
 # unique_counts tests
-#def test_can_count_none():
-#    with pytest.raises(TypeError):
-#        assert ragged.unique_counts(None) is None
+def test_can_count_none():
+    with pytest.raises(TypeError):
+        assert ragged.unique_counts(ragged.array(None)) is None
 
 
 def test_can_count_list():
     with pytest.raises(TypeError):
-        assert ragged.unique_counts([1, 2, 4, 3, 4, 5, 6, 20]) is None
+        assert ragged.unique_counts(
+            ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
+        ) == ragged.array([1, 2, 3, 4, 5, 6, 20]), ragged.array([1, 1, 2, 1, 1, 1, 1])
 
 
 def test_can_count_simple_array():
@@ -93,14 +101,18 @@ def test_can_count_scalar():
 
 
 # unique_inverse tests
-#def test_can_inverse_none():
-#    with pytest.raises(TypeError):
-#        assert ragged.unique_inverse(None) is None
+def test_can_inverse_none():
+    with pytest.raises(TypeError):
+        assert ragged.unique_inverse(ragged.array(None)) is None
 
 
 def test_can_inverse_list():
     with pytest.raises(TypeError):
-        assert ragged.unique_inverse([1, 2, 4, 3, 4, 5, 6, 20]) is None
+        assert ragged.unique_inverse(
+            ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
+        ) == ragged.array([1, 2, 3, 4, 5, 6, 20]), ragged.array(
+            [0, 1, 3, 2, 3, 4, 5, 6]
+        )
 
 
 def test_can_take_simple_array():
@@ -131,14 +143,24 @@ def test_can_take_scalar():
 
 
 # unique_all tests
-#def test_can_all_none():
-#    with pytest.raises(TypeError):
-#        assert ragged.unique_all(None) is None
+def test_can_all_none():
+    with pytest.raises(TypeError):
+        assert ragged.unique_all(ragged.array(None)) is None
 
 
 def test_can_all_list():
-    with pytest.raises(TypeError):
-        assert ragged.unique_all([1, 2, 4, 3, 4, 5, 6, 20]) is None
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "the truth value of an array whose length is not 1 is ambiguous;"
+        ),
+    ):
+        assert ragged.unique_all(ragged.array([1, 2, 4, 3, 4, 5, 6, 20])) == (
+            ragged.array([1, 2, 3, 4, 5, 6, 20]),
+            ragged.array([0, 1, 3, 2, 5, 6, 7]),
+            ragged.array([0, 1, 3, 2, 3, 4, 5, 6]),
+            ragged.array([1, 1, 1, 2, 1, 1, 1]),
+        )
 
 
 def test_can_all_simple_array():
