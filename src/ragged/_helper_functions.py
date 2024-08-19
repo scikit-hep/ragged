@@ -6,7 +6,7 @@ import numpy as np
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
     # Ensure compatibility with numpy 2.0.0
-    if np.__version__ != "2.0.0":
+    if np.__version__ >= "2.1":
         # Just pass and return the input type if the numpy version is not 2.0.0
         return t
 
