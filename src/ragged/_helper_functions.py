@@ -9,7 +9,7 @@ def regularise_to_float(t: np.dtype, /) -> np.dtype:
     if np.__version__ != "2.0.0":
         # Just pass and return the input type if the numpy version is not 2.0.0
         return t
-        
+
     if t in [np.int8, np.uint8, np.bool_, bool]:
         return np.float16
     elif t in [np.int16, np.uint16]:
