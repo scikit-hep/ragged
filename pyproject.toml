@@ -31,7 +31,6 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "awkward>=2.6.7",
-  "numpy=2.0.0",
 ]
 
 [project.optional-dependencies]
