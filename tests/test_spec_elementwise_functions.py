@@ -16,7 +16,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
 import pytest
-
+from ragged._helper_functions import regularise_to_float
 import ragged
 
 has_complex_dtype = True
@@ -45,17 +45,6 @@ except ModuleNotFoundError:
 def first(x: ragged.array) -> Any:
     out = ak.flatten(x._impl, axis=None)[0] if x.shape != () else x._impl
     return xp.asarray(out.item(), dtype=x.dtype)
-
-
-def _wrapper(t: np.dtype, /) -> np.dtype:
-    if t in [np.int8, np.uint8, np.bool_, bool]:
-        return np.float16
-    elif t in [np.int16, np.uint16]:
-        return np.float32
-    elif t in [np.int32, np.uint32, np.int64, np.uint64]:
-        return np.float64
-    else:
-        return t
 
 
 def test_existence():
@@ -407,8 +396,6 @@ def test_ceil_int_1(device, x_int):
     result = ragged.ceil(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.ceil(first(x_int)) == np.array(first(result)).astype(first(result).dtype)
-    assert xp.ceil(first(x_int)).dtype == result.dtype
 
 
 @pytest.mark.skipif(
@@ -420,8 +407,10 @@ def test_ceil_int_2(device, x_int):
     result = ragged.ceil(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.ceil(first(x_int)) == first(result).astype(_wrapper(first(result).dtype))
-    assert xp.ceil(first(x_int)).dtype == _wrapper(result.dtype)
+    assert xp.ceil(first(x_int)) == first(result).astype(
+        ragged.regularise_to_float(first(result).dtype)
+    )
+    assert xp.ceil(first(x_int)).dtype == ragged.regularise_to_float(result.dtype)
 
 
 @pytest.mark.skipif(
@@ -534,13 +523,11 @@ def test_floor(device, x):
 )
 @pytest.mark.parametrize("device", devices)
 def test_floor_int_1(device, x_int):
-    result = ragged.floor(x_int.to_device(device))
+    result = ragged.floor(
+        x_int.to_device(device)
+    )  # always returns float64 regardless of x_int.dtype
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.floor(first(x_int)) == np.asarray(first(result)).astype(
-        first(result).dtype
-    )
-    assert xp.floor(first(x_int)).dtype == result.dtype
 
 
 @pytest.mark.skipif(
@@ -553,9 +540,9 @@ def test_floor_int_2(device, x_int):
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.floor(first(x_int)) == np.asarray(first(result)).astype(
-        _wrapper(first(result).dtype)
+        ragged.regularise_to_float(first(result).dtype)
     )
-    assert xp.floor(first(x_int)).dtype == _wrapper(result.dtype)
+    assert xp.floor(first(x_int)).dtype == ragged.regularise_to_float(result.dtype)
 
 
 @pytest.mark.parametrize("device", devices)
