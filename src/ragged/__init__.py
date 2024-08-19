@@ -8,7 +8,6 @@ FIXME: needs more documentation!
 
 from __future__ import annotations
 
-from ._helper_functions import regularise_to_float
 from ._spec_array_object import array
 from ._spec_constants import (
     e,
@@ -293,6 +292,4 @@ __all__ = [
     # _spec_utility_functions
     "all",
     "any",
-    # _helper_functions
-    "regularise_to_float",
 ]

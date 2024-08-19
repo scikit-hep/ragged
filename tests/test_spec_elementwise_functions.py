@@ -18,6 +18,7 @@ with warnings.catch_warnings():
 import pytest
 
 import ragged
+from ragged._helper_functions import regularise_to_float
 
 has_complex_dtype = True
 numpy_has_array_api = False
@@ -408,9 +409,9 @@ def test_ceil_int_2(device, x_int):
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.ceil(first(x_int)) == first(result).astype(
-        ragged.regularise_to_float(first(result).dtype)
+        regularise_to_float(first(result).dtype)
     )
-    assert xp.ceil(first(x_int)).dtype == ragged.regularise_to_float(result.dtype)
+    assert xp.ceil(first(x_int)).dtype == regularise_to_float(result.dtype)
 
 
 @pytest.mark.skipif(
@@ -540,9 +541,9 @@ def test_floor_int_2(device, x_int):
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
     assert xp.floor(first(x_int)) == np.asarray(first(result)).astype(
-        ragged.regularise_to_float(first(result).dtype)
+        regularise_to_float(first(result).dtype)
     )
-    assert xp.floor(first(x_int)).dtype == ragged.regularise_to_float(result.dtype)
+    assert xp.floor(first(x_int)).dtype == regularise_to_float(result.dtype)
 
 
 @pytest.mark.parametrize("device", devices)

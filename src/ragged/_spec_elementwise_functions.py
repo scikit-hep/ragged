@@ -10,6 +10,7 @@ import warnings
 
 import numpy as np
 
+from ._helper_functions import regularise_to_float
 from ._spec_array_object import _box, _unbox, array
 
 
@@ -414,20 +415,7 @@ def ceil(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
 
-    def _wrapper(t: np.dtype, /) -> np.dtype:
-        if hasattr(np, "array_api"):
-            return t
-
-        if t in [np.int8, np.uint8, np.bool_, bool]:
-            return np.float16
-        elif t in [np.int16, np.uint16]:
-            return np.float32
-        elif t in [np.int32, np.uint32, np.int64, np.uint64]:
-            return np.float64
-        else:
-            return t
-
-    return _box(type(x), np.ceil(*_unbox(x)), dtype=_wrapper(x.dtype))
+    return _box(type(x), np.ceil(*_unbox(x)), dtype=regularise_to_float(x.dtype))
 
 
 def conj(x: array, /) -> array:
@@ -599,20 +587,7 @@ def floor(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor.html
     """
 
-    def _wrapper(t: np.dtype, /) -> np.dtype:
-        if hasattr(np, "array_api"):
-            return t
-
-        if t in [np.int8, np.uint8, np.bool_, bool]:
-            return np.float16
-        elif t in [np.int16, np.uint16]:
-            return np.float32
-        elif t in [np.int32, np.uint32, np.int64, np.uint64]:
-            return np.float64
-        else:
-            return t
-
-    return _box(type(x), np.floor(*_unbox(x)), dtype=_wrapper(x.dtype))
+    return _box(type(x), np.floor(*_unbox(x)), dtype=regularise_to_float(x.dtype))
 
 
 def floor_divide(x1: array, x2: array, /) -> array:
