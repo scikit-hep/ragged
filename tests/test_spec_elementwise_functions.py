@@ -16,7 +16,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
 import pytest
-from ragged._helper_functions import regularise_to_float
+
 import ragged
 
 has_complex_dtype = True
