@@ -10,6 +10,7 @@ import warnings
 
 import numpy as np
 
+from ._helper_functions import regularise_to_float
 from ._spec_array_object import _box, _unbox, array
 
 
@@ -414,7 +415,7 @@ def ceil(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.ceil.html
     """
 
-    return _box(type(x), np.ceil(*_unbox(x)), dtype=x.dtype)
+    return _box(type(x), np.ceil(*_unbox(x)), dtype=regularise_to_float(x.dtype))
 
 
 def conj(x: array, /) -> array:
@@ -586,7 +587,7 @@ def floor(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.floor.html
     """
 
-    return _box(type(x), np.floor(*_unbox(x)), dtype=x.dtype)
+    return _box(type(x), np.floor(*_unbox(x)), dtype=regularise_to_float(x.dtype))
 
 
 def floor_divide(x1: array, x2: array, /) -> array:

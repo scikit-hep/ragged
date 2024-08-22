@@ -30,7 +30,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "awkward>=2.5.0",
+  "awkward>=2.6.7",
 ]
 
 [project.optional-dependencies]

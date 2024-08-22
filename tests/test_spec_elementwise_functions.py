@@ -14,13 +14,27 @@ import numpy as np
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
-    import numpy.array_api as xp
 
 import pytest
 
 import ragged
+from ragged._helper_functions import regularise_to_float
+
+has_complex_dtype = True
+numpy_has_array_api = False
 
 devices = ["cpu"]
+
+try:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import numpy.array_api as xp
+
+        numpy_has_array_api = True
+        has_complex_dtype = np.dtype("complex128") in xp._dtypes._all_dtypes
+except ModuleNotFoundError:
+    import numpy as xp  # noqa: ICN001
+
 try:
     import cupy as cp
 
@@ -374,17 +388,34 @@ def test_ceil(device, x):
     assert xp.ceil(first(x)).dtype == result.dtype
 
 
+@pytest.mark.skipif(
+    not numpy_has_array_api,
+    reason=f"testing only in numpy version 1, but got numpy version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
-def test_ceil_int(device, x_int):
+def test_ceil_int_1(device, x_int):
     result = ragged.ceil(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.ceil(first(x_int)) == first(result)
-    assert xp.ceil(first(x_int)).dtype == result.dtype
 
 
 @pytest.mark.skipif(
-    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    numpy_has_array_api,
+    reason=f"testing only in numpy version 2, but got numpy version {np.__version__}",
+)
+@pytest.mark.parametrize("device", devices)
+def test_ceil_int_2(device, x_int):
+    result = ragged.ceil(x_int.to_device(device))
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+    assert xp.ceil(first(x_int)) == first(result).astype(
+        regularise_to_float(first(result).dtype)
+    )
+    assert xp.ceil(first(x_int)).dtype == regularise_to_float(result.dtype)
+
+
+@pytest.mark.skipif(
+    not has_complex_dtype,
     reason=f"complex not allowed in np.array_api version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
@@ -487,13 +518,32 @@ def test_floor(device, x):
     assert xp.floor(first(x)).dtype == result.dtype
 
 
+@pytest.mark.skipif(
+    not numpy_has_array_api,
+    reason=f"testing only in numpy version 1, but got numpy version {np.__version__}",
+)
 @pytest.mark.parametrize("device", devices)
-def test_floor_int(device, x_int):
+def test_floor_int_1(device, x_int):
+    result = ragged.floor(
+        x_int.to_device(device)
+    )  # always returns float64 regardless of x_int.dtype
+    assert type(result) is type(x_int)
+    assert result.shape == x_int.shape
+
+
+@pytest.mark.skipif(
+    numpy_has_array_api,
+    reason=f"testing only in numpy version 2, but got numpy version {np.__version__}",
+)
+@pytest.mark.parametrize("device", devices)
+def test_floor_int_2(device, x_int):
     result = ragged.floor(x_int.to_device(device))
     assert type(result) is type(x_int)
     assert result.shape == x_int.shape
-    assert xp.floor(first(x_int)) == first(result)
-    assert xp.floor(first(x_int)).dtype == result.dtype
+    assert xp.floor(first(x_int)) == np.asarray(first(result)).astype(
+        regularise_to_float(first(result).dtype)
+    )
+    assert xp.floor(first(x_int)).dtype == regularise_to_float(result.dtype)
 
 
 @pytest.mark.parametrize("device", devices)
@@ -571,7 +621,7 @@ def test_greater_equal_method(device, x, y):
 
 
 @pytest.mark.skipif(
-    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    not has_complex_dtype,
     reason=f"complex not allowed in np.array_api version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
@@ -838,7 +888,7 @@ def test_pow_inplace_method(device, x, y):
 
 
 @pytest.mark.skipif(
-    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    not has_complex_dtype,
     reason=f"complex not allowed in np.array_api version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
@@ -888,7 +938,7 @@ def test_round(device, x):
 
 
 @pytest.mark.skipif(
-    np.dtype("complex128") not in xp._dtypes._all_dtypes,
+    not has_complex_dtype,
     reason=f"complex not allowed in np.array_api version {np.__version__}",
 )
 @pytest.mark.parametrize("device", devices)
