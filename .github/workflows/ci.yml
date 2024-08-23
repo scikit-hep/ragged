@@ -35,7 +35,7 @@ jobs:
 
   checks:
     name:
-      "py:${{ matrix.python-version }} np:${{ matrix.numpy-version }} os:${{ 
+      "py:${{ matrix.python-version }} np:${{ matrix.numpy-version }} os:${{
       matrix.runs-on }}"
     runs-on: ${{ matrix.runs-on }}
     needs: [pre-commit]
