@@ -53,9 +53,9 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     """
 
     if isinstance(x, ragged.array):
-        if len(x) == 1:
+        if x.ndim == 0:
             return unique_all_result(
-                values=ragged.array(x),
+                values=ragged.array([x]),
                 indices=ragged.array([0]),
                 inverse_indices=ragged.array([0]),
                 counts=ragged.array([1]),
@@ -67,6 +67,7 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
                 return_index=True,
                 return_inverse=True,
                 return_counts=True,
+                equal_nan=False,
             )
             return unique_all_result(
                 values=ragged.array(values),
@@ -75,8 +76,8 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
                 counts=ragged.array(counts),
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}"
-        raise TypeError(msg)
+        msg = f"Expected ragged type but got {type(x)}" # type: ignore
+        raise TypeError(msg) # type: ignore
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -110,10 +111,6 @@ def unique_counts(x: array, /) -> tuple[array, array]:
             return unique_counts_result(
                 values=ragged.array([x]), counts=ragged.array([1])
             )
-        elif len(x) == 1:
-            return unique_counts_result(
-                values=ragged.array(x), counts=ragged.array([1])
-            )
         else:
             x_flat = ak.ravel(x._impl)
             values, counts = np.unique(x_flat.layout.data, return_counts=True)
@@ -121,8 +118,8 @@ def unique_counts(x: array, /) -> tuple[array, array]:
                 values=ragged.array(values), counts=ragged.array(counts)
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}"
-        raise TypeError(msg)
+        msg = f"Expected ragged type but got {type(x)}" # type: ignore
+        raise TypeError(msg) # type: ignore
 
 
 unique_inverse_result = namedtuple(  # pylint: disable=C0103
@@ -152,13 +149,9 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_inverse.html
     """
     if isinstance(x, ragged.array):
-        if x.ndim == 0:
+        if ak.is_scalar(x):
             return unique_inverse_result(
-                values=ragged.array([x]), inverse_indices=ragged.array([0])
-            )
-        elif len(x) == 1:
-            return unique_inverse_result(
-                values=ragged.array(x), inverse_indices=ragged.array([0])
+                values=x, inverse_indices=ragged.array([0])
             )
         else:
             x_flat = ak.ravel(x._impl)
@@ -169,8 +162,8 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
                 inverse_indices=ragged.array(inverse_indices),
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}"
-        raise TypeError(msg)
+        msg = f"Expected ragged type but got {type(x)}" # type: ignore
+        raise TypeError(msg) # type: ignore
 
 
 def unique_values(x: array, /) -> array:
@@ -192,11 +185,9 @@ def unique_values(x: array, /) -> array:
         if x.ndim == 0:
             return ragged.array([x])
 
-        if len(x) == 1:
-            return ragged.array(x)
         else:
             x_flat = ak.ravel(x._impl)
             return ragged.array(np.unique(x_flat.layout.data))
     else:
-        err = f"Expected ragged type but got {type(x)}"
-        raise TypeError(err)
+        err = f"Expected ragged type but got {type(x)}" # type: ignore
+        raise TypeError(err) # type: ignore
