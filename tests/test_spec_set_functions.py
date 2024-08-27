@@ -33,9 +33,9 @@ def test_can_take_list():
 
 def test_can_take_empty_arr():
     # with pytest.raises(TypeError):
-        assert ak.to_list(ragged.unique_values(ragged.array([]))) == ak.to_list(
-            ragged.array([])
-        )
+    assert ak.to_list(ragged.unique_values(ragged.array([]))) == ak.to_list(
+        ragged.array([])
+    )
 
 
 def test_can_take_moredimensions():
@@ -99,13 +99,12 @@ def test_can_count_scalar():
 
 
 def test_can_inverse_list():
-    arr=ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
-    expected_values=ragged.array([1,2,3,4,5,6,20])
-    expected_inverse=ragged.array([0, 1, 3, 2, 3, 4, 5, 6])
-    values, inverse= ragged.unique_inverse(arr)
-    assert ak.to_list(expected_values)==ak.to_list(values)
-    assert ak.to_list(expected_inverse)==ak.to_list(inverse)
-
+    arr = ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
+    expected_values = ragged.array([1, 2, 3, 4, 5, 6, 20])
+    expected_inverse = ragged.array([0, 1, 3, 2, 3, 4, 5, 6])
+    values, inverse = ragged.unique_inverse(arr)
+    assert ak.to_list(expected_values) == ak.to_list(values)
+    assert ak.to_list(expected_inverse) == ak.to_list(inverse)
 
 
 def test_can_inverse_simple_array():
@@ -138,17 +137,21 @@ def test_can_inverse_scalar():
 # unique_all tests
 def test_can_all_none():
     with pytest.raises(TypeError):
-        arr=None
+        arr = None
         expected_unique_values = ragged.array(None)
         expected_unique_indices = ragged.array(None)
         expected_unique_inverse = ragged.array(None)
         expected_unique_counts = ragged.array(None)
-        unique_values, unique_indices, unique_inverse, unique_counts = ragged.unique_all(arr)
+        (
+            unique_values,
+            unique_indices,
+            unique_inverse,
+            unique_counts,
+        ) = ragged.unique_all(arr)
         assert ak.to_list(unique_values) == ak.to_list(expected_unique_values)
         assert ak.to_list(unique_indices) == ak.to_list(expected_unique_indices)
         assert ak.to_list(unique_inverse) == ak.to_list(expected_unique_inverse)
         assert ak.to_list(unique_counts) == ak.to_list(expected_unique_counts)
-
 
 
 def test_can_all_list():

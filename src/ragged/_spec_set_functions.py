@@ -76,8 +76,8 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
                 counts=ragged.array(counts),
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}" # type: ignore
-        raise TypeError(msg) # type: ignore
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore
+        raise TypeError(msg)  # type: ignore
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -118,8 +118,8 @@ def unique_counts(x: array, /) -> tuple[array, array]:
                 values=ragged.array(values), counts=ragged.array(counts)
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}" # type: ignore
-        raise TypeError(msg) # type: ignore
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore
+        raise TypeError(msg)  # type: ignore
 
 
 unique_inverse_result = namedtuple(  # pylint: disable=C0103
@@ -150,9 +150,7 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     """
     if isinstance(x, ragged.array):
         if ak.is_scalar(x):
-            return unique_inverse_result(
-                values=x, inverse_indices=ragged.array([0])
-            )
+            return unique_inverse_result(values=x, inverse_indices=ragged.array([0]))
         else:
             x_flat = ak.ravel(x._impl)
             values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)
@@ -162,8 +160,8 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
                 inverse_indices=ragged.array(inverse_indices),
             )
     else:
-        msg = f"Expected ragged type but got {type(x)}" # type: ignore
-        raise TypeError(msg) # type: ignore
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore
+        raise TypeError(msg)  # type: ignore
 
 
 def unique_values(x: array, /) -> array:
@@ -189,5 +187,5 @@ def unique_values(x: array, /) -> array:
             x_flat = ak.ravel(x._impl)
             return ragged.array(np.unique(x_flat.layout.data))
     else:
-        err = f"Expected ragged type but got {type(x)}" # type: ignore
-        raise TypeError(err) # type: ignore
+        err = f"Expected ragged type but got {type(x)}"  # type: ignore
+        raise TypeError(err)  # type: ignore
