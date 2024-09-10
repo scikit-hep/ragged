@@ -51,7 +51,7 @@ jobs:
             numpy-version: "latest"
             runs-on: ubuntu-latest
           - python-version: "3.9"
-            numpy-version: "1.22.0"
+            numpy-version: "1.24.0"
             runs-on: ubuntu-latest
 
     steps:
