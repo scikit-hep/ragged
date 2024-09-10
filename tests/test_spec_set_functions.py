@@ -27,9 +27,8 @@ def test_can_take_list():
 
 
 def test_can_take_empty_arr():
-    # with pytest.raises(TypeError):
     arr = ragged.array([])
-    expected_unique_values = ragged.array([0])
+    expected_unique_values = ragged.array([])
     unique_values = ragged.unique_values(arr)
     assert ak.to_list(expected_unique_values) == ak.to_list(unique_values)
 
@@ -71,6 +70,15 @@ def test_can_count_list():
     assert ak.to_list(unique_counts) == ak.to_list(expected_unique_counts)
 
 
+def test_can_count_empty_arr():
+    arr = ragged.array([])
+    expected_unique_values = ragged.array([])
+    expected_counts = ragged.array([])
+    unique_values, unique_counts = ragged.unique_counts(arr)
+    assert ak.to_list(expected_unique_values) == ak.to_list(unique_values)
+    assert ak.to_list(expected_counts) == ak.to_list(unique_counts)
+
+
 def test_can_count_simple_array():
     arr = ragged.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     expected_unique_values = ragged.array([1, 2, 3, 4])
@@ -110,11 +118,20 @@ def test_can_count_scalar_float():
 # unique_inverse tests
 def test_can_inverse_list():
     arr = ragged.array([1, 2, 4, 3, 4, 5, 6, 20])
-    expected_values = ragged.array([1, 2, 3, 4, 5, 6, 20])
-    expected_inverse = ragged.array([0, 1, 3, 2, 3, 4, 5, 6])
-    values, inverse = ragged.unique_inverse(arr)
-    assert ak.to_list(expected_values) == ak.to_list(values)
-    assert ak.to_list(expected_inverse) == ak.to_list(inverse)
+    expected_unique_values = ragged.array([1, 2, 3, 4, 5, 6, 20])
+    expected_inverse_indices = ragged.array([0, 1, 3, 2, 3, 4, 5, 6])
+    unique_values, inverse_indices = ragged.unique_inverse(arr)
+    assert ak.to_list(unique_values) == ak.to_list(expected_unique_values)
+    assert ak.to_list(inverse_indices) == ak.to_list(expected_inverse_indices)
+
+
+def test_can_inverse_empty_arr():
+    arr = ragged.array([])
+    expected_unique_values = ragged.array([])
+    expected_inverse_indices = ragged.array([])
+    unique_values, inverse_indices = ragged.unique_inverse(arr)
+    assert ak.to_list(unique_values) == ak.to_list(expected_unique_values)
+    assert ak.to_list(inverse_indices) == ak.to_list(expected_inverse_indices)
 
 
 def test_can_inverse_simple_array():
@@ -160,6 +177,21 @@ def test_can_all_list():
     expected_unique_indices = ragged.array([0, 1, 3, 6])
     expected_unique_inverse = ragged.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3])
     expected_unique_counts = ragged.array([1, 2, 3, 4])
+    unique_values, unique_indices, unique_inverse, unique_counts = ragged.unique_all(
+        arr
+    )
+    assert ak.to_list(unique_values) == ak.to_list(expected_unique_values)
+    assert ak.to_list(unique_indices) == ak.to_list(expected_unique_indices)
+    assert ak.to_list(unique_inverse) == ak.to_list(expected_unique_inverse)
+    assert ak.to_list(unique_counts) == ak.to_list(expected_unique_counts)
+
+
+def test_can_all_empty_arr():
+    arr = ragged.array([])
+    expected_unique_values = ragged.array([])
+    expected_unique_indices = ragged.array([])
+    expected_unique_inverse = ragged.array([])
+    expected_unique_counts = ragged.array([])
     unique_values, unique_indices, unique_inverse, unique_counts = ragged.unique_all(
         arr
     )

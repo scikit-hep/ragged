@@ -16,6 +16,7 @@ import awkward as ak
 import numpy as np
 from awkward.contents import (
     Content,
+    EmptyArray,
     ListArray,
     ListOffsetArray,
     NumpyArray,
@@ -44,7 +45,10 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
         else:
             shape = (*shape, None)
         node = node.content
-
+    if isinstance(node, EmptyArray):
+        node = node.to_NumpyArray(dtype=np.float64)
+        shape = shape + node.data.shape[1:]
+        return shape, node.data.dtype
     if isinstance(node, NumpyArray):
         shape = shape + node.data.shape[1:]
         return shape, node.data.dtype

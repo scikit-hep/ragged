@@ -62,6 +62,13 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
             )
         else:
             x_flat = ak.ravel(x._impl)
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+                return unique_all_result(
+                    values=ragged.array([]),
+                    indices=ragged.array([]),
+                    inverse_indices=ragged.array([]),
+                    counts=ragged.array([]),
+                )
             values, indices, inverse_indices, counts = np.unique(
                 x_flat.layout.data,
                 return_index=True,
@@ -113,6 +120,10 @@ def unique_counts(x: array, /) -> tuple[array, array]:
             )
         else:
             x_flat = ak.ravel(x._impl)
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+                return unique_counts_result(
+                    values=ragged.array([]), counts=ragged.array([])
+                )
             values, counts = np.unique(x_flat.layout.data, return_counts=True)
             return unique_counts_result(
                 values=ragged.array(values), counts=ragged.array(counts)
@@ -155,6 +166,10 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
             )
         else:
             x_flat = ak.ravel(x._impl)
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+                return unique_inverse_result(
+                    values=ragged.array([]), inverse_indices=ragged.array([])
+                )
             values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)
 
             return unique_inverse_result(
@@ -187,6 +202,13 @@ def unique_values(x: array, /) -> array:
 
         else:
             x_flat = ak.ravel(x._impl)
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+                return ragged.array([])
+            # print("x._impl type is", type(x._impl))
+            # print("x_flat type is", type(x_flat))
+            # print("x_flat laoyut is", x_flat.layout)
+            # print("x_flat layout type is", type(x_flat.layout))
+            # print("x_flat layout data type is", type(x_flat.layout.data))
             return ragged.array(np.unique(x_flat.layout.data))
     else:
         err = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
