@@ -130,7 +130,7 @@ from ._spec_searching_functions import (
     nonzero,
     where,
 )
-from ._spec_set_functions import (
+from ._spec_set_functions import (  # pylint: disable=W0622
     unique_all,
     unique_counts,
     unique_inverse,

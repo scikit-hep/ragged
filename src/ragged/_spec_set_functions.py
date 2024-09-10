@@ -55,7 +55,7 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_all_result(
-                values=ragged.array(np.unique(x._impl)),
+                values=ragged.array(np.unique(x._impl)),  # pylint: disable=W0212
                 indices=ragged.array([0]),
                 inverse_indices=ragged.array([0]),
                 counts=ragged.array([1]),
@@ -70,7 +70,7 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
                     counts=ragged.array([]),
                 )
             values, indices, inverse_indices, counts = np.unique(
-                x_flat.layout.data,
+                x_flat.layout.data,  # pylint: disable=E1101
                 return_index=True,
                 return_inverse=True,
                 return_counts=True,
@@ -116,15 +116,16 @@ def unique_counts(x: array, /) -> tuple[array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_counts_result(
-                values=ragged.array(np.unique(x._impl)), counts=ragged.array([1])
+                values=ragged.array(np.unique(x._impl)),
+                counts=ragged.array([1]),  # pylint: disable=W0212
             )
         else:
-            x_flat = ak.ravel(x._impl)
-            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
                 return unique_counts_result(
                     values=ragged.array([]), counts=ragged.array([])
                 )
-            values, counts = np.unique(x_flat.layout.data, return_counts=True)
+            values, counts = np.unique(x_flat.layout.data, return_counts=True)  # pylint: disable=E1101
             return unique_counts_result(
                 values=ragged.array(values), counts=ragged.array(counts)
             )
@@ -162,16 +163,16 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_inverse_result(
-                values=ragged.array(np.unique(x._impl)),
+                values=ragged.array(np.unique(x._impl)),  # pylint: disable=W0212
                 inverse_indices=ragged.array([0]),
             )
         else:
-            x_flat = ak.ravel(x._impl)
-            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
                 return unique_inverse_result(
                     values=ragged.array([]), inverse_indices=ragged.array([])
                 )
-            values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)
+            values, inverse_indices = np.unique(x_flat.layout.data, return_inverse=True)  # pylint: disable=E1101
 
             return unique_inverse_result(
                 values=ragged.array(values),
@@ -199,18 +200,13 @@ def unique_values(x: array, /) -> array:
     """
     if isinstance(x, ragged.array):
         if x.ndim == 0:
-            return ragged.array(np.unique(x._impl))
+            return ragged.array(np.unique(x._impl))  # pylint: disable=W0212
 
         else:
-            x_flat = ak.ravel(x._impl)
-            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
                 return ragged.array([])
-            # print("x._impl type is", type(x._impl))
-            # print("x_flat type is", type(x_flat))
-            # print("x_flat laoyut is", x_flat.layout)
-            # print("x_flat layout type is", type(x_flat.layout))
-            # print("x_flat layout data type is", type(x_flat.layout.data))
-            return ragged.array(np.unique(x_flat.layout.data))
+            return ragged.array(np.unique(x_flat.layout.data))  # pylint: disable=E1101
     else:
         err = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
         raise TypeError(err)
