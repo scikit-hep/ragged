@@ -55,14 +55,14 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_all_result(
-                values=ragged.array(x),
+                values=ragged.array(np.unique(x._impl)),
                 indices=ragged.array([0]),
                 inverse_indices=ragged.array([0]),
                 counts=ragged.array([1]),
             )
         else:
-            x_flat = ak.ravel(x._impl)
-            if isinstance(x_flat.layout, ak.contents.EmptyArray):
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
                 return unique_all_result(
                     values=ragged.array([]),
                     indices=ragged.array([]),
@@ -116,7 +116,7 @@ def unique_counts(x: array, /) -> tuple[array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_counts_result(
-                values=ragged.array(x), counts=ragged.array([1])
+                values=ragged.array(np.unique(x._impl)), counts=ragged.array([1])
             )
         else:
             x_flat = ak.ravel(x._impl)
@@ -162,7 +162,8 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
     if isinstance(x, ragged.array):
         if x.ndim == 0:
             return unique_inverse_result(
-                values=ragged.array(x), inverse_indices=ragged.array([0])
+                values=ragged.array(np.unique(x._impl)),
+                inverse_indices=ragged.array([0]),
             )
         else:
             x_flat = ak.ravel(x._impl)
@@ -198,7 +199,7 @@ def unique_values(x: array, /) -> array:
     """
     if isinstance(x, ragged.array):
         if x.ndim == 0:
-            return ragged.array(x)
+            return ragged.array(np.unique(x._impl))
 
         else:
             x_flat = ak.ravel(x._impl)
