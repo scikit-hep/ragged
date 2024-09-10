@@ -126,9 +126,9 @@ def unique_counts(x: array, /) -> tuple[array, array]:
                     values=ragged.array([]), counts=ragged.array([])
                 )
             values, counts = np.unique(
-                x_flat.layout.data,
+                x_flat.layout.data,  # pylint: disable=E1101
                 return_counts=True,
-                equal_nan=False,  # pylint: disable=E1101
+                equal_nan=False,
             )
             return unique_counts_result(
                 values=ragged.array(values), counts=ragged.array(counts)
@@ -177,9 +177,9 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
                     values=ragged.array([]), inverse_indices=ragged.array([])
                 )
             values, inverse_indices = np.unique(
-                x_flat.layout.data,
+                x_flat.layout.data,  # pylint: disable=E1101
                 return_inverse=True,
-                equal_nan=False,  # pylint: disable=E1101
+                equal_nan=False,
             )
 
             return unique_inverse_result(
