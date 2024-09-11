@@ -51,7 +51,7 @@ jobs:
             numpy-version: "latest"
             runs-on: ubuntu-latest
           - python-version: "3.9"
-            numpy-version: "1.22.0"
+            numpy-version: "1.24.0"
             runs-on: ubuntu-latest
 
     steps:
@@ -80,4 +80,4 @@ jobs:
           --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4.4.1
+        uses: codecov/codecov-action@v4.5.0
