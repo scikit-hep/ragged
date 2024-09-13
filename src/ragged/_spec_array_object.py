@@ -47,7 +47,6 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
         node = node.content
     if isinstance(node, EmptyArray):
         node = node.to_NumpyArray(dtype=np.float64)
-
     if isinstance(node, NumpyArray):
         shape = shape + node.data.shape[1:]
         return shape, node.data.dtype
