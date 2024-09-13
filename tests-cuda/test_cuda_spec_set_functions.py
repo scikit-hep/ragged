@@ -6,9 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/set_functions.html
 
 from __future__ import annotations
 
-import cupy as cp  # noqa: F401
-
 import awkward as ak
+import cupy as cp
 
 import ragged
 
@@ -36,7 +35,7 @@ def test_can_take_empty_arr():
 
 
 def test_can_take_moredimensions():
-    arr = ragged.array(ak.Array([[1, 2, 2, 3, 4], [5, 6]], backend='cuda'))
+    arr = ragged.array(ak.Array([[1, 2, 2, 3, 4], [5, 6]], backend="cuda"))
     expected_unique_values = ragged.array([1, 2, 3, 4, 5, 6])
     unique_values = ragged.unique_values(arr)
     assert ak.to_list(expected_unique_values) == ak.to_list(unique_values)
@@ -77,7 +76,9 @@ def test_can_count_simple_array():
 
 
 def test_can_count_normal_array():
-    arr = ragged.array(ak.Array([[1, 2, 2], [3], [3, 3], [4, 4, 4], [4]], backend='cuda'))
+    arr = ragged.array(
+        ak.Array([[1, 2, 2], [3], [3, 3], [4, 4, 4], [4]], backend="cuda")
+    )
     expected_unique_values = ragged.array([1, 2, 3, 4])
     expected_counts = ragged.array([1, 2, 3, 4])
     unique_values, unique_counts = ragged.unique_counts(arr)
@@ -105,7 +106,7 @@ def test_can_inverse_empty_arr():
 
 
 def test_can_inverse_simple_array():
-    arr = ragged.array(ak.Array([[1, 2, 2], [3, 3, 3], [4, 4, 4, 4]], backend='cuda'))
+    arr = ragged.array(ak.Array([[1, 2, 2], [3, 3, 3], [4, 4, 4, 4]], backend="cuda"))
     expected_unique_values = ragged.array([1, 2, 3, 4])
     expected_inverse_indices = ragged.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3])
     unique_values, inverse_indices = ragged.unique_inverse(arr)
@@ -114,7 +115,9 @@ def test_can_inverse_simple_array():
 
 
 def test_can_inverse_normal_array():
-    arr = ragged.array(ak.Array([[1, 2, 2], [3], [3, 3], [4, 4, 4], [4]], backend='cuda'))
+    arr = ragged.array(
+        ak.Array([[1, 2, 2], [3], [3, 3], [4, 4, 4], [4]], backend="cuda")
+    )
     expected_unique_values = ragged.array([1, 2, 3, 4])
     expected_inverse_indices = ragged.array([0, 1, 1, 2, 2, 2, 3, 3, 3, 3])
     unique_values, inverse_indices = ragged.unique_inverse(arr)
@@ -166,4 +169,3 @@ def test_can_all_normal_array():
     assert ak.to_list(unique_indices) == ak.to_list(expected_unique_indices)
     assert ak.to_list(unique_inverse) == ak.to_list(expected_unique_inverse)
     assert ak.to_list(unique_counts) == ak.to_list(expected_unique_counts)
-
