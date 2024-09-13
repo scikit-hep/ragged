@@ -8,6 +8,11 @@ from __future__ import annotations
 
 from collections import namedtuple
 
+import awkward as ak
+import numpy as np
+
+import ragged
+
 from ._spec_array_object import array
 
 unique_all_result = namedtuple(  # pylint: disable=C0103
@@ -47,8 +52,39 @@ def unique_all(x: array, /) -> tuple[array, array, array, array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_all.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 128")  # noqa: EM101
+    if isinstance(x, ragged.array):
+        if x.ndim == 0:
+            return unique_all_result(
+                values=ragged.array(np.unique(x._impl, equal_nan=False)),  # pylint: disable=W0212
+                indices=ragged.array([0]),
+                inverse_indices=ragged.array([0]),
+                counts=ragged.array([1]),
+            )
+        else:
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
+                return unique_all_result(
+                    values=ragged.array(np.empty(0, x.dtype)),
+                    indices=ragged.array(np.empty(0, np.int64)),
+                    inverse_indices=ragged.array(np.empty(0, np.int64)),
+                    counts=ragged.array(np.empty(0, np.int64)),
+                )
+            values, indices, inverse_indices, counts = np.unique(
+                x_flat.layout.data,  # pylint: disable=E1101
+                return_index=True,
+                return_inverse=True,
+                return_counts=True,
+                equal_nan=False,
+            )
+            return unique_all_result(
+                values=ragged.array(values),
+                indices=ragged.array(indices),
+                inverse_indices=ragged.array(inverse_indices),
+                counts=ragged.array(counts),
+            )
+    else:
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
 
 
 unique_counts_result = namedtuple(  # pylint: disable=C0103
@@ -77,9 +113,30 @@ def unique_counts(x: array, /) -> tuple[array, array]:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_counts.html
     """
-
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 129")  # noqa: EM101
+    if isinstance(x, ragged.array):
+        if x.ndim == 0:
+            return unique_counts_result(
+                values=ragged.array(np.unique(x._impl, equal_nan=False)),  # pylint: disable=W0212
+                counts=ragged.array([1]),  # pylint: disable=W0212
+            )
+        else:
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
+                return unique_counts_result(
+                    values=ragged.array(np.empty(0, x.dtype)),
+                    counts=ragged.array(np.empty(0, np.int64)),
+                )
+            values, counts = np.unique(
+                x_flat.layout.data,  # pylint: disable=E1101
+                return_counts=True,
+                equal_nan=False,
+            )
+            return unique_counts_result(
+                values=ragged.array(values), counts=ragged.array(counts)
+            )
+    else:
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
 
 
 unique_inverse_result = namedtuple(  # pylint: disable=C0103
@@ -108,9 +165,32 @@ def unique_inverse(x: array, /) -> tuple[array, array]:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_inverse.html
     """
+    if isinstance(x, ragged.array):
+        if x.ndim == 0:
+            return unique_inverse_result(
+                values=ragged.array(np.unique(x._impl, equal_nan=False)),  # pylint: disable=W0212
+                inverse_indices=ragged.array([0]),
+            )
+        else:
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
+                return unique_inverse_result(
+                    values=ragged.array(np.empty(0, x.dtype)),
+                    inverse_indices=ragged.array(np.empty(0, np.int64)),
+                )
+            values, inverse_indices = np.unique(
+                x_flat.layout.data,  # pylint: disable=E1101
+                return_inverse=True,
+                equal_nan=False,
+            )
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 130")  # noqa: EM101
+            return unique_inverse_result(
+                values=ragged.array(values),
+                inverse_indices=ragged.array(inverse_indices),
+            )
+    else:
+        msg = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
 
 
 def unique_values(x: array, /) -> array:
@@ -128,6 +208,15 @@ def unique_values(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.unique_values.html
     """
+    if isinstance(x, ragged.array):
+        if x.ndim == 0:
+            return ragged.array(np.unique(x._impl, equal_nan=False))  # pylint: disable=W0212
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 131")  # noqa: EM101
+        else:
+            x_flat = ak.ravel(x._impl)  # pylint: disable=W0212
+            if isinstance(x_flat.layout, ak.contents.EmptyArray):  # pylint: disable=E1101
+                return ragged.array(np.empty(0, x.dtype))
+            return ragged.array(np.unique(x_flat.layout.data, equal_nan=False))  # pylint: disable=E1101
+    else:
+        err = f"Expected ragged type but got {type(x)}"  # type: ignore[unreachable]
+        raise TypeError(err)
