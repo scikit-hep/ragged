@@ -16,6 +16,7 @@ import awkward as ak
 import numpy as np
 from awkward.contents import (
     Content,
+    EmptyArray,
     ListArray,
     ListOffsetArray,
     NumpyArray,
@@ -44,7 +45,8 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
         else:
             shape = (*shape, None)
         node = node.content
-
+    if isinstance(node, EmptyArray):
+        node = node.to_NumpyArray(dtype=np.float64)
     if isinstance(node, NumpyArray):
         shape = shape + node.data.shape[1:]
         return shape, node.data.dtype
@@ -244,9 +246,9 @@ class array:  # pylint: disable=C0103
         if len(self._shape) == 0:
             return f"{self._impl}"
         elif len(self._shape) == 1:
-            return f"{ak._prettyprint.valuestr(self._impl, 1, 80)}"
+            return f"{ak.prettyprint.valuestr(self._impl, 1, 80)}"
         else:
-            prep = ak._prettyprint.valuestr(self._impl, 20, 80 - 4)[1:-1].replace(
+            prep = ak.prettyprint.valuestr(self._impl, 20, 80 - 4)[1:-1].replace(
                 "\n ", "\n    "
             )
             return f"[\n    {prep}\n]"
@@ -259,9 +261,9 @@ class array:  # pylint: disable=C0103
         if len(self._shape) == 0:
             return f"ragged.array({self._impl})"
         elif len(self._shape) == 1:
-            return f"ragged.array({ak._prettyprint.valuestr(self._impl, 1, 80 - 14)})"
+            return f"ragged.array({ak.prettyprint.valuestr(self._impl, 1, 80 - 14)})"
         else:
-            prep = ak._prettyprint.valuestr(self._impl, 20, 80 - 4)[1:-1].replace(
+            prep = ak.prettyprint.valuestr(self._impl, 20, 80 - 4)[1:-1].replace(
                 "\n ", "\n    "
             )
             return f"ragged.array([\n    {prep}\n])"
