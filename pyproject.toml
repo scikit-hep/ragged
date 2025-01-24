@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ragged"
 authors = [
-  { name = "Jim Pivarski", email = "pivarski@princeton.edu" },
+  { name = "Jim Pivarski", email = "jpivarski@gmail.com" },
 ]
 description = "Ragged array library, complying with Python API specification."
 readme = "README.md"
