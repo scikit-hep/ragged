@@ -97,8 +97,8 @@ def matrix_transpose(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
-  
-    if x._impl.ndim < 2:
+    xarray=x._impl
+    if xarray.ndim < 2:
         raise ValueError("Input must have at least 2 dimensions")
 
     def check_sorted_desc(lay):
@@ -112,7 +112,7 @@ def matrix_transpose(x: array, /) -> array:
                     return False
         return True
 
-    if not check_sorted_desc(x._impl.ndim.layout):
+    if not check_sorted_desc(xarray.ndim.layout):
         raise ValueError(
             "Ragged dimension's lists must be sorted descending in length for transpose"
         )

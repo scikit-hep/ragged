@@ -6,6 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/linear_algebra_function
 
 from __future__ import annotations
 
+import pytest
+
 import awkward as ak
 import ragged
 
@@ -39,17 +41,14 @@ def test_can_transpose_stack():
     [[4.4], [5.5], [6.6]],[]])
     assert ak.almost_equal(ragged.matrix_transpose(arr)._impl, expected_transpose._impl)
 
-def test_cant_transpose_shape_change():
+def test_can_transpose_shape_change():
     arr = ragged.array([[[1, 2], [3]]])
     assert ragged.matrix_transpose(arr)._impl.type == ak.type.ArrayType(1, ak.types.ListType(ak.types.ListType(ak.types.PrimitiveType("int64"))))
 
 def test_can_transpose_unsorted():
     arr = ragged.array([[[1], [2, 3]]]) 
-    try:
+    with pytest.raises(ValueError, match="sorted descending"):
         ragged.matrix_transpose(arr)
-        assert False, "Expected ValueError not raised"
-    except ValueError as e:
-        assert "sorted descending" in str(e)
 
 
 
