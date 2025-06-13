@@ -10,6 +10,11 @@ from collections.abc import Sequence
 
 from ._spec_array_object import array
 
+import awkward as ak
+import numpy as np
+
+import ragged
+
 
 def matmul(x1: array, x2: array, /) -> array:
     """
@@ -92,9 +97,51 @@ def matrix_transpose(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
+  
+    if x._impl.ndim < 2:
+        raise ValueError("Input must have at least 2 dimensions")
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 111")  # noqa: EM101
+    def check_sorted_desc(lay):
+        if isinstance(lay, ak.contents.ListOffsetArray):
+            offsets = ak.to_numpy(lay.offsets)
+            lengths = offsets[1:] - offsets[:-1]
+            if not all(lengths[i] >= lengths[i + 1] for i in range(len(lengths) - 1)):
+                return False
+            for i in range(min(10, len(lay))):
+                if not check_sorted_desc(lay[i]):
+                    return False
+        return True
+
+    if not check_sorted_desc(x._impl.ndim.layout):
+        raise ValueError(
+            "Ragged dimension's lists must be sorted descending in length for transpose"
+        )
+
+    nested = x._impl.ndim.to_list()
+
+    def transpose_matrix(mat):
+        max_cols = max((len(row) for row in mat), default=0)
+        return [
+            [row[i] for row in mat if i < len(row)]
+            for i in range(max_cols)
+        ]
+
+    def is_matrix_level(b):
+        for row in b:
+            if isinstance(row, list) and row:
+                return isinstance(row[0], (int, float))
+        return False
+
+    def recurse(batch):
+        if isinstance(batch, list) and all(isinstance(b, list) for b in batch):
+            if is_matrix_level(batch):
+                return transpose_matrix(batch)
+            return [recurse(b) for b in batch]
+        return batch
+
+    transposed = recurse(nested)
+    return ragged.array(transposed)# noqa: B018, pylint: disable=W0104
+    
 
 
 def tensordot(
