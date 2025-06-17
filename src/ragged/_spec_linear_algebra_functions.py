@@ -112,12 +112,12 @@ def matrix_transpose(x: array, /) -> array:
                     return False
         return True
 
-    if not check_sorted_desc(xarray.ndim.layout):
+    if not check_sorted_desc(xarray):
         raise ValueError(
             "Ragged dimension's lists must be sorted descending in length for transpose"
         )
 
-    nested = x._impl.ndim.to_list()
+    nested = x._impl.to_list()
 
     def transpose_matrix(mat):
         max_cols = max((len(row) for row in mat), default=0)
