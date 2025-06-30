@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+import awkward as ak
 
 from ._spec_array_object import _box, _unbox, array
 from ._typing import Dtype
@@ -208,9 +209,61 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
-    dtype  # noqa: B018, pylint: disable=W0104
-    kind  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 54")  # noqa: EM101
+def isdtype(dtype, kind) -> bool:
+    boolean = {"bool"}
+    signed_int = {"int8", "int16", "int32", "int64"}
+    unsigned_int = {"uint8", "uint16", "uint32", "uint64"}
+    integral = signed_int | unsigned_int
+    real_float = {"float32", "float64"}
+    complex_float = {"complex64", "complex128"}
+    numeric = integral | real_float | complex_float
+
+    kind = kind.lower() if isinstance(kind, str) else kind
+
+    current = dtype
+    parameters = {}
+
+    while hasattr(current, "content"):
+        if hasattr(current, "parameters") and current.parameters:
+            parameters = current.parameters
+        current = current.content
+
+    if hasattr(current, "parameters") and current.parameters:
+        parameters = current.parameters
+
+    primitive = getattr(current, "primitive", None)
+
+    if isinstance(kind, type):
+        try:
+            expected_type = ak.types.numpytype.NumpyType(str(np.dtype(kind)))
+            return primitive == expected_type.primitive
+        except Exception:
+            return False
+
+    if isinstance(kind, str):
+        if parameters.get("__array__") in {"string", "char"}:
+            return kind in {"str", "string"}
+        if kind == "bool":
+            return primitive in boolean
+        elif kind == "signed integer":
+            return primitive in signed_int
+        elif kind == "unsigned integer":
+            return primitive in unsigned_int
+        elif kind == "integral":
+            return primitive in integral
+        elif kind == "real floating":
+            return primitive in real_float
+        elif kind == "complex floating":
+            return primitive in complex_float
+        elif kind == "numeric":
+            return primitive in numeric
+
+    if isinstance(kind, tuple):
+        return any(isdtype(dtype, k) for k in kind)
+
+
+    return False
+
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
