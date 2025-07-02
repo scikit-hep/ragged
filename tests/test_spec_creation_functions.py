@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 import ragged
+import awkward as ak
 
 devices = ["cpu"]
 ns = {"cpu": np}
@@ -170,3 +171,27 @@ def test_zeros_like(device):
     assert b.tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
     assert a.device == b.device == device
+
+def test_tril_output():
+    x=ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
+    result = ragged.tril(x)
+    print("x.shape:", x.shape)
+    print("result.shape:", result.shape)
+    print(result)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+
+#def test_tril_zeroes():
+#    x=ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
+#    result = ragged.tril(x)    
+#    for i, row in enumerate(result):
+#        for j, val in enumerate(row):
+#            if j > i:
+#                assert val == 0
+
+
+def test_tril_device_consistency():
+    x = ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
+    result = ragged.tril(x)
+    assert type(result._impl) == type(x._impl)
+    assert x._impl.layout.backend is result._impl.layout.backend
