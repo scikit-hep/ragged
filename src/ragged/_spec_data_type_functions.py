@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-import numpy as np
 import awkward as ak
+import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
 from ._typing import Dtype
@@ -209,6 +209,7 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
+
 def isdtype(dtype, kind) -> bool:
     boolean = {"bool"}
     signed_int = {"int8", "int16", "int32", "int64"}
@@ -261,9 +262,7 @@ def isdtype(dtype, kind) -> bool:
     if isinstance(kind, tuple):
         return any(isdtype(dtype, k) for k in kind)
 
-
     return False
-
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:

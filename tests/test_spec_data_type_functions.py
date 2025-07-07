@@ -98,6 +98,7 @@ def test_result_type():
     dt = ragged.result_type(ragged.array([1, 2, 3]), ragged.array([1.1, 2.2, 3.3]))
     assert dt == np.dtype(np.float64)
 
+
 def test_isdtype_bool():
     x = ragged.array([[True, False]])
     dtype = x._impl.type
@@ -106,6 +107,7 @@ def test_isdtype_bool():
     assert not ragged.isdtype(dtype, "numeric")
     assert not ragged.isdtype(dtype, "str")
     assert ragged.isdtype(dtype, (int, "bool"))
+
 
 def test_isdtype_int():
     x = ragged.array([[1, 2], [3]])
@@ -117,6 +119,7 @@ def test_isdtype_int():
     assert not ragged.isdtype(dtype, "str")
     assert ragged.isdtype(dtype, (int, "int"))
 
+
 def test_isdtype_float():
     x = ragged.array([[1.1, 2.2], [3.3]])
     dtype = x._impl.type
@@ -126,8 +129,9 @@ def test_isdtype_float():
     assert not ragged.isdtype(dtype, "integral")
     assert ragged.isdtype(dtype, (float, "real floating"))
 
+
 def test_isdtype_complex():
-    x = ragged.array([[1.1+4.4j, 2.2-7.7j], [3.3+9.9j]])
+    x = ragged.array([[1.1 + 4.4j, 2.2 - 7.7j], [3.3 + 9.9j]])
     dtype = x._impl.type
     assert ragged.isdtype(dtype, complex)
     assert ragged.isdtype(dtype, "complex floating")
@@ -135,6 +139,7 @@ def test_isdtype_complex():
     assert not ragged.isdtype(dtype, "integral")
     assert not ragged.isdtype(dtype, "real floating")
     assert ragged.isdtype(dtype, (complex, "complex floating"))
+
 
 def test_isdtype_str():
     x = ragged.array([["one", "two"], ["three"]])
@@ -144,6 +149,7 @@ def test_isdtype_str():
     assert not ragged.isdtype(dtype, "int")
     assert not ragged.isdtype(dtype, "bool")
     assert ragged.isdtype(dtype, (str, "str"))
+
 
 def test_isdtype_unknown():
     x = ragged.array([[], []])
