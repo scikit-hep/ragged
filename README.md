@@ -1,4 +1,6 @@
-# Ragged
+<!-- begin-logo -->
+<img src="docs/logo.svg" width="500pt" />
+<!-- end-logo -->
 
 [![Actions Status][actions-badge]][actions-link]
 [![PyPI version][pypi-version]][pypi-link]
