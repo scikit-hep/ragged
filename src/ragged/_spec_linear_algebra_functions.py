@@ -7,13 +7,13 @@ https://data-apis.org/array-api/latest/API_specification/linear_algebra_function
 from __future__ import annotations
 
 from collections.abc import Sequence
-
-from ._spec_array_object import array
+from typing import Any
 
 import awkward as ak
-import numpy as np
 
 import ragged
+
+from ._spec_array_object import array
 
 
 def matmul(x1: array, x2: array, /) -> array:
@@ -97,11 +97,12 @@ def matrix_transpose(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
-    xarray=x._impl
-    if xarray.ndim < 2:
-        raise ValueError("Input must have at least 2 dimensions")
+    xarray = x._impl
+    if not hasattr(xarray, "ndim") or xarray.ndim < 2:
+        msg = "Input must have at least 2 dimensions"
+        raise ValueError(msg)
 
-    def check_sorted_desc(lay):
+    def check_sorted_desc(lay: ak.Array) -> bool:
         if isinstance(lay, ak.contents.ListOffsetArray):
             offsets = ak.to_numpy(lay.offsets)
             lengths = offsets[1:] - offsets[:-1]
@@ -113,35 +114,34 @@ def matrix_transpose(x: array, /) -> array:
         return True
 
     if not check_sorted_desc(xarray):
-        raise ValueError(
+        msg = (
             "Ragged dimension's lists must be sorted descending in length for transpose"
         )
+        raise ValueError(msg)
 
-    nested = x._impl.to_list()
+    nested: list[Any] = ak.to_list(xarray)
 
-    def transpose_matrix(mat):
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
         max_cols = max((len(row) for row in mat), default=0)
-        return [
-            [row[i] for row in mat if i < len(row)]
-            for i in range(max_cols)
-        ]
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
 
-    def is_matrix_level(b):
+    def is_matrix_level(b: list[Any]) -> bool:
         for row in b:
-            if isinstance(row, list) and row:
-                return isinstance(row[0], (int, float))
+            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+                return True
         return False
 
-    def recurse(batch):
-        if isinstance(batch, list) and all(isinstance(b, list) for b in batch):
+    def recurse(batch: list[Any]) -> list[Any]:
+        if all(isinstance(b, list) for b in batch):
             if is_matrix_level(batch):
                 return transpose_matrix(batch)
             return [recurse(b) for b in batch]
         return batch
 
     transposed = recurse(nested)
-    return ragged.array(transposed)# noqa: B018, pylint: disable=W0104
-    
+    return ragged.array(transposed)
 
 
 def tensordot(
