@@ -10,6 +10,7 @@ import enum
 
 import awkward as ak
 import numpy as np
+import ragged
 
 from . import _import
 from ._import import device_namespace
@@ -471,10 +472,15 @@ def tril(x: array, /, *, k: int = 0) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tril.html
     """
+    ak_array = x._impl
+    i = ak.local_index(ak_array)                      
+    j = ak.local_index(ak_array, axis=1)
+    mask = (j - i[:,None]) >= k
+    broadcast_mask, broadcast_data = ak.broadcast_arrays(mask, ak_array)
+    zero = np.array(0, dtype=x.dtype)
+    tril_result = ak.where(broadcast_mask, broadcast_data, zero)
 
-    x  # noqa: B018, pylint: disable=W0104
-    k  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 46")  # noqa: EM101
+    return ragged.array(tril_result)
 
 
 def triu(x: array, /, *, k: int = 0) -> array:
