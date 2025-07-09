@@ -10,7 +10,6 @@ import numpy as np
 import pytest
 
 import ragged
-import awkward as ak
 
 devices = ["cpu"]
 ns = {"cpu": np}
@@ -193,5 +192,5 @@ def test_tril_output():
 def test_tril_device_consistency():
     x = ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
     result = ragged.tril(x)
-    assert type(result._impl) == type(x._impl)
+    assert type(result._impl) is type(x._impl)
     assert x._impl.layout.backend is result._impl.layout.backend
