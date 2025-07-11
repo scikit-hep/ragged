@@ -109,3 +109,63 @@ def test_squeeze(x, axis):
         b = ragged.squeeze(a, axis=axis)
         assert b.shape == x.shape
         assert b.tolist() == x.tolist()
+
+
+def test_flip_none():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    arr_flipped = ragged.array(
+        [[[9.9], [8.8, 7.7, 6.6, 5.5]], [], [[4.4]], [[], [3.3, 2.2, 1.1]]]
+    )
+    assert ak.to_list(ragged.flip(arr)) == ak.to_list(arr_flipped)
+
+
+def test_flip_zero():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    arr_flipped = ragged.array(
+        [[[5.5, 6.6, 7.7, 8.8], [9.9]], [], [[4.4]], [[1.1, 2.2, 3.3], []]]
+    )
+    assert ak.to_list(ragged.flip(arr, axis=0)) == ak.to_list(arr_flipped)
+
+
+def test_flip_minus_two():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    arr_flipped = ragged.array(
+        [[[], [1.1, 2.2, 3.3]], [[4.4]], [], [[9.9], [5.5, 6.6, 7.7, 8.8]]]
+    )
+    assert ak.to_list(ragged.flip(arr, axis=-2)) == ak.to_list(arr_flipped)
+    assert ak.to_list(ragged.flip(arr, axis=1)) == ak.to_list(ragged.flip(arr, axis=-2))
+    assert arr._impl.type == (ragged.flip(arr))._impl.type
+
+
+def test_flip_tuple():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    flipped = ragged.array(
+        [[[9.9], [5.5, 6.6, 7.7, 8.8]], [], [[4.4]], [[], [1.1, 2.2, 3.3]]]
+    )
+    assert ak.to_list(ragged.flip(arr, axis=(0, 1))) == ak.to_list(flipped)
+
+
+def test_flip_empty_tuple():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    result = ragged.flip(arr, axis=())
+    assert ak.to_list(result) == ak.to_list(arr)
+
+
+def test_flip_outofboundary():
+    arr = ragged.array(
+        [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
+    )
+    with pytest.raises(ValueError):
+        ragged.flip(arr, axis=5)
+    with pytest.raises(ValueError):
+        ragged.flip(arr, axis=-5)
