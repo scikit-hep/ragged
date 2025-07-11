@@ -165,7 +165,7 @@ def test_flip_outofboundary():
     arr = ragged.array(
         [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="axis"):
         ragged.flip(arr, axis=5)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="axis"):
         ragged.flip(arr, axis=-5)
