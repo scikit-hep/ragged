@@ -236,7 +236,7 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
         try:
             expected_type = ak.types.numpytype.NumpyType(str(np.dtype(kind)))
             return bool(primitive == expected_type.primitive)
-        except Exception:
+        except (TypeError, ValueError):
             return False
 
     if isinstance(kind, str):
