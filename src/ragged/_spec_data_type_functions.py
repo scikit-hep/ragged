@@ -209,8 +209,6 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
-
-def isdtype(dtype, kind) -> bool:
     boolean = {"bool"}
     signed_int = {"int8", "int16", "int32", "int64"}
     unsigned_int = {"uint8", "uint16", "uint32", "uint64"}
@@ -237,27 +235,23 @@ def isdtype(dtype, kind) -> bool:
     if isinstance(kind, type):
         try:
             expected_type = ak.types.numpytype.NumpyType(str(np.dtype(kind)))
-            return primitive == expected_type.primitive
+            return bool(primitive == expected_type.primitive)
         except Exception:
             return False
 
     if isinstance(kind, str):
         if parameters.get("__array__") in {"string", "char"}:
             return kind in {"str", "string"}
-        if kind == "bool":
-            return primitive in boolean
-        elif kind == "signed integer":
-            return primitive in signed_int
-        elif kind == "unsigned integer":
-            return primitive in unsigned_int
-        elif kind == "integral":
-            return primitive in integral
-        elif kind == "real floating":
-            return primitive in real_float
-        elif kind == "complex floating":
-            return primitive in complex_float
-        elif kind == "numeric":
-            return primitive in numeric
+        dtype_list = {
+            "bool": boolean,
+            "signed integer": signed_int,
+            "unsigned integer": unsigned_int,
+            "integral": integral,
+            "real floating": real_float,
+            "complex floating": complex_float,
+            "numeric": numeric,
+        }
+        return primitive in dtype_list.get(kind, set())
 
     if isinstance(kind, tuple):
         return any(isdtype(dtype, k) for k in kind)
