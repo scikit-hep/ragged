@@ -7,6 +7,11 @@ https://data-apis.org/array-api/latest/API_specification/linear_algebra_function
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
+
+import awkward as ak
+
+import ragged
 
 from ._spec_array_object import array
 
@@ -92,9 +97,51 @@ def matrix_transpose(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
+    xarray = x._impl
+    if not hasattr(xarray, "ndim") or xarray.ndim < 2:
+        msg = "Input must have at least 2 dimensions"
+        raise ValueError(msg)
 
-    x  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 111")  # noqa: EM101
+    def check_sorted_desc(lay: ak.Array) -> bool:
+        if isinstance(lay, ak.contents.ListOffsetArray):
+            offsets = ak.to_numpy(lay.offsets)
+            lengths = offsets[1:] - offsets[:-1]
+            if not all(lengths[i] >= lengths[i + 1] for i in range(len(lengths) - 1)):
+                return False
+            for i in range(min(10, len(lay))):
+                if not check_sorted_desc(lay[i]):
+                    return False
+        return True
+
+    if not check_sorted_desc(xarray):
+        msg = (
+            "Ragged dimension's lists must be sorted descending in length for transpose"
+        )
+        raise ValueError(msg)
+
+    nested: list[Any] = ak.to_list(xarray)
+
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    def is_matrix_level(b: list[Any]) -> bool:
+        for row in b:
+            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+                return True
+        return False
+
+    def recurse(batch: list[Any]) -> list[Any]:
+        if all(isinstance(b, list) for b in batch):
+            if is_matrix_level(batch):
+                return transpose_matrix(batch)
+            return [recurse(b) for b in batch]
+        return batch
+
+    transposed = recurse(nested)
+    return ragged.array(transposed)
 
 
 def tensordot(
