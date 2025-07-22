@@ -147,9 +147,6 @@ def test_flip_minus_two():
     assert arr_type == flipped_type
 
 
-#    assert arr._impl.type == (ragged.flip(arr))._impl.type
-
-
 def test_flip_tuple():
     arr = ragged.array(
         [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
