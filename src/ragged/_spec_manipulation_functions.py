@@ -174,6 +174,7 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
     x_flipped = np.flip(x, axis=axis)
     return ragged.array(x_flipped)
 
+
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     """
     Permutes the axes (dimensions) of an array `x`.
