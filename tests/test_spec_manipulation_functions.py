@@ -6,6 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 
 from __future__ import annotations
 
+from typing import cast
+
 import awkward as ak
 import pytest
 
@@ -140,7 +142,10 @@ def test_flip_minus_two():
     )
     assert ak.to_list(ragged.flip(arr, axis=-2)) == ak.to_list(arr_flipped)
     assert ak.to_list(ragged.flip(arr, axis=1)) == ak.to_list(ragged.flip(arr, axis=-2))
-    assert arr._impl.type == (ragged.flip(arr))._impl.type
+    arr_type = cast(ak.Array, arr._impl).type
+    flipped_type = cast(ak.Array, ragged.flip(arr)._impl).type
+    assert arr_type == flipped_type
+#    assert arr._impl.type == (ragged.flip(arr))._impl.type
 
 
 def test_flip_tuple():
