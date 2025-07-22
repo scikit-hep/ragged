@@ -11,8 +11,6 @@ from typing import Any
 
 import awkward as ak
 
-import ragged
-
 from ._spec_array_object import array
 
 
@@ -141,7 +139,7 @@ def matrix_transpose(x: array, /) -> array:
         return batch
 
     transposed = recurse(nested)
-    return ragged.array(transposed)
+    return array(transposed)
 
 
 def tensordot(
