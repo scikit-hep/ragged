@@ -36,7 +36,7 @@ def test_can_transpose_allempty():
     arr = ragged.array([[[], []]])
     # Logically:
     # [[[], []]] transposed over the inner axis would produce [[], []], not [[]].
-    # Because you're effectively swapping rows and columns of a 1×2 "matrix" of empty lists, and you'd expect 0 columns if both are empty.
+    # Because you're effectively swapping rows and columns of a 1*2 "matrix" of empty lists, and you'd expect 0 columns if both are empty.
     expected_transpose = ragged.array([[], []])
     assert ak.almost_equal(ragged.matrix_transpose(arr)._impl, expected_transpose._impl)
 
@@ -49,28 +49,14 @@ def test_can_transpose_stack():
 
 def test_can_transpose_shape_change():
     arr = ragged.array([[[1, 2], [3]]])
-    expected_type = ak.types.ArrayType(
-        ak.types.ListType(
-            ak.types.ListType(
-                ak.types.NumpyType("int64")
-            )
-        ),
-        1
-    )
+    expected_type = ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))), 1
     assert type(ragged.matrix_transpose(arr)) == expected_type
 
 
 def test_can_transpose_shape_change2():
     arr = ragged.array([[[1, 2], [3]]])
     transposed = ragged.matrix_transpose(arr)
-    expected_type = ak.types.ArrayType(
-        1,  # length
-        ak.types.ListType(
-            ak.types.ListType(
-                ak.types.NumpyType("int64")
-            )
-        )
-    )
+    expected_type = ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))), 1
     print(ak.type(transposed))
     print(repr(ak.type(transposed)))
     assert ak.types.equal(ak.type(transposed), expected_type)
