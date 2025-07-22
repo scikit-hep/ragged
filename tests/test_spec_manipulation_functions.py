@@ -145,6 +145,8 @@ def test_flip_minus_two():
     arr_type = cast(ak.Array, arr._impl).type
     flipped_type = cast(ak.Array, ragged.flip(arr)._impl).type
     assert arr_type == flipped_type
+
+
 #    assert arr._impl.type == (ragged.flip(arr))._impl.type
 
 
