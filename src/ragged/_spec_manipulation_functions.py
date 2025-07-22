@@ -11,8 +11,6 @@ import numbers
 import awkward as ak
 import numpy as np
 
-import ragged
-
 from ._spec_array_object import _box, _unbox, array
 
 
@@ -172,7 +170,7 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
     """
 
     x_flipped = np.flip(x, axis=axis)
-    return ragged.array(x_flipped)
+    return array(x_flipped)
 
 
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
