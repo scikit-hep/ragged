@@ -12,6 +12,7 @@ from typing import Any
 import awkward as ak
 
 from ._spec_array_object import array
+from ._helper_functions import is_sorted_descending_all_levels
 
 
 def matmul(x1: array, x2: array, /) -> array:
@@ -100,22 +101,10 @@ def matrix_transpose(x: array, /) -> array:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
 
-    def check_sorted_desc(lay: ak.Array) -> bool:
-        if isinstance(lay, ak.contents.ListOffsetArray):
-            offsets = ak.to_numpy(lay.offsets)
-            lengths = offsets[1:] - offsets[:-1]
-            if not all(lengths[i] >= lengths[i + 1] for i in range(len(lengths) - 1)):
-                return False
-            for i in range(min(10, len(lay))):
-                if not check_sorted_desc(lay[i]):
-                    return False
-        return True
-
-    if not check_sorted_desc(xarray):
-        msg = (
-            "Ragged dimension's lists must be sorted descending in length for transpose"
+    if not is_sorted_descending_all_levels(x):
+        raise ValueError(
+            "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
         )
-        raise ValueError(msg)
 
     nested: list[Any] = ak.to_list(xarray)
 

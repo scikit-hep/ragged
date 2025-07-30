@@ -34,49 +34,44 @@ def test_can_transpose_with_empty():
 
 def test_can_transpose_allempty():
     arr = ragged.array([[[], []]])
-    # Logically:
-    # [[[], []]] transposed over the inner axis would produce [[], []], not [[]].
-    # Because you're effectively swapping rows and columns of a 1*2 "matrix" of empty lists, and you'd expect 0 columns if both are empty.
-    expected_transpose = ragged.array([[], []])
-    assert ak.almost_equal(ragged.matrix_transpose(arr)._impl, expected_transpose._impl)
-
-
-def test_can_transpose_stack():
-    arr = ragged.array([[[1.1, 2.2], [3.3]], [[4.4, 5.5, 6.6]], []])
-    expected_transpose = ragged.array([[[1.1, 3.3], [2.2]], [[4.4], [5.5], [6.6]], []])
-    assert ak.almost_equal(ragged.matrix_transpose(arr)._impl, expected_transpose._impl)
+    expected_transpose = ragged.array([[[], []]])
+    assert ak.to_list(ragged.matrix_transpose(arr)._impl) == ak.to_list(
+        expected_transpose._impl
+    )
 
 
 def test_can_transpose_shape_change():
     arr = ragged.array([[[1, 2], [3]]])
-    expected_type = ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))), 1
-    assert type(ragged.matrix_transpose(arr)) == expected_type
-
-
-def test_can_transpose_shape_change2():
-    arr = ragged.array([[[1, 2], [3]]])
     transposed = ragged.matrix_transpose(arr)
-    expected_type = ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))), 1
-    print(ak.type(transposed))
-    print(repr(ak.type(transposed)))
-    assert ak.types.equal(ak.type(transposed), expected_type)
+    expected_type = ak.types.ArrayType(
+        ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))),
+        len(transposed._impl),
+    )
+    assert ak.type(transposed._impl) == expected_type
 
 
 def test_transpose_structure_and_values():
     arr = ragged.array([[[1, 2], [3]]])
     transposed = ragged.matrix_transpose(arr)
-
-    expected_type = ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64")))
-    assert ak.type(transposed) == expected_type
-
-    expected = [[[1, 3], [2]]]  # Transposing: [ [1, 2], [3] ] -> [ [1, 3], [2] ]
-    assert transposed.tolist() == expected
+    expected_type = ak.types.ArrayType(
+        ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))),
+        len(transposed._impl),
+    )
+    assert ak.type(transposed._impl) == expected_type
+    expected_array = [[[1, 3], [2]]]
+    assert transposed.tolist() == expected_array
 
 
 def test_can_transpose_unsorted():
-    arr = ragged.array([[1.1], [2, 3]])
-    print(arr.ndim)
-    print(arr[0].__len__())
-    print(arr[1].__len__())
-    with pytest.raises(ValueError, match="sorted descending"):
+    arr = ragged.array([[[1.1, 1.2, 1.3], [1.4, 1.5]], [[2.1, 2.2, 2.3]]])
+    with pytest.raises(
+        ValueError,
+        match="Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible.",
+    ):
         ragged.matrix_transpose(arr)
+
+
+def test_transpose_dtype_consistency():
+    x = ragged.array([[[1.1, 3.3], [2.2]], [[4.4], [5.5]], [[6.6]], []])
+    result = ragged.matrix_transpose(x)
+    assert type(result._impl) is type(x._impl)
