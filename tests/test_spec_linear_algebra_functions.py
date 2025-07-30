@@ -45,7 +45,7 @@ def test_can_transpose_shape_change():
     transposed = ragged.matrix_transpose(arr)
     expected_type = ak.types.ArrayType(
         ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))),
-        len(transposed._impl),
+        len(transposed),
     )
     assert ak.type(transposed._impl) == expected_type
 
@@ -55,7 +55,7 @@ def test_transpose_structure_and_values():
     transposed = ragged.matrix_transpose(arr)
     expected_type = ak.types.ArrayType(
         ak.types.ListType(ak.types.ListType(ak.types.NumpyType("int64"))),
-        len(transposed._impl),
+        len(transposed),
     )
     assert ak.type(transposed._impl) == expected_type
     expected_array = [[[1, 3], [2]]]
@@ -64,14 +64,12 @@ def test_transpose_structure_and_values():
 
 def test_can_transpose_unsorted():
     arr = ragged.array([[[1.1, 1.2, 1.3], [1.4, 1.5]], [[2.1, 2.2, 2.3]]])
-    with pytest.raises(
-        ValueError,
-        match="Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible.",
-    ):
+    message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+    with pytest.raises(ValueError, match=message):
         ragged.matrix_transpose(arr)
 
 
 def test_transpose_dtype_consistency():
     x = ragged.array([[[1.1, 3.3], [2.2]], [[4.4], [5.5]], [[6.6]], []])
     result = ragged.matrix_transpose(x)
-    assert type(result._impl) is type(x._impl)
+    assert result.dtype == x.dtype

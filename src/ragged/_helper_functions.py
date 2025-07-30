@@ -1,10 +1,11 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 from __future__ import annotations
-from ._spec_array_object import array
-from awkward.contents import ListOffsetArray, ListArray, RecordArray, UnionArray
 
-import numpy as np
 import awkward as ak
+import numpy as np
+from awkward.contents import Content, ListArray, ListOffsetArray
+
+from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
@@ -32,9 +33,9 @@ def is_sorted_descending_all_levels(x: array, /) -> bool:
         bool: True if all nested lists are sorted descending by length, False otherwise.
     """
     array_ak = ak.Array(x._impl)
-    layout = ak.to_layout(array_ak)
+    layout: Content = ak.to_layout(array_ak)
 
-    def check(node):
+    def check(node: Content) -> bool:
         if isinstance(node, (ListOffsetArray, ListArray)):
             lengths = ak.num(node, axis=1)
             if not ak.all(lengths[:-1] >= lengths[1:]):
