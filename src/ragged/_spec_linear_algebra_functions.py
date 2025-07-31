@@ -96,7 +96,7 @@ def matrix_transpose(x: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
-    xarray = x._impl
+    xarray = x._impl  # pylint: disable=protected-access
     if not hasattr(xarray, "ndim") or xarray.ndim < 2:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
