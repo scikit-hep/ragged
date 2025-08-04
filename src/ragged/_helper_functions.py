@@ -7,7 +7,7 @@ import awkward as ak
 import numpy as np
 from awkward.contents import Content, ListArray, ListOffsetArray
 
-import ragged
+from ._spec_array_object import array
 
 from ._spec_array_object import array
 
@@ -51,7 +51,7 @@ def is_sorted_descending_all_levels(x: array, /) -> bool:
     return check(layout)
 
 
-def is_effectively_regular(x: ragged.array) -> bool:
+def is_effectively_regular(x: array) -> bool:
     try:
         if not hasattr(x, "__len__"):
             return False
