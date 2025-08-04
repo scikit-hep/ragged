@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 from __future__ import annotations
 
 import enum
+from typing import cast
 
 import awkward as ak
 import numpy as np
@@ -480,6 +481,7 @@ def tril(x: array, /, *, k: int = 0) -> array:
             """
         raise ValueError(msg)
     ak_array = x._impl #pylint: disable=W0212
+    ak_array = cast(ak.Array, x._impl)
     layout = ak_array.layout
 
     if layout.purelist_depth == 3:

@@ -1,6 +1,8 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 from __future__ import annotations
 
+from typing import Any
+
 import awkward as ak
 import numpy as np
 from awkward.contents import Content, ListArray, ListOffsetArray
@@ -79,9 +81,10 @@ def is_effectively_regular(x: ragged.array) -> bool:
         return False
 
 
-def is_regular_or_effectively_regular(x: ragged.array) -> bool:
+def is_regular_or_effectively_regular(x: Any) -> bool:
     try:
         layout = x.layout if isinstance(x, (ragged.array, ak.Array)) else x #pylint: disable=W0212
+        layout = x._impl.layout
         if isinstance(layout, ak.contents.RegularArray) and (
             isinstance(layout.content, ak.contents.NumpyArray)
             or (
