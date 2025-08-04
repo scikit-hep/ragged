@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 from __future__ import annotations
 
 import enum
+from typing import cast
 
 import awkward as ak
 import numpy as np
@@ -474,12 +475,12 @@ def tril(x: array, /, *, k: int = 0) -> array:
     """
     if not is_regular_or_effectively_regular(x):
         msg = """
-            Input must be rectangular in shape or RegularArray matrix or a 
-            batch of rectangular or RegularArray matrices. Please use ak.cartesian, 
+            Input must be rectangular in shape or RegularArray matrix or a
+            batch of rectangular or RegularArray matrices. Please use ak.cartesian,
             ak.combinations and such to work with ListOffsetArrays
             """
         raise ValueError(msg)
-    ak_array = x._impl
+    ak_array = cast(ak.Array, x._impl)
     layout = ak_array.layout
 
     if layout.purelist_depth == 3:
