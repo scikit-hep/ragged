@@ -5,10 +5,12 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 """
 
 from __future__ import annotations
+from typing import cast
 
 import numpy as np
 import pytest
 
+import awkward as ak
 import ragged
 
 devices = ["cpu"]
@@ -171,26 +173,39 @@ def test_zeros_like(device):
     assert a.dtype == b.dtype
     assert a.device == b.device == device
 
-def test_tril_output():
-    x=ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
+
+def test_tril_output_shape_and_dtype():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
     result = ragged.tril(x)
-    print("x.shape:", x.shape)
-    print("result.shape:", result.shape)
-    print(result)
     assert result.shape == x.shape
     assert result.dtype == x.dtype
 
-#def test_tril_zeroes():
-#    x=ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
-#    result = ragged.tril(x)    
-#    for i, row in enumerate(result):
-#        for j, val in enumerate(row):
-#            if j > i:
-#                assert val == 0
 
-
-def test_tril_device_consistency():
-    x = ragged.array([[1.1, 2.2, 3.3],[4.4, 5.5],[6.6]])
+def test_tril_dtype_and_device_consistency():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
     result = ragged.tril(x)
-    assert type(result._impl) is type(x._impl)
-    assert x._impl.layout.backend is result._impl.layout.backend
+    assert isinstance(result._impl, type(x._impl))
+    assert (
+        np.asarray(ak.flatten(x, axis=None)).dtype
+        == np.asarray(ak.flatten(result, axis=None)).dtype
+    )
+    x_layout = cast(ak.Array, x._impl).layout
+    result_layout = cast(ak.Array, result._impl).layout
+    assert x_layout.backend == result_layout.backend
+
+
+def test_tril_numpy_equivalence():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    y = np.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    assert ak.to_list(ragged.tril(x)) == ak.to_list(np.tril(y))
+    assert ak.to_list(ragged.tril(x, k=1)) == ak.to_list(np.tril(y, k=1))
+    assert ak.to_list(ragged.tril(x, k=-1)) == ak.to_list(np.tril(y, k=-1))
+    assert ragged.tril(x).dtype == np.tril(y).dtype
