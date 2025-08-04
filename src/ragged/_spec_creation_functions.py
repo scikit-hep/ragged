@@ -10,9 +10,9 @@ import enum
 
 import awkward as ak
 import numpy as np
-import ragged
 
 from . import _import
+from ._helper_functions import is_regular_or_effectively_regular
 from ._import import device_namespace
 from ._spec_array_object import _box, _unbox, array
 from ._typing import (
@@ -472,15 +472,27 @@ def tril(x: array, /, *, k: int = 0) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tril.html
     """
+    if not is_regular_or_effectively_regular(x):
+        msg = """
+            Input must be rectangular in shape or RegularArray matrix or a 
+            batch of rectangular or RegularArray matrices. Please use ak.cartesian, 
+            ak.combinations and such to work with ListOffsetArrays
+            """
+        raise ValueError(msg)
     ak_array = x._impl
-    i = ak.local_index(ak_array)                      
-    j = ak.local_index(ak_array, axis=1)
-    mask = (j - i[:,None]) >= k
-    broadcast_mask, broadcast_data = ak.broadcast_arrays(mask, ak_array)
-    zero = np.array(0, dtype=x.dtype)
-    tril_result = ak.where(broadcast_mask, broadcast_data, zero)
+    layout = ak_array.layout
 
-    return ragged.array(tril_result)
+    if layout.purelist_depth == 3:
+        result = ak.Array([np.tril(np.asarray(mat), k=k) for mat in ak_array])
+        return array(result)
+
+    elif layout.purelist_depth == 2:
+        result = np.tril(np.asarray(ak_array), k=k)
+        return array(result)
+
+    else:
+        msg = "Input must be a matrix or batch of matrices."
+        raise ValueError(msg)
 
 
 def triu(x: array, /, *, k: int = 0) -> array:
