@@ -9,7 +9,7 @@ from awkward.contents import Content, ListArray, ListOffsetArray
 
 from ._spec_array_object import array
 
-import ragged
+from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
@@ -49,7 +49,8 @@ def is_sorted_descending_all_levels(x: array, /) -> bool:
             return True
 
     return check(layout)
-def is_effectively_regular(x: ragged.array) -> bool:
+
+def is_effectively_regular(x: array) -> bool:
     try:
         if not hasattr(x, "__len__"):
             return False
