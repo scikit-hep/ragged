@@ -481,7 +481,7 @@ def tril(x: array, /, *, k: int = 0) -> array:
             """
         raise ValueError(msg)
     ak_array = x._impl  # pylint: disable=W0212
-    ak_array = cast(ak.Array, x._impl)
+    ak_array = cast(ak.Array, x._impl) # pylint: disable=W0212
     layout = ak_array.layout
 
     if layout.purelist_depth == 3:
