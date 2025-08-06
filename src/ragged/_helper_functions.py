@@ -83,7 +83,7 @@ def is_effectively_regular(x: array) -> bool:
 
 def is_regular_or_effectively_regular(x: Any) -> bool:
     try:
-        layout = x.layout if isinstance(x, (ragged.array, ak.Array)) else x #pylint: disable=W0212
+        layout = x.layout if isinstance(x, (array, ak.Array)) else x #pylint: disable=W0212
         layout = x._impl.layout
         if isinstance(layout, ak.contents.RegularArray) and (
             isinstance(layout.content, ak.contents.NumpyArray)
