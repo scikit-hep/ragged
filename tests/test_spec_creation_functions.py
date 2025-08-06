@@ -5,12 +5,13 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 """
 
 from __future__ import annotations
+
 from typing import cast
 
+import awkward as ak
 import numpy as np
 import pytest
 
-import awkward as ak
 import ragged
 
 devices = ["cpu"]

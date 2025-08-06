@@ -75,13 +75,13 @@ def is_effectively_regular(x: ragged.array) -> bool:
                     return False
 
         return True
-    except Exception:
+    except (TypeError, AttributeError, IndexError):
         return False
 
 
 def is_regular_or_effectively_regular(x: ragged.array) -> bool:
     try:
-        layout = x.layout if isinstance(x, (ragged.array, ak.Array)) else x
+        layout = x.layout if isinstance(x, (ragged.array, ak.Array)) else x #pylint: disable=W0212
         if isinstance(layout, ak.contents.RegularArray) and (
             isinstance(layout.content, ak.contents.NumpyArray)
             or (
@@ -90,7 +90,7 @@ def is_regular_or_effectively_regular(x: ragged.array) -> bool:
             )
         ):
             return True
-    except Exception:
+    except (TypeError, AttributeError):
         pass
 
     return is_effectively_regular(x)
