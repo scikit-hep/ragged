@@ -23,7 +23,10 @@ from awkward.contents import (
     RegularArray,
 )
 
+import ragged
+
 from . import _import
+from ._helper_functions import is_sorted_descending_all_levels
 from ._typing import (
     Device,
     Dtype,
@@ -350,8 +353,13 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
-
-        raise NotImplementedError("TODO 2")  # noqa: EM101
+        if not is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if array.ndim < 2:
+            message = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
+            raise (ValueError)
+        return ragged.matrix_transpose(self)
 
     @property
     def ndim(self) -> int:
@@ -413,8 +421,13 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
-
-        raise NotImplementedError("TODO 3")  # noqa: EM101
+        if not is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if array.ndim != 2:
+            message = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+            raise (ValueError)
+        return ragged.matrix_transpose(self)
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 

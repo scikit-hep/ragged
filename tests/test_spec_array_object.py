@@ -140,3 +140,15 @@ def test_index():
 def test_int():
     assert isinstance(int(ragged.array(10)), int)
     assert int(ragged.array(10)) == 10
+
+
+def test_mT_raises_unsorted():
+    arr = ragged.array([[1.1], [2.2, 3.3]])
+    with pytest.raises(ValueError):
+        _ = arr.mT
+
+
+def test_T_raises_non_2d():
+    arr = ragged.array([1, 2, 3])
+    with pytest.raises(ValueError):
+        _ = arr.T
