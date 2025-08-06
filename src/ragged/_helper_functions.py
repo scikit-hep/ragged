@@ -9,8 +9,6 @@ from awkward.contents import Content, ListArray, ListOffsetArray
 
 from ._spec_array_object import array
 
-from ._spec_array_object import array
-
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
     # Ensure compatibility with numpy 2.0.0
@@ -83,8 +81,8 @@ def is_effectively_regular(x: array) -> bool:
 
 def is_regular_or_effectively_regular(x: Any) -> bool:
     try:
-        layout = x.layout if isinstance(x, (array, ak.Array)) else x #pylint: disable=W0212
-        layout = x._impl.layout
+        layout = x.layout
+        layout = x._impl.layout  # pylint: disable=W0212
         if isinstance(layout, ak.contents.RegularArray) and (
             isinstance(layout.content, ak.contents.NumpyArray)
             or (

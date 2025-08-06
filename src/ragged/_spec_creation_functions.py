@@ -480,7 +480,7 @@ def tril(x: array, /, *, k: int = 0) -> array:
             ak.combinations and such to work with ListOffsetArrays
             """
         raise ValueError(msg)
-    ak_array = x._impl #pylint: disable=W0212
+    ak_array = x._impl  # pylint: disable=W0212
     ak_array = cast(ak.Array, x._impl)
     layout = ak_array.layout
 
