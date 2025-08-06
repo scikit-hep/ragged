@@ -216,6 +216,43 @@ def test_tril_numpy_equivalence():
     assert ragged.tril(x).dtype == np.tril(y).dtype
 
 
+def test_triu_output_shape_and_dtype():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.triu(x)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+
+
+def test_triu_dtype_and_device_consistency():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.triu(x)
+    assert isinstance(result._impl, type(x._impl))
+    assert (
+        np.asarray(ak.flatten(x, axis=None)).dtype
+        == np.asarray(ak.flatten(result, axis=None)).dtype
+    )
+    x_layout = cast(ak.Array, x._impl).layout
+    result_layout = cast(ak.Array, result._impl).layout
+    assert x_layout.backend == result_layout.backend
+
+
+def test_triu_numpy_equivalence():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    y = np.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    assert ak.to_list(ragged.triu(x)) == ak.to_list(np.triu(y))
+    assert ak.to_list(ragged.triu(x, k=1)) == ak.to_list(np.triu(y, k=1))
+    assert ak.to_list(ragged.triu(x, k=-1)) == ak.to_list(np.triu(y, k=-1))
+    assert ragged.triu(x).dtype == np.triu(y).dtype
+
+
 def test_is_effectively_regular_2d():
     x = ragged.array([[1, 2], [3, 4]])
     assert is_effectively_regular(x) is True

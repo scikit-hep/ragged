@@ -480,7 +480,6 @@ def tril(x: array, /, *, k: int = 0) -> array:
             ak.combinations and such to work with ListOffsetArrays
             """
         raise ValueError(msg)
-    ak_array = x._impl  # pylint: disable=W0212
     ak_array = cast(ak.Array, x._impl)  # pylint: disable=W0212
     layout = ak_array.layout
 
@@ -517,9 +516,27 @@ def triu(x: array, /, *, k: int = 0) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.triu.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    k  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 47")  # noqa: EM101
+    if not is_regular_or_effectively_regular(x):
+        msg = """
+            Input must be rectangular in shape or RegularArray matrix or a
+            batch of rectangular or RegularArray matrices. Please use ak.cartesian,
+            ak.combinations and such to work with ListOffsetArrays
+            """
+        raise ValueError(msg)
+    ak_array = cast(ak.Array, x._impl)  # pylint: disable=W0212
+    layout = ak_array.layout
+
+    if layout.purelist_depth == 3:
+        result = ak.Array([np.triu(np.asarray(mat), k=k) for mat in ak_array])
+        return array(result)
+
+    elif layout.purelist_depth == 2:
+        result = np.triu(np.asarray(ak_array), k=k)
+        return array(result)
+
+    else:
+        msg = "Input must be a matrix or batch of matrices."
+        raise ValueError(msg)
 
 
 def zeros(
