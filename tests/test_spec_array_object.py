@@ -144,11 +144,21 @@ def test_int():
 
 def test_mT_raises_unsorted():
     arr = ragged.array([[1.1], [2.2, 3.3]])
-    with pytest.raises(ValueError):
+    msg = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+    with pytest.raises(ValueError, match=msg):
+        _ = arr.mT
+
+
+def test_mT_raises_less_2d():
+    arr = ragged.array([1.1])
+    print(arr.ndim)
+    msg = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
+    with pytest.raises(ValueError, match=msg):
         _ = arr.mT
 
 
 def test_T_raises_non_2d():
     arr = ragged.array([1, 2, 3])
-    with pytest.raises(ValueError):
+    msg = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+    with pytest.raises(ValueError, match=msg):
         _ = arr.T

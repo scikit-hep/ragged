@@ -356,9 +356,9 @@ class array:  # pylint: disable=C0103
         if not is_sorted_descending_all_levels(self):
             message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
             raise ValueError(message)
-        if array.ndim < 2:
+        if self.ndim < 2:
             message = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
-            raise (ValueError)
+            raise ValueError(message)
         return ragged.matrix_transpose(self)
 
     @property
@@ -424,9 +424,9 @@ class array:  # pylint: disable=C0103
         if not is_sorted_descending_all_levels(self):
             message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
             raise ValueError(message)
-        if array.ndim != 2:
+        if self.ndim != 2:
             message = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
-            raise (ValueError)
+            raise ValueError(message)
         return ragged.matrix_transpose(self)
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
