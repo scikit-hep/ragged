@@ -344,6 +344,37 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.stack.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 123")  # noqa: EM101
+    if not arrays:
+        msg = "stack() requires a non-empty sequence of arrays."
+        raise ValueError(msg)
+
+    arrays = [array(x)._impl for x in arrays]
+
+    def get_ndim(x: array) -> int:
+        t = x.type
+        n = 0
+        while hasattr(t, "type"):
+            n += 1
+            t = t.type
+        return n
+
+    first = arrays[0]
+    dtype0 = first.type
+    ndim = max(get_ndim(first), 1)
+
+    for a in arrays[1:]:
+        if max(get_ndim(a), 1) != ndim or a.type != dtype0:
+            msg = "All input arrays must have same dtype and number of dimensions."
+            raise ValueError(msg)
+
+    if not (-ndim - 1 <= axis <= ndim):
+        msg = f"axis={axis} is out of bounds for ndim={ndim}"
+        raise ValueError(msg)
+
+    axis_norm = axis if axis >= 0 else axis + ndim + 1
+
+    expanded = [
+        ak.broadcast_arrays(a)[0][(slice(None),) * axis_norm + (None,)] for a in arrays
+    ]
+
+    return array(ak.concatenate(expanded, axis=axis_norm))
