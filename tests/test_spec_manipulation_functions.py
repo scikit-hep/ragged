@@ -173,6 +173,8 @@ def test_flip_outofboundary():
         ragged.flip(arr, axis=5)
     with pytest.raises(ValueError, match="axis"):
         ragged.flip(arr, axis=-5)
+
+
 def test_stack_axis0():
     x = ragged.array([[1, 2], [3]])
     y = ragged.array([[4, 5], [6]])
