@@ -188,7 +188,7 @@ def test_stack_axis1():
     y = ragged.array([[4, 5], [6]])
     result = ragged.stack([x, y], axis=1)
     expected = ragged.array([[[1, 2], [4, 5]], [[3], [6]]])
-    assert result.tolist() == expected.tolist()
+    assert ak.to_list(result) == ak.to_list(expected)
 
 
 def test_stack_axis_minus1():
