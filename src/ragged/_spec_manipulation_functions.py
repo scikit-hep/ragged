@@ -7,7 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
-from typing import Any
+from typing import Any, cast
 
 import awkward as ak
 import numpy as np
@@ -349,7 +349,7 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
         msg = "stack() requires a non-empty sequence of arrays."
         raise ValueError(msg)
 
-    impl_arrays = [array(x)._impl for x in arrays]
+    impl_arrays = [array(x)._impl for x in arrays]  # pylint: ignore[W0212]
 
     def get_dtype(x: array) -> Any:
         if hasattr(x, "dtype"):
@@ -376,15 +376,14 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
             msg = "All input arrays must have same dtype and number of dimensions."
             raise ValueError(msg)
 
-    if not (-ndim - 1 <= axis <= ndim):
+    if not -ndim - 1 <= axis <= ndim:
         msg = f"axis={axis} is out of bounds for ndim={ndim}"
         raise ValueError(msg)
 
     axis_norm = axis if axis >= 0 else axis + ndim + 1
 
     expanded = [
-        ak.broadcast_arrays(a)[0][(slice(None),) * axis_norm + (None,)]
-        for a in impl_arrays
+        cast(array, a)[(slice(None),) * axis_norm + (None,)] for a in impl_arrays
     ]
 
     return array(ak.concatenate(expanded, axis=axis_norm))
