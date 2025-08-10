@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from typing import Any
 
 import awkward as ak
 import numpy as np
@@ -348,22 +349,30 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
         msg = "stack() requires a non-empty sequence of arrays."
         raise ValueError(msg)
 
-    arrays = [array(x)._impl for x in arrays]
+    impl_arrays = [array(x)._impl for x in arrays]
 
     def get_ndim(x: array) -> int:
-        t = x.type
+        t = x.type  # type: ignore[attr-defined]
         n = 0
         while hasattr(t, "type"):
             n += 1
             t = t.type
         return n
 
+    def get_dtype(x: array) -> Any:
+        if hasattr(x, "dtype"):
+            return x.dtype
+        if hasattr(x, "type"):
+            return x.type
+        msg = "Object has neither 'dtype' nor 'type'."
+        raise AttributeError(msg)
+
     first = arrays[0]
-    dtype0 = first.type
+    dtype0 = get_dtype(first)
     ndim = max(get_ndim(first), 1)
 
     for a in arrays[1:]:
-        if max(get_ndim(a), 1) != ndim or a.type != dtype0:
+        if max(get_ndim(a), 1) != ndim or a.type != dtype0:  # type: ignore[attr-defined]
             msg = "All input arrays must have same dtype and number of dimensions."
             raise ValueError(msg)
 
@@ -374,7 +383,8 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     axis_norm = axis if axis >= 0 else axis + ndim + 1
 
     expanded = [
-        ak.broadcast_arrays(a)[0][(slice(None),) * axis_norm + (None,)] for a in arrays
+        ak.broadcast_arrays(a)[0][(slice(None),) * axis_norm + (None,)]
+        for a in impl_arrays
     ]
 
     return array(ak.concatenate(expanded, axis=axis_norm))
