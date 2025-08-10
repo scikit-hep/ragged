@@ -349,7 +349,7 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
         msg = "stack() requires a non-empty sequence of arrays."
         raise ValueError(msg)
 
-    impl_arrays = [array(x)._impl for x in arrays]  # pylint: ignore[W0212]
+    impl_arrays = [array(x)._impl for x in arrays]  # pylint: disable=protected-access
 
     def get_dtype(x: array) -> Any:
         if hasattr(x, "dtype"):
