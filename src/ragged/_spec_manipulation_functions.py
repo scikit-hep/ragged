@@ -351,14 +351,6 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
 
     impl_arrays = [array(x)._impl for x in arrays]
 
-    def get_ndim(x: array) -> int:
-        t = x.type  # type: ignore[attr-defined]
-        n = 0
-        while hasattr(t, "type"):
-            n += 1
-            t = t.type
-        return n
-
     def get_dtype(x: array) -> Any:
         if hasattr(x, "dtype"):
             return x.dtype
@@ -367,12 +359,20 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
         msg = "Object has neither 'dtype' nor 'type'."
         raise AttributeError(msg)
 
+    def get_ndim(x: array) -> int:
+        t = get_dtype(x)
+        n = 0
+        while hasattr(t, "type"):
+            n += 1
+            t = t.type
+        return n
+
     first = arrays[0]
     dtype0 = get_dtype(first)
     ndim = max(get_ndim(first), 1)
 
     for a in arrays[1:]:
-        if max(get_ndim(a), 1) != ndim or a.type != dtype0:  # type: ignore[attr-defined]
+        if max(get_ndim(a), 1) != ndim or get_dtype(a) != dtype0:
             msg = "All input arrays must have same dtype and number of dimensions."
             raise ValueError(msg)
 
