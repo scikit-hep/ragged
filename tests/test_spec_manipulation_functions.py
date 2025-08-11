@@ -173,3 +173,37 @@ def test_flip_outofboundary():
         ragged.flip(arr, axis=5)
     with pytest.raises(ValueError, match="axis"):
         ragged.flip(arr, axis=-5)
+
+
+def test_stack_axis0():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+    result = ragged.stack([x, y], axis=0)
+    expected = ragged.array([[[1, 2], [3]], [[4, 5], [6]]])
+    assert result.tolist() == expected.tolist()
+
+
+def test_stack_axis1():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+    result = ragged.stack([x, y], axis=1)
+    expected = ragged.array([[[1, 2], [4, 5]], [[3], [6]]])
+    assert ak.to_list(result) == ak.to_list(expected)
+
+
+def test_stack_axis_minus1():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+
+    result = ragged.stack([x, y], axis=-1)
+    expected = ragged.array([[[1, 2], [4, 5]], [[3], [6]]])
+    assert result.tolist() == expected.tolist()
+
+
+def test_stack_invalid_axis_raises():
+    x = ragged.array([[1, 2]])
+    print("ndim", x.ndim)
+    with pytest.raises(ValueError, match="axis=2 is out of bounds"):
+        ragged.stack([x, x], axis=2)
+    with pytest.raises(ValueError, match="axis=-3 is out of bounds"):
+        ragged.stack([x, x], axis=-3)
