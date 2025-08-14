@@ -264,7 +264,7 @@ def roll(
         raise TypeError(msg)
 
     if axis is None:
-        flat: ak.Array = ak.flatten(ak_x, axis=None)
+        flat = cast(ak.Array, ak.flatten(ak_x, axis=None))
         n = len(flat)
         if n == 0:
             return array(ak_x)
@@ -273,7 +273,9 @@ def roll(
         else:
             msg = f"shift must be int or tuple of ints, got {type(shift)}"
             raise TypeError(msg)
-        rolled_flat: ak.Array = ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+        rolled_flat = cast(
+            ak.Array, ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+        )
         lengths = ak.num(ak_x, axis=-1)
         restored = ak.unflatten(rolled_flat, lengths)
         return array(restored)
