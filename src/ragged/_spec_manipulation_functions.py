@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from typing import Any, cast
 
 import awkward as ak
 import numpy as np
@@ -202,9 +203,8 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.flip.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 118")  # noqa: EM101
+    x_flipped = np.flip(x, axis=axis)
+    return array(x_flipped)
 
 
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
@@ -378,6 +378,45 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.stack.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 123")  # noqa: EM101
+    if not arrays:
+        msg = "stack() requires a non-empty sequence of arrays."
+        raise ValueError(msg)
+
+    impl_arrays = [array(x)._impl for x in arrays]  # pylint: disable=protected-access
+
+    def get_dtype(x: array) -> Any:
+        if hasattr(x, "dtype"):
+            return x.dtype
+        if hasattr(x, "type"):
+            return x.type
+        msg = "Object has neither 'dtype' nor 'type'."
+        raise AttributeError(msg)
+
+    def get_ndim(x: array) -> int:
+        t = get_dtype(x)
+        n = 0
+        while hasattr(t, "type"):
+            n += 1
+            t = t.type
+        return n
+
+    first = arrays[0]
+    dtype0 = get_dtype(first)
+    ndim = max(get_ndim(first), 1)
+
+    for a in arrays[1:]:
+        if max(get_ndim(a), 1) != ndim or get_dtype(a) != dtype0:
+            msg = "All input arrays must have same dtype and number of dimensions."
+            raise ValueError(msg)
+
+    if not -ndim - 1 <= axis <= ndim:
+        msg = f"axis={axis} is out of bounds for ndim={ndim}"
+        raise ValueError(msg)
+
+    axis_norm = axis if axis >= 0 else axis + ndim + 1
+
+    expanded = [
+        cast(array, a)[(slice(None),) * axis_norm + (None,)] for a in impl_arrays
+    ]
+
+    return array(ak.concatenate(expanded, axis=axis_norm))

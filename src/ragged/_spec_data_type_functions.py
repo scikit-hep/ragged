@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import awkward as ak
 import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
@@ -208,9 +209,54 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
-    dtype  # noqa: B018, pylint: disable=W0104
-    kind  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 54")  # noqa: EM101
+    boolean = {"bool"}
+    signed_int = {"int8", "int16", "int32", "int64"}
+    unsigned_int = {"uint8", "uint16", "uint32", "uint64"}
+    integral = signed_int | unsigned_int
+    real_float = {"float32", "float64"}
+    complex_float = {"complex64", "complex128"}
+    numeric = integral | real_float | complex_float
+
+    kind = kind.lower() if isinstance(kind, str) else kind
+
+    current = dtype
+    parameters = {}
+
+    while hasattr(current, "content"):
+        if hasattr(current, "parameters") and current.parameters:
+            parameters = current.parameters
+        current = current.content
+
+    if hasattr(current, "parameters") and current.parameters:
+        parameters = current.parameters
+
+    primitive = getattr(current, "primitive", None)
+
+    if isinstance(kind, type):
+        try:
+            expected_type = ak.types.numpytype.NumpyType(str(np.dtype(kind)))
+            return bool(primitive == expected_type.primitive)
+        except (TypeError, ValueError):
+            return False
+
+    if isinstance(kind, str):
+        if parameters.get("__array__") in {"string", "char"}:
+            return kind in {"str", "string"}
+        dtype_list = {
+            "bool": boolean,
+            "signed integer": signed_int,
+            "unsigned integer": unsigned_int,
+            "integral": integral,
+            "real floating": real_float,
+            "complex floating": complex_float,
+            "numeric": numeric,
+        }
+        return primitive in dtype_list.get(kind, set())
+
+    if isinstance(kind, tuple):
+        return any(isdtype(dtype, k) for k in kind)
+
+    return False
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:

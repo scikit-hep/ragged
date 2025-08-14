@@ -6,10 +6,17 @@ https://data-apis.org/array-api/latest/API_specification/creation_functions.html
 
 from __future__ import annotations
 
+from typing import cast
+
+import awkward as ak
 import numpy as np
 import pytest
 
 import ragged
+from ragged._helper_functions import (
+    is_effectively_regular,
+    is_regular_or_effectively_regular,
+)
 
 devices = ["cpu"]
 ns = {"cpu": np}
@@ -170,3 +177,119 @@ def test_zeros_like(device):
     assert b.tolist() == [[0, 0, 0], [], [0, 0]]  # type: ignore[comparison-overlap]
     assert a.dtype == b.dtype
     assert a.device == b.device == device
+
+
+def test_tril_output_shape_and_dtype():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.tril(x)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+
+
+def test_tril_dtype_and_device_consistency():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.tril(x)
+    assert isinstance(result._impl, type(x._impl))
+    assert (
+        np.asarray(ak.flatten(x, axis=None)).dtype
+        == np.asarray(ak.flatten(result, axis=None)).dtype
+    )
+    x_layout = cast(ak.Array, x._impl).layout
+    result_layout = cast(ak.Array, result._impl).layout
+    assert x_layout.backend == result_layout.backend
+
+
+def test_tril_numpy_equivalence():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    y = np.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    assert ak.to_list(ragged.tril(x)) == ak.to_list(np.tril(y))
+    assert ak.to_list(ragged.tril(x, k=1)) == ak.to_list(np.tril(y, k=1))
+    assert ak.to_list(ragged.tril(x, k=-1)) == ak.to_list(np.tril(y, k=-1))
+    assert ragged.tril(x).dtype == np.tril(y).dtype
+
+
+def test_triu_output_shape_and_dtype():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.triu(x)
+    assert result.shape == x.shape
+    assert result.dtype == x.dtype
+
+
+def test_triu_dtype_and_device_consistency():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    result = ragged.triu(x)
+    assert isinstance(result._impl, type(x._impl))
+    assert (
+        np.asarray(ak.flatten(x, axis=None)).dtype
+        == np.asarray(ak.flatten(result, axis=None)).dtype
+    )
+    x_layout = cast(ak.Array, x._impl).layout
+    result_layout = cast(ak.Array, result._impl).layout
+    assert x_layout.backend == result_layout.backend
+
+
+def test_triu_numpy_equivalence():
+    x = ragged.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    y = np.array(
+        [[[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]], [[7.7, 8.8, 9.9], [10.0, 11.1, 12.2]]]
+    )
+    assert ak.to_list(ragged.triu(x)) == ak.to_list(np.triu(y))
+    assert ak.to_list(ragged.triu(x, k=1)) == ak.to_list(np.triu(y, k=1))
+    assert ak.to_list(ragged.triu(x, k=-1)) == ak.to_list(np.triu(y, k=-1))
+    assert ragged.triu(x).dtype == np.triu(y).dtype
+
+
+def test_is_effectively_regular_2d():
+    x = ragged.array([[1, 2], [3, 4]])
+    assert is_effectively_regular(x) is True
+
+
+def test_is_effectively_regular_3d():
+    x = ragged.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    assert is_effectively_regular(x) is True
+
+
+def test_is_effectively_regular_irregular():
+    x = ragged.array([[1], [2, 3]])
+    assert is_effectively_regular(x) is False
+
+
+def test_is_effectively_regular_empty():
+    x = ragged.array([])
+    assert is_effectively_regular(x) is False  # or True?
+
+
+def test_is_effectively_regular_with_empty():
+    x = ragged.array([[[1, 2], [3, 4]], [[5, 6], []]])
+    assert is_effectively_regular(x) is True
+
+
+def test_is_regular_backend_regular():
+    x = ak.Array([[1.0, 2.0], [3.0, 4.0]])
+    reg = ragged.array(x)
+    assert is_regular_or_effectively_regular(reg) is True
+
+
+def test_is_regular_backend_irregular():
+    x = ak.Array([[1.0], [2.0, 3.0]])
+    irreg = ragged.array(x)
+    assert is_regular_or_effectively_regular(irreg) is False
+
+
+def test_is_regular_falls_back_to_effectively_regular():
+    nested = ragged.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    assert is_regular_or_effectively_regular(nested) is True
