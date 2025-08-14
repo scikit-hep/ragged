@@ -207,3 +207,107 @@ def test_stack_invalid_axis_raises():
         ragged.stack([x, x], axis=2)
     with pytest.raises(ValueError, match="axis=-3 is out of bounds"):
         ragged.stack([x, x], axis=-3)
+
+
+def test_roll_basic_1d():
+    a = ragged.array([1, 2, 3, 4])
+    assert ragged.roll(a, 1, axis=0).tolist() == [4, 1, 2, 3]
+    assert ragged.roll(a, -1, axis=0).tolist() == [2, 3, 4, 1]
+    assert ragged.roll(a, 0, axis=0).tolist() == [1, 2, 3, 4]
+
+
+def test_roll_axis_none_flatten_restore():
+    a = ragged.array([[1, 2], [3, 4, 5]])
+    rolled = ragged.roll(a, 2, axis=None)
+    assert ak.to_list(rolled) == [[4, 5], [1, 2, 3]]
+
+
+def test_roll_multi_axis_tuple_shift():
+    a = ragged.array(
+        [
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]],
+        ]
+    )
+    rolled = ragged.roll(a, (1, -1), axis=(0, 1))
+    expected = [[[7, 8], [5, 6]], [[3, 4], [1, 2]]]
+    assert ak.to_list(rolled) == expected
+
+
+def test_roll_scalar_shift_with_tuple_axis():
+    a = ragged.array(
+        [
+            [[1, 2], [3, 4]],
+            [[5, 6], [7, 8]],
+        ]
+    )
+    rolled = ragged.roll(a, 1, axis=(0, 1))
+    expected = [[[7, 8], [5, 6]], [[3, 4], [1, 2]]]
+    assert ak.to_list(rolled) == expected
+
+
+def test_roll_negative_axis():
+    a = ragged.array([[1, 2], [3, 4]])
+    assert ak.to_list(ragged.roll(a, 1, axis=-1)) == [[2, 1], [4, 3]]
+
+
+def test_roll_large_shift():
+    a = ragged.array([1, 2, 3])
+    assert ak.to_list(ragged.roll(a, 10, axis=0)) == [3, 1, 2]  # 10 % 3 == 1
+
+
+def test_roll_empty_inner_lists():
+    a = ragged.array([[], [1, 2], []])
+    rolled = ragged.roll(a, 1, axis=0)
+    assert all(isinstance(lst, list) for lst in ak.to_list(rolled))
+
+
+def test_roll_preserves_dtype_and_shape():
+    a = ragged.array([[1.0, 2.0], [3.0, 4.0]])
+    out = ragged.roll(a, 1, axis=0)
+    assert out.dtype == a.dtype
+    assert out.shape == a.shape
+
+
+def test_roll_axis_none_ragged():
+    a = ragged.array([[1], [2, 3], [4]])
+    rolled = ragged.roll(a, 2, axis=None)
+    assert ak.to_list(rolled) == [[3], [4, 1], [2]]
+
+
+def test_roll_invalid_axis_type():
+    a = ragged.array([1, 2, 3])
+    with pytest.raises(TypeError):
+        ragged.roll(a, 1, axis=1.5)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        ragged.roll(a, 1, axis=(0, "1"))  # type: ignore[arg-type]
+
+
+def test_roll_invalid_shift_type():
+    a = ragged.array([1, 2, 3])
+    with pytest.raises(TypeError):
+        ragged.roll(a, 2.0, axis=0)  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        ragged.roll(a, (1, "2"), axis=(0, 0))  # type: ignore[arg-type]
+
+
+def test_roll_shift_axis_length_mismatch():
+    a = ragged.array([[1, 2], [3, 4]])
+    with pytest.raises(ValueError, match="shift and axis must have the same length"):
+        ragged.roll(a, (1, 2), axis=(0,))
+    with pytest.raises(ValueError, match="shift and axis must have the same length"):
+        ragged.roll(a, (1,), axis=(0, 1))
+
+
+def test_roll_invalid_shift_type_message():
+    a = ragged.array([1, 2, 3])
+    # Passing a float shift
+    with pytest.raises(
+        TypeError, match=r"shift must be int or tuple of ints, got <class 'float'>"
+    ):
+        ragged.roll(a, 2.0, axis=0)  # type: ignore[arg-type]
+    # Passing a tuple with a non-int element
+    with pytest.raises(
+        TypeError, match=r"shift must be int or tuple of ints, got <class 'tuple'>"
+    ):
+        ragged.roll(a, (1, "2"), axis=(0, 1))  # type: ignore[arg-type]

@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from collections.abc import Iterable
 from typing import Any, cast
 
 import awkward as ak
@@ -257,11 +258,77 @@ def roll(
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
+    ak_x = x._impl  # pylint: disable=W0212
+    if not isinstance(ak_x, (array, ak.Array)):
+        msg = f"x must be a ragged array or an Awkward Array, got {type(ak_x)}"
+        raise TypeError(msg)
 
-    x  # noqa: B018, pylint: disable=W0104
-    shift  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 121")  # noqa: EM101
+    if axis is None:
+        flat = cast(ak.Array, ak.flatten(ak_x, axis=None))
+        n = len(flat)
+        if n == 0:
+            return array(ak_x)
+        if isinstance(shift, int):
+            s = shift % n
+        else:
+            msg = f"shift must be int or tuple of ints, got {type(shift)}"
+            raise TypeError(msg)
+        rolled_flat = cast(
+            ak.Array, ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+        )
+        lengths = ak.num(ak_x, axis=-1)
+        restored = ak.unflatten(rolled_flat, lengths)
+        return array(restored)
+
+    if isinstance(axis, int):
+        axis_tuple: tuple[int, ...] = (axis,)
+    elif isinstance(axis, tuple):
+        if not all(isinstance(a, int) for a in axis):
+            msg = f"axis must be int or tuple of ints, got {type(axis)}"
+            raise TypeError(msg)
+        axis_tuple = tuple(axis)
+    else:
+        msg = f"axis must be int, None, or tuple of ints, got {type(axis)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
+
+    if isinstance(shift, int):
+        shift_tuple: tuple[int, ...] = (shift,) * len(axis_tuple)
+    elif isinstance(shift, tuple):
+        if not all(isinstance(s, int) for s in shift):
+            msg = f"shift must be int or tuple of ints, got {type(shift)}"
+            raise TypeError(msg)
+        shift_tuple = tuple(shift)
+        if len(shift_tuple) != len(axis_tuple):
+            msg = f"shift and axis must have the same length, got shift={shift_tuple} and axis={axis_tuple}"
+            raise ValueError(msg)
+    else:
+        msg = f"shift must be int or tuple of ints, got {type(shift)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
+
+    ndim = ak_x.ndim
+    axis_tuple = tuple(a + ndim if a < 0 else a for a in axis_tuple)
+
+    def recursive_roll(
+        obj: Any, shift_val: int, target_axis: int, depth: int = 0
+    ) -> Any:
+        if not isinstance(obj, Iterable) or isinstance(obj, (str, bytes)):
+            return obj
+
+        if depth == target_axis:
+            items = list(obj)
+            n = len(items)
+            if n == 0:
+                return []
+            s = shift_val % n
+            return items[-s:] + items[:-s] if s else items
+
+        return [recursive_roll(o, shift_val, target_axis, depth + 1) for o in obj]
+
+    result = ak_x
+    for ax, sh in zip(axis_tuple, shift_tuple):
+        result = recursive_roll(result, sh, ax)
+
+    return array(result)
 
 
 def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
