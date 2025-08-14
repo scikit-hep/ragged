@@ -264,7 +264,7 @@ def roll(
         raise TypeError(msg)
 
     if axis is None:
-        flat = ak.flatten(ak_x, axis=None)
+        flat: ak.Array = ak.flatten(ak_x, axis=None)
         n = len(flat)
         if n == 0:
             return array(ak_x)
