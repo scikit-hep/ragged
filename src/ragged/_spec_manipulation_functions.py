@@ -54,9 +54,42 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_to.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    shape  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 115")  # noqa: EM101
+    if isinstance(x, (int, float, np.generic)):
+        msg = "broadcast_to does not support scalar inputs; provide an array"
+        raise ValueError(msg)
+
+    arr = x._impl if hasattr(x, "_impl") else ak.Array(x)
+
+    if hasattr(arr, "ndim") and arr.ndim == 0:
+        msg = "broadcast_to does not support 0-dimensional arrays"
+        raise ValueError(msg)
+
+    if not isinstance(shape, tuple):
+        msg: str = "Shape must be a tuple of ints, got " + str(type(shape))
+        raise TypeError(msg)
+    for dim in shape:
+        if not isinstance(dim, int):
+            msg = "Shape dimensions must be ints, got " + str(type(dim))
+            raise TypeError(msg)
+        if dim < -1:
+            msg = "Shape dimensions must be >= -1, got " + str(dim)
+            raise ValueError(msg)
+        if dim is None:
+            msg = "Shape cannot contain None"
+            raise ValueError(msg)
+
+    dummy_np = np.zeros(
+        shape, dtype=arr.layout.dtype if hasattr(arr, "layout") else arr.dtype
+    )
+    dummy = ak.from_numpy(dummy_np)
+
+    try:
+        bx, _ = ak.broadcast_arrays(arr, dummy)
+    except Exception as e:
+        msg = f"Cannot broadcast array of shape {arr.shape} to shape {shape}"
+        raise ValueError(msg) from e
+
+    return array(bx)
 
 
 def concat(
