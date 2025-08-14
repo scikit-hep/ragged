@@ -10,8 +10,9 @@ from collections.abc import Sequence
 from typing import Any
 
 import awkward as ak
+import numpy as np
 
-from ._helper_functions import is_sorted_descending_all_levels
+from ._helper_functions import is_sorted_descending_all_levels, safe_max_num
 from ._spec_array_object import array
 
 
@@ -76,10 +77,60 @@ def matmul(x1: array, x2: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matmul.html
     """
+    pad_value = np.nan
+    # broadcast dummy arrays to align batch dims
+    dummy1 = x1._impl[..., 0:0, 0:0]
+    dummy2 = x2._impl[..., 0:0, 0:0]
+    b1, b2 = ak.broadcast_arrays(dummy1, dummy2)
 
-    x1  # noqa: B018, pylint: disable=W0104
-    x2  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 110")  # noqa: EM101
+    results = []
+
+    for i in range(len(b1)):
+        batch1 = x1._impl[i]
+        batch2 = x2._impl[i]
+
+        if len(batch1) == 0 or len(batch2) == 0:
+            # empty batches produce empty results
+            results.append([])
+            continue
+
+        max_cols1 = safe_max_num(batch1, axis=-1)
+        max_rows2 = safe_max_num(batch2, axis=-2)
+        max_cols2 = safe_max_num(batch2, axis=-1)
+        size = max(max_cols1, max_rows2)
+
+        # pad batch1 rows (shape: rows x size)
+        mat1 = np.zeros((len(batch1), size), dtype=float)
+        for r, row in enumerate(batch1):
+            mat1[r, : len(row)] = row
+
+        # pad batch2 columns (shape: size x max_cols2)
+        mat2 = np.zeros((size, max_cols2), dtype=float)
+        for c in range(max_cols2):
+            col_elems = []
+            for row in batch2:
+                if len(row) > c:
+                    col_elems.append(row[c])
+                else:
+                    col_elems.append(pad_value)
+            # pad column length if needed
+            col_elems += [pad_value] * (size - len(col_elems))
+            mat2[:, c] = col_elems
+
+        product = mat1 @ mat2
+
+        ragged_result = []
+        for r, orig_row in enumerate(batch1):
+            # if original row empty, result row empty
+            if len(orig_row) == 0:
+                ragged_result.append([])
+            else:
+                # slice to max_cols2, cast to list
+                ragged_result.append(list(product[r, :max_cols2]))
+
+        results.append(ragged_result)
+
+    return array(results)
 
 
 def matrix_transpose(x: array, /) -> array:

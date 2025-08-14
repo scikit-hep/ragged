@@ -73,3 +73,33 @@ def test_transpose_dtype_consistency():
     x = ragged.array([[[1.1, 3.3], [2.2]], [[4.4], [5.5]], [[6.6]], []])
     result = ragged.matrix_transpose(x)
     assert result.dtype == x.dtype
+
+
+def test_matmul_simple():
+    x1 = ragged.array([[[2]], [[3]]])
+    x2 = ragged.array([[[4]], [[5]]])
+    output = ragged.array([[[8]], [[15]]])
+    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+def test_matmul_simple_more_dim():
+    x1 = ragged.array([[[1, 0], [0, 1]], [[2, 3]]])
+    x2 = ragged.array([[[1], [1]], [[4], [5]]])
+    output = ragged.array([[[1], [1]], [[23]]])
+    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+def test_matmul_with_empty():
+    x1 = ragged.array([[[], [1, 2]], [[]]])
+    x2 = ragged.array([[[], [3]], [[]]])
+    output = ragged.array([[[], [6]], [[]]])
+    print("result type", type(ragged.matmul(x1, x2)))
+    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+def test_matmul_with_var_length():
+    x1 = ragged.array([[[1.0, 2.0], [3.0]]])
+    x2 = ragged.array([[[1.0], [2.0]]])
+    output = ragged.array([[[5.0], [3.0]]])
+    print("result type", type(ragged.matmul(x1, x2)))
+    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
