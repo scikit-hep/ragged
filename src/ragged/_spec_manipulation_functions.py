@@ -258,12 +258,11 @@ def roll(
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
-    ak_x = x._impl
-    if not isinstance(ak_x, ak.Array):
-        msg = f"x must be an Awkward Array, got {type(ak_x)}"
+    ak_x = x._impl  # pylint: disable=W0212
+    if not isinstance(ak_x, (array, ak.Array)):
+        msg = f"x must be a ragged array or an Awkward Array, got {type(ak_x)}"
         raise TypeError(msg)
 
-    # Handle axis=None: flatten, roll, then restore ragged structure
     if axis is None:
         flat = ak.flatten(ak_x, axis=None)
         n = len(flat)
@@ -272,26 +271,24 @@ def roll(
         if isinstance(shift, int):
             s = shift % n
         else:
-            msg = f"shift must be int when axis=None, got {type(shift)}"
+            msg = f"shift must be int or tuple of ints, got {type(shift)}"
             raise TypeError(msg)
-        rolled_flat = ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+        rolled_flat: ak.Array = ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
         lengths = ak.num(ak_x, axis=-1)
         restored = ak.unflatten(rolled_flat, lengths)
         return array(restored)
 
-    # Normalize axis to tuple[int, ...]
     if isinstance(axis, int):
         axis_tuple: tuple[int, ...] = (axis,)
     elif isinstance(axis, tuple):
         if not all(isinstance(a, int) for a in axis):
-            msg = f"axis must be int or tuple of ints, got {axis}"
+            msg = f"axis must be int or tuple of ints, got {type(axis)}"
             raise TypeError(msg)
         axis_tuple = tuple(axis)
     else:
         msg = f"axis must be int, None, or tuple of ints, got {type(axis)}"  # type: ignore[unreachable]
         raise TypeError(msg)
 
-    # Normalize shift to tuple
     if isinstance(shift, int):
         shift_tuple: tuple[int, ...] = (shift,) * len(axis_tuple)
     elif isinstance(shift, tuple):
@@ -306,19 +303,15 @@ def roll(
         msg = f"shift must be int or tuple of ints, got {type(shift)}"  # type: ignore[unreachable]
         raise TypeError(msg)
 
-    # Normalize negative axes
     ndim = ak_x.ndim
     axis_tuple = tuple(a + ndim if a < 0 else a for a in axis_tuple)
 
-    # Recursive roll function
     def recursive_roll(
         obj: Any, shift_val: int, target_axis: int, depth: int = 0
     ) -> Any:
-        # Scalars remain as-is
         if not isinstance(obj, Iterable) or isinstance(obj, (str, bytes)):
             return obj
 
-        # At the axis to roll
         if depth == target_axis:
             items = list(obj)
             n = len(items)
@@ -327,10 +320,8 @@ def roll(
             s = shift_val % n
             return items[-s:] + items[:-s] if s else items
 
-        # Go deeper
         return [recursive_roll(o, shift_val, target_axis, depth + 1) for o in obj]
 
-    # Apply each axis shift sequentially
     result = ak_x
     for ax, sh in zip(axis_tuple, shift_tuple):
         result = recursive_roll(result, sh, ax)
