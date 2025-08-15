@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from typing import Any
 
 import awkward as ak
 import numpy as np
@@ -190,9 +191,209 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 119")  # noqa: EM101
+    # ak_arr = x._impl
+    # aklist = ak.to_list(ak_arr)
+
+    # # Convert to ndarray with padding
+    # def pad_to_shape(lst, shape, fill):
+    #     if not shape:
+    #         return lst
+    #     length = shape[0]
+    #     return [
+    #         pad_to_shape(lst[i], shape[1:], fill) if i < len(lst) else pad_with_shape(shape[1:], fill)
+    #         for i in range(length)
+    #     ]
+
+    # def pad_with_shape(shape, fill):
+    #     if not shape:
+    #         return fill
+    #     return [pad_with_shape(shape[1:], fill) for _ in range(shape[0])]
+
+    # # Get full shape (max lengths per axis)
+    # def max_shape(lst):
+    #     if not isinstance(lst, list):
+    #         return ()
+    #     if not lst:
+    #         return (0,)
+    #     subshapes = [max_shape(item) for item in lst]
+    #     max_subshape = tuple(max(sizes) for sizes in zip(*subshapes))
+    #     return (max(len(lst), 0),) + max_subshape
+
+    # shape = max_shape(aklist)
+    # padded = pad_to_shape(aklist, shape, np.nan)
+
+    # # Transpose
+    # arr = np.array(padded, dtype=float)
+    # transposed = np.transpose(arr, axes=axes)
+
+    # # Remove padding
+    # def strip_nans(lst):
+    #     if isinstance(lst, list):
+    #         return [strip_nans(item) for item in lst if not (isinstance(item, float) and np.isnan(item))]
+    #     return lst
+
+    # stripped = strip_nans(ak.to_list(transposed))
+    # return array(stripped)
+
+    # ak_arr = x._impl  # underlying Awkward array
+
+    # # --- Helper: get max shape for padding ---
+    # def max_shape(lst):
+    #     if not isinstance(lst, list):
+    #         return ()
+    #     if not lst:
+    #         return (0,)
+    #     subshapes = [max_shape(item) for item in lst]
+    #     # zip with fillvalue=0 to handle uneven nesting
+    #     from itertools import zip_longest
+    #     max_subshape = tuple(max(s for s in sizes if s is not None)
+    #                          for sizes in zip_longest(*subshapes, fillvalue=0))
+    #     return (len(lst),) + max_subshape
+
+    # # --- Helper: pad nested lists ---
+    # def pad_to_shape(lst, shape, fill):
+    #     if not shape:
+    #         return lst
+    #     size = shape[0]
+    #     out = [pad_to_shape(lst[i], shape[1:], fill) if i < len(lst) else pad_to_shape([], shape[1:], fill)
+    #            for i in range(size)]
+    #     return out
+
+    # # Convert to Python lists for ragged processing
+    # py_list = ak.to_list(ak_arr)
+
+    # # Compute target shape for padding
+    # target_shape = max_shape(py_list)
+
+    # # Pick fill_value preserving dtype
+    # dtype = x.dtype
+    # if np.issubdtype(dtype, np.integer):
+    #     fill_value = 0
+    # elif np.issubdtype(dtype, np.floating):
+    #     fill_value = np.nan
+    # else:
+    #     fill_value = None  # object or other dtype
+
+    # padded = pad_to_shape(py_list, target_shape, fill_value)
+
+    # # Transpose using numpy
+    # arr_np = np.array(padded, dtype=object)
+    # transposed = np.transpose(arr_np, axes=axes).tolist()
+
+    # # Remove padding
+    # def strip_fill(lst):
+    #     if not isinstance(lst, list):
+    #         return lst
+    #     # recursively strip fill_value at the end of lists
+    #     out = [strip_fill(item) for item in lst if item != fill_value]
+    #     return out
+
+    # stripped = strip_fill(transposed)
+
+    # return array(stripped, dtype=dtype)
+
+    # ak_arr = x._impl
+    # dtype = x.dtype
+
+    # # Convert to nested lists
+    # nested = ak.to_list(ak_arr)
+
+    # # Compute max lengths per axis
+    # def max_shape(lst):
+    #     if not isinstance(lst, list):
+    #         return ()
+    #     if not lst:
+    #         return (0,)
+    #     subs = [max_shape(item) for item in lst]
+    #     # Pad with 0s if nested unevenly
+    #     max_sub = tuple(max((s[i] if i < len(s) else 0) for s in subs) for i in range(len(subs[0]) if subs[0] else 0))
+    #     return (len(lst),) + max_sub
+
+    # shape = max_shape(nested)
+
+    # # Pad recursively with fill value (np.nan)
+    # def pad(lst, shape):
+    #     if not shape:
+    #         return lst
+    #     padded = []
+    #     for i in range(shape[0]):
+    #         if i < len(lst):
+    #             padded.append(pad(lst[i], shape[1:]))
+    #         else:
+    #             # always produce nested lists of correct depth
+    #             def fill(s):
+    #                 if not s:
+    #                     return np.nan
+    #                 return [fill(s[1:]) for _ in range(s[0])]
+    #             padded.append(fill(shape[1:]))
+    #     return padded
+
+    # padded = pad(nested, shape)
+
+    # # Transpose using NumPy
+    # arr_np = np.array(padded, dtype=float)
+    # transposed = np.transpose(arr_np, axes=axes)
+
+    # # Convert back to nested lists, stripping nan only at leaf level
+    # def strip_nans(lst):
+    #     if isinstance(lst, list):
+    #         result = [strip_nans(item) for item in lst]
+    #         # Remove empty lists at leaf if they contain only nan
+    #         if all(isinstance(v, float) and np.isnan(v) for v in result):
+    #             return []
+    #         return result
+    #     return lst
+
+    # stripped = strip_nans(transposed.tolist())
+    # return array(stripped, dtype=dtype)
+
+    nested = ak.to_list(x._impl)
+    dtype = x.dtype
+
+    # Determine depth of nested list
+    def _ndim(lst: Any) -> int:
+        if not isinstance(lst, list) or not lst:
+            return 0
+        return 1 + max((_ndim(e) for e in lst), default=0)
+
+    ndim = _ndim(nested)
+    if len(axes) != ndim or sorted(axes) != list(range(ndim)):
+        msg = f"axes must be a permutation of (0,...,{ndim-1}), got {axes}"
+        raise ValueError(msg)
+
+    # Transpose 2D ragged matrix
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    # Recursive permutation
+    def _permute(lst: Any, order: list[int]) -> Any:
+        if not order:
+            return lst
+        if order[0] == 0:
+            # Permute deeper levels
+            if all(isinstance(e, list) for e in lst):
+                return [_permute(e, order[1:]) for e in lst]
+            else:
+                return lst
+        else:
+            # Move axis to front
+            if all(isinstance(e, list) for e in lst):
+                # Transpose outermost lists
+                transposed = transpose_matrix(lst)
+                return [
+                    _permute(
+                        t, [order[0] - 1] + [i - 1 if i > 0 else i for i in order[1:]]
+                    )
+                    for t in transposed
+                ]
+            else:
+                return lst
+
+    result: list[Any] = _permute(nested, list(axes))
+    return array(result, dtype=dtype)
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
