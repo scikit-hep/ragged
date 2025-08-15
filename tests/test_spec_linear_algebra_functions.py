@@ -103,3 +103,60 @@ def test_matmul_with_var_length():
     output = ragged.array([[[5.0], [3.0]]])
     print("result type", type(ragged.matmul(x1, x2)))
     assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+# def test_matmul_1d_vectors():
+#     x1 = ragged.array([1, 2, 3])
+#     x2 = ragged.array([4, 5, 6])
+#     output = ragged.array(1*4 + 2*5 + 3*6)  # scalar
+#     assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+# def test_matmul_vector_matrix_promotion():
+#     x1 = ragged.array([1, 2])
+#     x2 = ragged.array([[3, 4], [5, 6]])
+#     output = ragged.array([1*3+2*5, 1*4+2*6])
+#     assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+#     x1 = ragged.array([[1, 2]])
+#     x2 = ragged.array([3, 4])
+#     output = ragged.array([1*3+2*4])
+#     assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+# def test_matmul_batch_broadcasting():
+#     x1 = ragged.array([[[1, 0], [0, 1]], [[2, 3], [4, 5]]])
+#     x2 = ragged.array([[[1, 2], [3, 4]]])
+#     output = ragged.array([[[1, 2], [3, 4]], [[11, 16], [19, 28]]])
+#     assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+
+
+# def test_matmul_dimension_mismatch():
+#     x1 = ragged.array([1, 2])
+#     x2 = ragged.array([1, 2, 3])
+#     with pytest.raises(ValueError, match="shape mismatch"):
+#         ragged.matmul(x1, x2)
+
+#     x1 = ragged.array([[1, 2]])
+#     x2 = ragged.array([1, 2, 3])
+#     with pytest.raises(ValueError, match="shape mismatch"):
+#         ragged.matmul(x1, x2)
+
+
+# def test_matmul_zero_dim_error():
+#     x1 = ragged.array(5)
+#     x2 = ragged.array([[1, 2]])
+#     with pytest.raises(ValueError, match="zero-dimensional array"):
+#         ragged.matmul(x1, x2)
+
+#     x1 = ragged.array([[1, 2]])
+#     x2 = ragged.array(5)
+#     with pytest.raises(ValueError, match="zero-dimensional array"):
+#         ragged.matmul(x1, x2)
+
+
+def test_matmul_type_promotion():
+    x1 = ragged.array([[1, 2]], dtype=int)
+    x2 = ragged.array([[1.5, 2.5], [3.5, 4.5]], dtype=float)
+    result = ragged.matmul(x1, x2)
+    assert result.dtype.kind == "f"  # float output due to type promotion

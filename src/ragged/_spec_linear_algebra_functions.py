@@ -77,8 +77,7 @@ def matmul(x1: array, x2: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matmul.html
     """
-    pad_value = np.nan
-    # broadcast dummy arrays to align batch dims
+
     dummy1 = x1._impl[..., 0:0, 0:0]
     dummy2 = x2._impl[..., 0:0, 0:0]
     b1, b2 = ak.broadcast_arrays(dummy1, dummy2)
@@ -90,42 +89,41 @@ def matmul(x1: array, x2: array, /) -> array:
         batch2 = x2._impl[i]
 
         if len(batch1) == 0 or len(batch2) == 0:
-            # empty batches produce empty results
             results.append([])
             continue
 
+        # Determine sizes
         max_cols1 = safe_max_num(batch1, axis=-1)
         max_rows2 = safe_max_num(batch2, axis=-2)
         max_cols2 = safe_max_num(batch2, axis=-1)
         size = max(max_cols1, max_rows2)
 
-        # pad batch1 rows (shape: rows x size)
+        # Pad batch1 rows with zeros
         mat1 = np.zeros((len(batch1), size), dtype=float)
         for r, row in enumerate(batch1):
-            mat1[r, : len(row)] = row
+            for c, val in enumerate(row):
+                mat1[r, c] = val
 
-        # pad batch2 columns (shape: size x max_cols2)
+        # Pad batch2 columns with zeros
         mat2 = np.zeros((size, max_cols2), dtype=float)
         for c in range(max_cols2):
             col_elems = []
-            for row in batch2:
-                if len(row) > c:
-                    col_elems.append(row[c])
+            for r in range(size):
+                if r < len(batch2) and c < len(batch2[r]):
+                    col_elems.append(batch2[r][c])
                 else:
-                    col_elems.append(pad_value)
-            # pad column length if needed
-            col_elems += [pad_value] * (size - len(col_elems))
+                    col_elems.append(0.0)
             mat2[:, c] = col_elems
 
+        # Compute product
         product = mat1 @ mat2
 
+        # Build ragged result
         ragged_result = []
         for r, orig_row in enumerate(batch1):
-            # if original row empty, result row empty
             if len(orig_row) == 0:
                 ragged_result.append([])
             else:
-                # slice to max_cols2, cast to list
                 ragged_result.append(list(product[r, :max_cols2]))
 
         results.append(ragged_result)
