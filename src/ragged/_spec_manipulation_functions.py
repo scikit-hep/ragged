@@ -7,9 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
-
 from typing import Any, cast
-
 
 import awkward as ak
 import numpy as np

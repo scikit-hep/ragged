@@ -164,6 +164,7 @@ def test_dtype_preserved():
     assert ak.to_list(out._impl) == expected
     assert out.dtype == x.dtype
 
+
 def test_flip_none():
     arr = ragged.array(
         [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
