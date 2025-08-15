@@ -95,3 +95,13 @@ def is_regular_or_effectively_regular(x: Any) -> bool:
         pass
 
     return is_effectively_regular(x)
+
+
+def safe_max_num(arr, axis):
+    counts = ak.num(arr, axis=axis)
+    if isinstance(counts, (int, np.integer)):
+        return counts
+    try:
+        return max(counts)
+    except TypeError:
+        return int(counts)
