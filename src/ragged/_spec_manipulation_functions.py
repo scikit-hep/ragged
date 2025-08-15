@@ -190,7 +190,7 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    nested = ak.to_list(x._impl)
+    nested = ak.to_list(x._impl)  # pylint: disable=protected-access
     dtype = x.dtype
 
     # Determine depth of nested list
