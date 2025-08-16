@@ -35,6 +35,8 @@ from ._typing import (
     numeric_types,
 )
 
+# from ._spec_linear_algebra_functions import matrix_transpose
+
 
 def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     node = layout
@@ -79,6 +81,78 @@ GetSliceKey = Union[
 SetSliceKey = Union[
     int, slice, ellipsis, tuple[Union[int, slice, ellipsis], ...], "array"
 ]
+
+
+def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
+    """
+    Checks whether all nested lists in the array are sorted by descending length
+    at every level of the array (ignoring leaves).
+    (A complete equivalent of is_sorted_descending_all_levels helper function introduced here to avoid circular dependencies.)
+    Returns:
+        bool: True if all nested lists are sorted descending by length, False otherwise.
+    """
+    array_ak = ak.Array(x._impl)  # pylint: disable=protected-access
+    layout: Content = ak.to_layout(array_ak)
+
+    def check(node: Content) -> bool:
+        if isinstance(node, (ListOffsetArray, ListArray)):
+            lengths: ak.Array = ak.num(node, axis=1)
+            if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
+                return False
+            return check(node.content)
+        else:
+            return True
+
+    return check(layout)
+
+
+def _help_matrix_transpose(x: array, /) -> array:
+    """
+    Transposes a matrix (or a stack of matrices) x.
+    (A complete equivalent of matrix_transpose introduced here to avoid circular dependencies.)
+
+    Args:
+        x: Input array having shape `(..., M, N)` and whose innermost two
+        dimensions form `M` by `N` matrices.
+
+    Returns:
+        An array containing the transpose for each matrix and having shape
+        `(..., N, M)`. The returned array has the same data type as `x`.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
+    """
+    xarray = x._impl  # pylint: disable=protected-access
+    if not hasattr(xarray, "ndim") or xarray.ndim < 2:
+        msg = "Input must have at least 2 dimensions"
+        raise ValueError(msg)
+
+    if not _help_is_sorted_descending_all_levels(x):
+        message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+        raise ValueError(message)
+
+    nested: list[Any] = ak.to_list(xarray)
+
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    def is_matrix_level(b: list[Any]) -> bool:
+        for row in b:
+            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+                return True
+        return False
+
+    def recurse(batch: list[Any]) -> list[Any]:
+        if all(isinstance(b, list) for b in batch):
+            if is_matrix_level(batch):
+                return transpose_matrix(batch)
+            return [recurse(b) for b in batch]
+        return batch
+
+    transposed = recurse(nested)
+    return array(transposed)
 
 
 class array:  # pylint: disable=C0103
@@ -351,7 +425,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        raise NotImplementedError("TODO 2")  # noqa: EM101
+        if not _help_is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if self.ndim < 2:
+            message = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
+            raise ValueError(message)
+        return _help_matrix_transpose(self)
 
     @property
     def ndim(self) -> int:
@@ -414,7 +494,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        raise NotImplementedError("TODO 3")  # noqa: EM101
+        if not _help_is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if self.ndim != 2:
+            message = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+            raise ValueError(message)
+        return _help_matrix_transpose(self)
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
