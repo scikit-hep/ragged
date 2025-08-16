@@ -24,7 +24,6 @@ from awkward.contents import (
 )
 
 from . import _import
-from ._helper_functions import is_sorted_descending_all_levels
 from ._typing import (
     Device,
     Dtype,
@@ -84,9 +83,33 @@ SetSliceKey = Union[
 ]
 
 
+def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
+    """
+    Checks whether all nested lists in the array are sorted by descending length
+    at every level of the array (ignoring leaves).
+    (A complete equivalent of is_sorted_descending_all_levels helper function introduced here to avoid circular dependencies.)
+    Returns:
+        bool: True if all nested lists are sorted descending by length, False otherwise.
+    """
+    array_ak = ak.Array(x._impl)  # pylint: disable=protected-access
+    layout: Content = ak.to_layout(array_ak)
+
+    def check(node: Content) -> bool:
+        if isinstance(node, (ListOffsetArray, ListArray)):
+            lengths: ak.Array = ak.num(node, axis=1)
+            if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
+                return False
+            return check(node.content)
+        else:
+            return True
+
+    return check(layout)
+
+
 def _help_matrix_transpose(x: array, /) -> array:
     """
     Transposes a matrix (or a stack of matrices) x.
+    (A complete equivalent of matrix_transpose introduced here to avoid circular dependencies.)
 
     Args:
         x: Input array having shape `(..., M, N)` and whose innermost two
@@ -103,7 +126,7 @@ def _help_matrix_transpose(x: array, /) -> array:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
 
-    if not is_sorted_descending_all_levels(x):
+    if not _help_is_sorted_descending_all_levels(x):
         message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
         raise ValueError(message)
 
@@ -402,7 +425,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        if not is_sorted_descending_all_levels(self):
+        if not _help_is_sorted_descending_all_levels(self):
             message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
             raise ValueError(message)
         if self.ndim < 2:
@@ -471,7 +494,7 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        if not is_sorted_descending_all_levels(self):
+        if not _help_is_sorted_descending_all_levels(self):
             message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
             raise ValueError(message)
         if self.ndim != 2:
