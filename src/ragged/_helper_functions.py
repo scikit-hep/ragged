@@ -95,3 +95,16 @@ def is_regular_or_effectively_regular(x: Any) -> bool:
         pass
 
     return is_effectively_regular(x)
+
+
+def safe_max_num(arr: array, axis: int | None = None) -> int:
+    """
+    Compute the maximum number of elements along an axis for a ragged array.
+    Returns as an int, even if ak.num returns a scalar-like array.
+    """
+    counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
+
+    if isinstance(counts, (int, np.integer)):
+        return int(counts)
+
+    return int(max(counts))
