@@ -59,25 +59,33 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
         msg = "broadcast_to does not support scalar inputs; provide an array"
         raise ValueError(msg)
 
-    arr = x._impl if hasattr(x, "_impl") else ak.Array(x)
+    arr = x._impl if hasattr(x, "_impl") else ak.Array(x)  # pylint: disable=W0212
 
     if hasattr(arr, "ndim") and arr.ndim == 0:
         msg = "broadcast_to does not support 0-dimensional arrays"
         raise ValueError(msg)
 
     if not isinstance(shape, tuple):
-        msg: str = "Shape must be a tuple of ints, got " + str(type(shape))
-        raise TypeError(msg)
+        msg_shape: str = "Shape must be a tuple of ints, got " + str(
+            type(shape)
+        )  # ignore: [unreachable]
+        raise TypeError(msg_shape)
+
+    if shape == () and ak.count(x, axis=None) != 1:
+        msgo: str = "Shape dimensions must be >= -1"
+        raise ValueError(msgo)
     for dim in shape:
-        if not isinstance(dim, int):
-            msg = "Shape dimensions must be ints, got " + str(type(dim))
-            raise TypeError(msg)
-        if dim < -1:
-            msg = "Shape dimensions must be >= -1, got " + str(dim)
-            raise ValueError(msg)
         if dim is None:
-            msg = "Shape cannot contain None"
-            raise ValueError(msg)
+            msg_none: str = "Shape cannot contain None"
+            raise ValueError(msg_none)
+
+        if not isinstance(dim, int):
+            msg_type: str = "Shape dimensions must be ints, got " + str(type(dim))
+            raise TypeError(msg_type)
+
+        if dim < -1:
+            msg_value: str = "Shape dimensions must be >= -1, got " + str(dim)
+            raise ValueError(msg_value)
 
     dummy_np = np.zeros(
         shape, dtype=arr.layout.dtype if hasattr(arr, "layout") else arr.dtype

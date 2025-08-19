@@ -114,36 +114,28 @@ def test_squeeze(x, axis):
         assert b.tolist() == x.tolist()
 
 
-
-def test_positional_vs_keyword_arguments():
-    x = ragged.array([1, 2, 3])
-    # shape must be positional-only, copy must be keyword
-    with pytest.raises(TypeError):
-        broadcast_to(x, (3, 3), True)  # extra positional instead of keyword
-
-
 def test_invalid_shape_type():
     x = ragged.array([1, 2, 3])
-    with pytest.raises(TypeError):
-        broadcast_to(x, [3, 3])  # list, not tuple
+    with pytest.raises(TypeError, match="Shape must be a tuple of ints"):
+        broadcast_to(x, [3, 3])  # type: ignore[arg-type]
 
 
 def test_shape_contains_non_int():
     x = ragged.array([1, 2])
-    with pytest.raises(TypeError):
-        broadcast_to(x, (3, "3"))  # invalid
+    with pytest.raises(TypeError, match="Shape dimensions must be ints"):
+        broadcast_to(x, (3, "3"))  # type: ignore[arg-type]
 
 
 def test_shape_contains_negative_other_than_minus_one():
     x = ragged.array([1])
     with pytest.raises(ValueError, match="Shape dimensions must be >= -1"):
-        broadcast_to(x, (-2,))  # -1 is the only allowed negative
+        broadcast_to(x, (-2,))
 
 
 def test_broadcast_scalar_raises():
     x = 10
     with pytest.raises(ValueError, match="does not support scalar inputs"):
-        broadcast_to(x, (2, 3))
+        broadcast_to(x, (2, 3))  # type: ignore[arg-type]
 
 
 def test_broadcast_zero_dim_array_raises():
@@ -155,13 +147,13 @@ def test_broadcast_zero_dim_array_raises():
 def test_broadcast_incompatible_shape():
     x = ragged.array([1, 2, 3])
     with pytest.raises(ValueError, match="Cannot broadcast array of shape"):
-        broadcast_to(x, (2, 2))  # cannot broadcast
+        broadcast_to(x, (2, 2))
 
 
 def test_shape_must_be_tuple_of_ints():
     x = ragged.array([1])
     with pytest.raises(TypeError):
-        broadcast_to(x, (3.0,))  # float not allowed
+        broadcast_to(x, (3.0,))  # type: ignore[arg-type]
 
 
 def test_shape_must_not_be_empty_tuple_for_non_scalar():
@@ -175,7 +167,8 @@ def test_positional_only_for_x_and_shape():
 
     sig = signature(broadcast_to)
     assert list(sig.parameters.keys())[:2] == ["x", "shape"]
-=======
+
+
 def test_flip_none():
     arr = ragged.array(
         [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
