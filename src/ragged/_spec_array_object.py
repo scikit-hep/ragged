@@ -54,18 +54,23 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     msg = f"Awkward Array type must have regular and irregular lists only, not {layout.form.type!s}"
     raise TypeError(msg)
 
-
 # https://github.com/python/typing/issues/684#issuecomment-548203158
+from typing import TYPE_CHECKING, TypeAlias
+
 if TYPE_CHECKING:
     from enum import Enum
 
-    class ellipsis(Enum):  # pylint: disable=C0103
-        Ellipsis = "..."  # pylint: disable=C0103
+    class EllipsisEnum(Enum):
+        """Type-safe placeholder for Ellipsis during static type checking."""
+        ELLIPSIS = "..."
 
-    Ellipsis = ellipsis.Ellipsis  # pylint: disable=W0622
+    ELLIPSIS: EllipsisEnum = EllipsisEnum.ELLIPSIS
+    EllipsisType: TypeAlias = EllipsisEnum  # so `EllipsisType` can be used in annotations
 
 else:
-    ellipsis = type(...)  # pylint: disable=C0103
+    EllipsisEnum = type(...)
+    ELLIPSIS = ...
+    EllipsisType: TypeAlias = type(...)
 
 GetSliceKey = Union[
     int,
