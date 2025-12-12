@@ -86,22 +86,16 @@ def test_mean():
             pytest.approx([5.13333, 6.05, 8.8, 9.9]),
         ]
     )
-    assert (
-        ragged.mean(data, axis=2).tolist()
-        == [
-            pytest.approx([1.1, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([3.85, 5.5, 8.25]),
-        ]
-    )
-    assert (
-        ragged.mean(data, axis=-1).tolist()
-        == [
-            pytest.approx([1.1, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([3.85, 5.5, 8.25]),
-        ]
-    )
+    assert ragged.mean(data, axis=2).tolist() == [
+        pytest.approx([1.1, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([3.85, 5.5, 8.25]),
+    ]
+    assert ragged.mean(data, axis=-1).tolist() == [
+        pytest.approx([1.1, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([3.85, 5.5, 8.25]),
+    ]
     assert (
         ragged.mean(data, axis=(0, 1)).tolist()
         == ragged.mean(data, axis=(1, 0)).tolist()
@@ -230,22 +224,16 @@ def test_std():
             pytest.approx([1.37194, 1.65, 0, 0]),
         ]
     )
-    assert (
-        ragged.std(data, axis=2).tolist()
-        == [
-            pytest.approx([0.898146, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.55, 0, 1.229837]),
-        ]
-    )
-    assert (
-        ragged.std(data, axis=-1).tolist()
-        == [
-            pytest.approx([0.898146, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.55, 0, 1.229837]),
-        ]
-    )
+    assert ragged.std(data, axis=2).tolist() == [
+        pytest.approx([0.898146, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.55, 0, 1.229837]),
+    ]
+    assert ragged.std(data, axis=-1).tolist() == [
+        pytest.approx([0.898146, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.55, 0, 1.229837]),
+    ]
     assert (
         ragged.std(data, axis=(0, 1, 2)).tolist()
         == ragged.std(data, axis=(-1, 0, 1)).tolist()
@@ -330,22 +318,16 @@ def test_var():
             pytest.approx([1.88222222, 2.7225, 0, 0]),
         ]
     )
-    assert (
-        ragged.var(data, axis=2).tolist()
-        == [
-            pytest.approx([0.80666667, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.3025, 0, 1.5125]),
-        ]
-    )
-    assert (
-        ragged.var(data, axis=-1).tolist()
-        == [
-            pytest.approx([0.80666667, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.3025, 0, 1.5125]),
-        ]
-    )
+    assert ragged.var(data, axis=2).tolist() == [
+        pytest.approx([0.80666667, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.3025, 0, 1.5125]),
+    ]
+    assert ragged.var(data, axis=-1).tolist() == [
+        pytest.approx([0.80666667, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.3025, 0, 1.5125]),
+    ]
     assert (
         ragged.var(data, axis=(0, 1, 2)).tolist()
         == ragged.var(data, axis=(-1, 0, 1)).tolist()
