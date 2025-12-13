@@ -19,10 +19,10 @@ jobs:
     name: Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - uses: pre-commit/action@v3.0.1
@@ -55,11 +55,11 @@ jobs:
             runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
@@ -82,4 +82,4 @@ jobs:
           pytest -ra --cov --cov-report=xml --cov-report=term --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.2
