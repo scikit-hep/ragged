@@ -64,10 +64,8 @@ if TYPE_CHECKING:
     class ellipsis(Enum):  # pylint: disable=C0103
         Ellipsis = "..."  # pylint: disable=C0103
 
-    Ellipsis = ellipsis.Ellipsis  # pylint: disable=W0622
-
 else:
-    ellipsis = type(...)  # pylint: disable=C0103
+    ellipsis = type(Ellipsis)  # pylint: disable=C0103
 
 GetSliceKey = Union[
     int,
