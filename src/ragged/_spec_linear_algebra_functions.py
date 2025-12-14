@@ -11,8 +11,7 @@ from typing import Any
 
 import awkward as ak
 
-from ._helper_functions import is_sorted_descending_all_levels
-from ._spec_array_object import array
+from ._spec_array_object import _help_is_sorted_descending_all_levels, array
 
 
 def matmul(x1: array, x2: array, /) -> array:
@@ -101,7 +100,7 @@ def matrix_transpose(x: array, /) -> array:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
 
-    if not is_sorted_descending_all_levels(x):
+    if not _help_is_sorted_descending_all_levels(x):
         message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
         raise ValueError(message)
 
