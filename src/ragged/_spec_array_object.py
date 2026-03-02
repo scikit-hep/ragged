@@ -41,7 +41,7 @@ from ._typing import (
 def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     node = layout
     shape: Shape = (len(layout),)
-    while isinstance(node, (ListArray, ListOffsetArray, RegularArray)):
+    while isinstance(node, ListArray | ListOffsetArray | RegularArray):
         if isinstance(node, RegularArray):
             shape = (*shape, node.size)
         else:
@@ -57,27 +57,19 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     raise TypeError(msg)
 
 
-# https://github.com/python/typing/issues/684#issuecomment-548203158
-if TYPE_CHECKING:
-    from enum import Enum
-
-    class ellipsis(Enum):  # pylint: disable=C0103
-        Ellipsis = "..."  # pylint: disable=C0103
-
-else:
-    ellipsis = type(Ellipsis)  # pylint: disable=C0103
+EllipsisType = type(Ellipsis)
 
 GetSliceKey = Union[
     int,
     slice,
     ellipsis,
     None,
-    tuple[Union[int, slice, ellipsis, None], ...],
+    tuple[int | slice | EllipsisType | None, ...],
     "array",
 ]
 
 SetSliceKey = Union[
-    int, slice, ellipsis, tuple[Union[int, slice, ellipsis], ...], "array"
+    int, slice, ellipsis, tuple[int | slice | EllipsisType, ...], "array"
 ]
 
 
@@ -93,7 +85,7 @@ def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
     layout: Content = ak.to_layout(array_ak)
 
     def check(node: Content) -> bool:
-        if isinstance(node, (ListOffsetArray, ListArray)):
+        if isinstance(node, ListOffsetArray | ListArray):
             lengths: ak.Array = ak.num(node, axis=1)
             if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
                 return False
