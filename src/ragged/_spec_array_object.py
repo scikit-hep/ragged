@@ -69,7 +69,7 @@ GetSliceKey = Union[
 ]
 
 SetSliceKey = Union[
-    int, slice, ellipsis, tuple[int | slice | EllipsisType, ...], "array"
+    int, slice, EllipsisType, tuple[int | slice | EllipsisType, ...], "array"
 ]
 
 
