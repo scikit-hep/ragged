@@ -10,7 +10,7 @@ import copy as copy_lib
 import enum
 import numbers
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Union
+from typing import Any, Union
 
 import awkward as ak
 import numpy as np
