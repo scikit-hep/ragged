@@ -62,7 +62,7 @@ EllipsisType = type(Ellipsis)
 GetSliceKey = Union[
     int,
     slice,
-    ellipsis,
+    EllipsisType,
     None,
     tuple[int | slice | EllipsisType | None, ...],
     "array",
