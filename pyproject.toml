@@ -119,7 +119,6 @@ ignore_missing_imports = true
 
 [tool.ruff]
 src = ["src"]
-line-length = 100
 target-version = "py310"
 
 [tool.ruff.format]
