@@ -694,7 +694,7 @@ class array:  # pylint: disable=C0103
             key = array(key)  # attempt to cast unknown key type as ragged.array
 
         if isinstance(key, array):
-            key = key._impl
+            key = key._impl  # type: ignore[assignment]
 
         return _box(type(self), self._impl[key])  # type: ignore[index]
 
