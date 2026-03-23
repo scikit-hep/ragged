@@ -1,7 +1,10 @@
 [build-system]
-requires = ["hatchling>=1.21", "hatch-vcs"]
+requires = [
+    "hatchling>=1.21",
+    "hatch-vcs",
+    "hatch-fancy-pypi-readme"
+]
 build-backend = "hatchling.build"
-
 
 [project]
 name = "ragged"
@@ -10,7 +13,7 @@ authors = [
 ]
 description = "Ragged array library, complying with Python API specification."
 readme = "README.md"
-license = { file = "LICENSE" }
+license.file = "LICENSE"
 requires-python = ">=3.10"
 classifiers = [
   "Development Status :: 1 - Planning",
@@ -24,6 +27,10 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Free Threading",
+  "Programming Language :: Python :: Free Threading :: 3 - Stable",
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
@@ -165,3 +172,32 @@ required-imports = ["from __future__ import annotations"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
 "noxfile.py" = ["T20"]
+
+
+[tool.pylint]
+py-version = "3.9"
+ignore-paths = [".*/_version.py"]
+reports.output-format = "colorized"
+similarities.ignore-imports = "yes"
+
+messages_control.disable = [
+  "design",
+  "fixme",
+  "line-too-long",
+  "missing-module-docstring",
+  "wrong-import-position",
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "R1705",   # I like my if (return) elif (return) else (return) pattern
+  "R1720",   # I like my if (raise) elif ... else ... pattern
+  "R0801",   # Different files can have similar lines; that's okay
+  "C0302",   # I can have as many lines as I want; what's it with you?
+  "no-member",
+  "import-error",
+]
+
+typecheck.generated-members = [
+  "finfo.*",
+  "iinfo.*",
+  "generator.item",
+]
