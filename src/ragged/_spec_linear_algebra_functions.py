@@ -91,7 +91,7 @@ def matmul(x1: array, x2: array, /) -> array:
 
         return [
             list(row)
-            if isinstance(row, Iterable) and not isinstance(row, (str, bytes))
+            if isinstance(row, Iterable) and not isinstance(row, str | bytes)
             else [row]
             for row in impl_list
         ]

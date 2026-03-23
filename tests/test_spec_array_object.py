@@ -130,7 +130,7 @@ def test_float():
 def test_getitem():
     # slices are extensively tested in Awkward Array
     a = ragged.array([[1, 2, 3], [4], [5, 6, 7, 8]])
-    assert a[..., 1:].tolist() == [[2, 3], [], [6, 7, 8]]  # type: ignore[comparison-overlap,index]
+    assert a[..., 1:].tolist() == [[2, 3], [], [6, 7, 8]]  # type: ignore[comparison-overlap]
 
 
 def test_index():

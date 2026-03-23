@@ -6,7 +6,7 @@ from typing import Any
 import awkward as ak
 import numpy as np
 
-from . import _spec_array_object
+from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
@@ -25,7 +25,7 @@ def regularise_to_float(t: np.dtype, /) -> np.dtype:
         return t
 
 
-def is_effectively_regular(x: _spec_array_object.array) -> bool:
+def is_effectively_regular(x: array) -> bool:
     try:
         if not hasattr(x, "__len__"):
             return False
@@ -80,7 +80,7 @@ def safe_max_num(arr: array, axis: int | None = None) -> int:
     """
     counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
 
-    if isinstance(counts, (int, np.integer)):
+    if isinstance(counts, int | np.integer):
         return int(counts)
 
     return int(max(counts))
