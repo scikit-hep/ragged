@@ -10,7 +10,8 @@ import copy as copy_lib
 import enum
 import numbers
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Union
+from types import EllipsisType
+from typing import Any, Union
 
 import awkward as ak
 import numpy as np
@@ -35,11 +36,13 @@ from ._typing import (
     numeric_types,
 )
 
+# from ._spec_linear_algebra_functions import matrix_transpose
+
 
 def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     node = layout
     shape: Shape = (len(layout),)
-    while isinstance(node, (ListArray, ListOffsetArray, RegularArray)):
+    while isinstance(node, ListArray | ListOffsetArray | RegularArray):
         if isinstance(node, RegularArray):
             shape = (*shape, node.size)
         else:
@@ -55,30 +58,90 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     raise TypeError(msg)
 
 
-# https://github.com/python/typing/issues/684#issuecomment-548203158
-if TYPE_CHECKING:
-    from enum import Enum
-
-    class ellipsis(Enum):  # pylint: disable=C0103
-        Ellipsis = "..."  # pylint: disable=C0103
-
-    Ellipsis = ellipsis.Ellipsis  # pylint: disable=W0622
-
-else:
-    ellipsis = type(...)  # pylint: disable=C0103
-
 GetSliceKey = Union[
     int,
     slice,
-    ellipsis,
+    EllipsisType,
     None,
-    tuple[Union[int, slice, ellipsis, None], ...],
+    tuple[int | slice | EllipsisType | None, ...],
     "array",
 ]
 
 SetSliceKey = Union[
-    int, slice, ellipsis, tuple[Union[int, slice, ellipsis], ...], "array"
+    int, slice, EllipsisType, tuple[int | slice | EllipsisType, ...], "array"
 ]
+
+
+def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
+    """
+    Checks whether all nested lists in the array are sorted by descending length
+    at every level of the array (ignoring leaves).
+    (A complete equivalent of is_sorted_descending_all_levels helper function introduced here to avoid circular dependencies.)
+    Returns:
+        bool: True if all nested lists are sorted descending by length, False otherwise.
+    """
+    array_ak = ak.Array(x._impl)  # pylint: disable=protected-access
+    layout: Content = ak.to_layout(array_ak)
+
+    def check(node: Content) -> bool:
+        if isinstance(node, ListOffsetArray | ListArray):
+            lengths: ak.Array = ak.num(node, axis=1)
+            if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
+                return False
+            return check(node.content)
+        else:
+            return True
+
+    return check(layout)
+
+
+def _help_matrix_transpose(x: array, /) -> array:
+    """
+    Transposes a matrix (or a stack of matrices) x.
+    (A complete equivalent of matrix_transpose introduced here to avoid circular dependencies.)
+
+    Args:
+        x: Input array having shape `(..., M, N)` and whose innermost two
+        dimensions form `M` by `N` matrices.
+
+    Returns:
+        An array containing the transpose for each matrix and having shape
+        `(..., N, M)`. The returned array has the same data type as `x`.
+
+    https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
+    """
+    xarray = x._impl  # pylint: disable=protected-access
+    if not hasattr(xarray, "ndim") or xarray.ndim < 2:
+        msg = "Input must have at least 2 dimensions"
+        raise ValueError(msg)
+
+    if not _help_is_sorted_descending_all_levels(x):
+        message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+        raise ValueError(message)
+
+    nested: list[Any] = ak.to_list(xarray)
+
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    def is_matrix_level(b: list[Any]) -> bool:
+        for row in b:
+            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
+                return True
+        return False
+
+    def recurse(batch: list[Any]) -> list[Any]:
+        if all(isinstance(b, list) for b in batch):
+            if is_matrix_level(batch):
+                return transpose_matrix(batch)
+            return [recurse(b) for b in batch]
+        return batch
+
+    transposed = recurse(nested)
+    return array(transposed)
 
 
 class array:  # pylint: disable=C0103
@@ -114,6 +177,23 @@ class array:  # pylint: disable=C0103
         out._dtype = dtype
         out._device = device
         return out
+
+    def _ensure_array(self, other: int | float | bool | array) -> array:
+        """
+        Convert scalar to array if needed.
+        """
+        return other if isinstance(other, array) else array(other, device=self._device)
+
+    def _apply_inplace(self, operation_result: array) -> array:
+        """
+        Apply result of an operation in-place.
+        """
+        self._impl, self._device = operation_result._impl, operation_result._device
+        if isinstance(self._impl, ak.Array):
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+        else:
+            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
+        return self
 
     def __init__(
         self,
@@ -189,7 +269,7 @@ class array:  # pylint: disable=C0103
                 msg = f"unsupported __dlpack_device__ type: {device_type}"
                 raise TypeError(msg)
 
-        elif isinstance(obj, (bool, numbers.Complex)):
+        elif isinstance(obj, bool | numbers.Complex):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
@@ -351,7 +431,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
 
-        raise NotImplementedError("TODO 2")  # noqa: EM101
+        if not _help_is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if self.ndim < 2:
+            message = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
+            raise ValueError(message)
+        return _help_matrix_transpose(self)
 
     @property
     def ndim(self) -> int:
@@ -414,7 +500,13 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
 
-        raise NotImplementedError("TODO 3")  # noqa: EM101
+        if not _help_is_sorted_descending_all_levels(self):
+            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+            raise ValueError(message)
+        if self.ndim != 2:
+            message = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+            raise ValueError(message)
+        return _help_matrix_transpose(self)
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -438,15 +530,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__add__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.add(self, other)
+        return ns.add(self, self._ensure_array(other))
 
     def __and__(self, other: int | bool | array, /) -> array:
         """
@@ -455,15 +541,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__and__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.bitwise_and(self, other)
+        return ns.bitwise_and(self, self._ensure_array(other))
 
     def __array_namespace__(self, *, api_version: None | str = None) -> Any:
         """
@@ -532,7 +612,7 @@ class array:  # pylint: disable=C0103
         buf = self._impl
         if isinstance(buf, ak.Array):
             buf = buf.layout
-            while isinstance(buf, (ListArray, ListOffsetArray, RegularArray)):
+            while isinstance(buf, ListArray | ListOffsetArray | RegularArray):
                 buf = buf.content
             assert isinstance(buf, NumpyArray)
             buf = buf.data
@@ -546,15 +626,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__eq__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.equal(self, other)
+        return ns.equal(self, self._ensure_array(other))
 
     def __float__(self) -> float:
         """
@@ -572,15 +646,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__floordiv__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.floor_divide(self, other)
+        return ns.floor_divide(self, self._ensure_array(other))
 
     def __ge__(self, other: int | float | array, /) -> array:
         """
@@ -589,15 +657,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__ge__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.greater_equal(self, other)
+        return ns.greater_equal(self, self._ensure_array(other))
 
     def __getitem__(self, key: GetSliceKey, /) -> array:
         """
@@ -609,12 +671,12 @@ class array:  # pylint: disable=C0103
         if isinstance(key, tuple):
             for item in key:
                 if not isinstance(
-                    item, (numbers.Integral, slice, type(...), type(None))
+                    item, numbers.Integral | slice | type(...) | type(None)
                 ):
                     msg = f"ragged.array sliced as arr[item1, item2, ...] can only have int, slice, ellipsis, None (np.newaxis) as items, not {item!r}"
                     raise TypeError(msg)
         elif not isinstance(
-            key, (numbers.Integral, slice, type(...), type(None), array)
+            key, numbers.Integral | slice | type(...) | type(None) | array
         ):
             key = array(key)  # attempt to cast unknown key type as ragged.array
 
@@ -630,15 +692,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__gt__.html
         """
+        from ragged import _spec_elementwise_functions as ns
 
-        from ragged import (  # pylint: disable=C0415,R0401
-            _spec_elementwise_functions as ns,
-        )
-
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.greater(self, other)
+        return ns.greater(self, self._ensure_array(other))
 
     def __index__(self) -> int:  # FIXME pylint: disable=E0305
         """
@@ -683,10 +739,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.less_equal(self, other)
+        return ns.less_equal(self, self._ensure_array(other))
 
     def __lshift__(self, other: int | array, /) -> array:
         """
@@ -700,10 +753,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.bitwise_left_shift(self, other)
+        return ns.bitwise_left_shift(self, self._ensure_array(other))
 
     def __lt__(self, other: int | float | array, /) -> array:
         """
@@ -717,10 +767,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.less(self, other)
+        return ns.less(self, self._ensure_array(other))
 
     def __matmul__(self, other: array, /) -> array:
         """
@@ -743,10 +790,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.remainder(self, other)
+        return ns.remainder(self, self._ensure_array(other))
 
     def __mul__(self, other: int | float | array, /) -> array:
         """
@@ -760,10 +804,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.multiply(self, other)
+        return ns.multiply(self, self._ensure_array(other))
 
     def __ne__(self, other: int | float | bool | array, /) -> array:  # type: ignore[override]
         """
@@ -777,10 +818,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.not_equal(self, other)
+        return ns.not_equal(self, self._ensure_array(other))
 
     def __neg__(self) -> array:
         """
@@ -807,10 +845,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.bitwise_or(self, other)
+        return ns.bitwise_or(self, self._ensure_array(other))
 
     def __pos__(self) -> array:
         """
@@ -839,10 +874,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.pow(self, other)
+        return ns.pow(self, self._ensure_array(other))
 
     def __rshift__(self, other: int | array, /) -> array:
         """
@@ -856,10 +888,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.bitwise_right_shift(self, other)
+        return ns.bitwise_right_shift(self, self._ensure_array(other))
 
     def __setitem__(
         self, key: SetSliceKey, value: int | float | bool | array, /
@@ -885,10 +914,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.subtract(self, other)
+        return ns.subtract(self, self._ensure_array(other))
 
     def __truediv__(self, other: int | float | array, /) -> array:
         """
@@ -902,10 +928,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.divide(self, other)
+        return ns.divide(self, self._ensure_array(other))
 
     def __xor__(self, other: int | bool | array, /) -> array:
         """
@@ -919,10 +942,7 @@ class array:  # pylint: disable=C0103
             _spec_elementwise_functions as ns,
         )
 
-        if not isinstance(other, array):
-            other = array(other, device=self._device)
-
-        return ns.bitwise_xor(self, other)
+        return ns.bitwise_xor(self, self._ensure_array(other))
 
     def to_device(self, device: Device, /, *, stream: None | int | Any = None) -> array:
         """
@@ -988,14 +1008,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self + other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self + other)
 
     def __isub__(self, other: int | float | array, /) -> array:
         """
@@ -1004,14 +1017,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self - other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self - other)
 
     def __imul__(self, other: int | float | array, /) -> array:
         """
@@ -1020,14 +1026,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self * other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self * other)
 
     def __itruediv__(self, other: int | float | array, /) -> array:
         """
@@ -1036,14 +1035,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self / other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self / other)
 
     def __ifloordiv__(self, other: int | float | array, /) -> array:
         """
@@ -1052,14 +1044,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self // other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self // other)
 
     def __ipow__(self, other: int | float | array, /) -> array:
         """
@@ -1068,14 +1053,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self**other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self**other)
 
     def __imod__(self, other: int | float | array, /) -> array:
         """
@@ -1084,14 +1062,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self % other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self % other)
 
     def __imatmul__(self, other: array, /) -> array:
         """
@@ -1100,14 +1071,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self @ other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self @ other)
 
     def __iand__(self, other: int | bool | array, /) -> array:
         """
@@ -1116,14 +1080,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self & other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self & other)
 
     def __ior__(self, other: int | bool | array, /) -> array:
         """
@@ -1132,14 +1089,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self | other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self | other)
 
     def __ixor__(self, other: int | bool | array, /) -> array:
         """
@@ -1148,14 +1098,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self ^ other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self ^ other)
 
     def __ilshift__(self, other: int | array, /) -> array:
         """
@@ -1164,14 +1107,7 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self << other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self << other)
 
     def __irshift__(self, other: int | array, /) -> array:
         """
@@ -1180,30 +1116,68 @@ class array:  # pylint: disable=C0103
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
         """
-
-        out = self >> other
-        self._impl, self._device = out._impl, out._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
-        return self
+        return self._apply_inplace(self >> other)
 
     # reflected operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#reflected-operators
 
-    __radd__ = __add__
-    __rsub__ = __sub__
-    __rmul__ = __mul__
-    __rtruediv__ = __truediv__
-    __rfloordiv__ = __floordiv__
-    __rpow__ = __pow__
-    __rmod__ = __mod__
-    __rmatmul__ = __matmul__
-    __rand__ = __and__
-    __ror__ = __or__
-    __rxor__ = __xor__
-    __rlshift__ = __lshift__
-    __rrshift__ = __rshift__
+    # Commutative operations can stay aliased:
+    __radd__ = __add__  # ✓ OK: a + b == b + a
+    __rmul__ = __mul__  # ✓ OK: a * b == b * a
+    __rand__ = __and__  # ✓ OK: a & b == b & a
+    __ror__ = __or__  # ✓ OK: a | b == b | a
+    __rxor__ = __xor__  # ✓ OK: a ^ b == b ^ a
+
+    # Non-commutative need proper implementation:
+    def __rsub__(self, other: int | float | array, /) -> array:
+        """Compute other - self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.subtract(self._ensure_array(other), self)
+
+    def __rtruediv__(self, other: int | float | array, /) -> array:
+        """Compute other / self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.divide(self._ensure_array(other), self)
+
+    def __rfloordiv__(self, other: int | float | array, /) -> array:
+        """Compute other // self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.floor_divide(self._ensure_array(other), self)
+
+    def __rpow__(self, other: int | float | array, /) -> array:
+        """Compute other ** self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.pow(self._ensure_array(other), self)
+
+    def __rmod__(self, other: int | float | array, /) -> array:
+        """Compute other % self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.remainder(self._ensure_array(other), self)
+
+    def __rlshift__(self, other: int | array, /) -> array:
+        """Compute other << self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.bitwise_left_shift(self._ensure_array(other), self)
+
+    def __rrshift__(self, other: int | array, /) -> array:
+        """Compute other >> self."""
+        from ragged import _spec_elementwise_functions as ns
+
+        return ns.bitwise_right_shift(self._ensure_array(other), self)
+
+    # __rmatmul__ should also raise NotImplementedError:
+    def __rmatmul__(self, other: array, /) -> array:
+        """Compute other @ self."""
+        msg = (
+            "Matrix multiplication (@) is not supported for ragged arrays. "
+            "Matrix operations require fixed dimensions."
+        )
+        raise NotImplementedError(msg)
 
 
 def _is_shared(

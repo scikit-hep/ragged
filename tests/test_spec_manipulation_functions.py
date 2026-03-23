@@ -113,6 +113,58 @@ def test_squeeze(x, axis):
         assert b.tolist() == x.tolist()
 
 
+def test_regular_array_identity_permutation():
+    x = ragged.array([[1, 2], [3, 4]])
+    out = ragged.permute_dims(x, (0, 1))
+    expected = [[1, 2], [3, 4]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
+
+
+def test_regular_array_swap_axes():
+    x = ragged.array([[1, 2, 3], [4, 5, 6]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1, 4], [2, 5], [3, 6]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
+
+
+def test_ragged_array_swap_axes():
+    x = ragged.array([[1, 2, 3], [4, 5]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1, 4], [2, 5], [3]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
+
+
+def test_three_dimensional_ragged():
+    x = ragged.array([[[1.1, 2.2], [3.3]], [[4.4], [5.5, 6.6, 7.7]]])
+    out = ragged.permute_dims(x, (1, 0, 2))
+    expected = [[[1.1, 2.2], [4.4]], [[3.3], [5.5, 6.6, 7.7]]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
+
+
+def test_invalid_axes_wrong_length():
+    x = ragged.array([[1, 2], [3, 4]])
+    with pytest.raises(ValueError, match="axes must be a permutation"):
+        ragged.permute_dims(x, (1,))
+
+
+def test_invalid_axes_duplicates():
+    x = ragged.array([[1, 2], [3, 4]])
+    with pytest.raises(ValueError, match="axes must be a permutation"):
+        ragged.permute_dims(x, (0, 0))
+
+
+def test_dtype_preserved():
+    x = ragged.array([[1.5, 2.5], [3.5]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1.5, 3.5], [2.5]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
+
+
 def test_flip_none():
     arr = ragged.array(
         [[[1.1, 2.2, 3.3], []], [[4.4]], [], [[5.5, 6.6, 7.7, 8.8], [9.9]]]
@@ -173,3 +225,37 @@ def test_flip_outofboundary():
         ragged.flip(arr, axis=5)
     with pytest.raises(ValueError, match="axis"):
         ragged.flip(arr, axis=-5)
+
+
+def test_stack_axis0():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+    result = ragged.stack([x, y], axis=0)
+    expected = ragged.array([[[1, 2], [3]], [[4, 5], [6]]])
+    assert result.tolist() == expected.tolist()
+
+
+def test_stack_axis1():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+    result = ragged.stack([x, y], axis=1)
+    expected = ragged.array([[[1, 2], [4, 5]], [[3], [6]]])
+    assert ak.to_list(result) == ak.to_list(expected)
+
+
+def test_stack_axis_minus1():
+    x = ragged.array([[1, 2], [3]])
+    y = ragged.array([[4, 5], [6]])
+
+    result = ragged.stack([x, y], axis=-1)
+    expected = ragged.array([[[1, 2], [4, 5]], [[3], [6]]])
+    assert result.tolist() == expected.tolist()
+
+
+def test_stack_invalid_axis_raises():
+    x = ragged.array([[1, 2]])
+    print("ndim", x.ndim)
+    with pytest.raises(ValueError, match="axis=2 is out of bounds"):
+        ragged.stack([x, x], axis=2)
+    with pytest.raises(ValueError, match="axis=-3 is out of bounds"):
+        ragged.stack([x, x], axis=-3)

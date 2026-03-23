@@ -13,7 +13,7 @@ import awkward as ak
 import numpy as np
 
 from ._helper_functions import is_sorted_descending_all_levels, safe_max_num
-from ._spec_array_object import array
+from ._spec_array_object import _help_is_sorted_descending_all_levels, array
 
 
 def matmul(x1: array, x2: array, /) -> array:
@@ -223,7 +223,7 @@ def matrix_transpose(x: array, /) -> array:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
 
-    if not is_sorted_descending_all_levels(x):
+    if not _help_is_sorted_descending_all_levels(x):
         message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
         raise ValueError(message)
 
@@ -237,7 +237,7 @@ def matrix_transpose(x: array, /) -> array:
 
     def is_matrix_level(b: list[Any]) -> bool:
         for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
                 return True
         return False
 

@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from typing import Any, cast
 
 import awkward as ak
 import numpy as np
@@ -189,9 +190,53 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 119")  # noqa: EM101
+    nested = ak.to_list(x._impl)  # pylint: disable=protected-access
+    dtype = x.dtype
+
+    # Determine depth of nested list
+    def _ndim(lst: Any) -> int:
+        if not isinstance(lst, list) or not lst:
+            return 0
+        return 1 + max((_ndim(e) for e in lst), default=0)
+
+    ndim = _ndim(nested)
+    if len(axes) != ndim or sorted(axes) != list(range(ndim)):
+        msg = f"axes must be a permutation of (0,...,{ndim-1}), got {axes}"
+        raise ValueError(msg)
+
+    # Transpose 2D ragged matrix
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    # Recursive permutation
+    def _permute(lst: Any, order: list[int]) -> Any:
+        if not order:
+            return lst
+        if order[0] == 0:
+            # Permute deeper levels
+            if all(isinstance(e, list) for e in lst):
+                return [_permute(e, order[1:]) for e in lst]
+            else:
+                return lst
+        else:
+            # Move axis to front
+            if all(isinstance(e, list) for e in lst):
+                # Transpose outermost lists
+                transposed = transpose_matrix(lst)
+                return [
+                    _permute(
+                        t, [order[0] - 1] + [i - 1 if i > 0 else i for i in order[1:]]
+                    )
+                    for t in transposed
+                ]
+            else:
+                return lst
+
+    result: list[Any] = _permute(nested, list(axes))
+    return array(result, dtype=dtype)
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
@@ -344,6 +389,45 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.stack.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 123")  # noqa: EM101
+    if not arrays:
+        msg = "stack() requires a non-empty sequence of arrays."
+        raise ValueError(msg)
+
+    impl_arrays = [array(x)._impl for x in arrays]  # pylint: disable=protected-access
+
+    def get_dtype(x: array) -> Any:
+        if hasattr(x, "dtype"):
+            return x.dtype
+        if hasattr(x, "type"):
+            return x.type
+        msg = "Object has neither 'dtype' nor 'type'."
+        raise AttributeError(msg)
+
+    def get_ndim(x: array) -> int:
+        t = get_dtype(x)
+        n = 0
+        while hasattr(t, "type"):
+            n += 1
+            t = t.type
+        return n
+
+    first = arrays[0]
+    dtype0 = get_dtype(first)
+    ndim = max(get_ndim(first), 1)
+
+    for a in arrays[1:]:
+        if max(get_ndim(a), 1) != ndim or get_dtype(a) != dtype0:
+            msg = "All input arrays must have same dtype and number of dimensions."
+            raise ValueError(msg)
+
+    if not -ndim - 1 <= axis <= ndim:
+        msg = f"axis={axis} is out of bounds for ndim={ndim}"
+        raise ValueError(msg)
+
+    axis_norm = axis if axis >= 0 else axis + ndim + 1
+
+    expanded = [
+        cast(array, a)[(slice(None),) * axis_norm + (None,)] for a in impl_arrays
+    ]
+
+    return array(ak.concatenate(expanded, axis=axis_norm))
