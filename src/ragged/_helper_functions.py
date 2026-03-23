@@ -5,8 +5,9 @@ from typing import Any
 
 import awkward as ak
 import numpy as np
+from awkward.contents.content import Content, ListArray, ListOffsetArray
 
-from . import _spec_array_object
+from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
@@ -25,7 +26,7 @@ def regularise_to_float(t: np.dtype, /) -> np.dtype:
         return t
 
 
-def is_sorted_descending_all_levels(x: _spec_array_object.array, /) -> bool:
+def is_sorted_descending_all_levels(x: array, /) -> bool:
     """
     Checks whether all nested lists in the array are sorted by descending length
     at every level of the array (ignoring leaves).
@@ -37,7 +38,7 @@ def is_sorted_descending_all_levels(x: _spec_array_object.array, /) -> bool:
     layout: Content = ak.to_layout(array_ak)
 
     def check(node: Content) -> bool:
-        if isinstance(node, (ListOffsetArray, ListArray)):
+        if isinstance(node, ListOffsetArray | ListArray):
             lengths: ak.Array = ak.num(node, axis=1)
             if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
                 return False
@@ -48,7 +49,7 @@ def is_sorted_descending_all_levels(x: _spec_array_object.array, /) -> bool:
     return check(layout)
 
 
-def is_effectively_regular(x: _spec_array_object.array) -> bool:
+def is_effectively_regular(x: array) -> bool:
     try:
         if not hasattr(x, "__len__"):
             return False
