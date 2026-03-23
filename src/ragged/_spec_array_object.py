@@ -11,6 +11,7 @@ import enum
 import numbers
 from collections.abc import Iterator
 from typing import Any, Union
+from types import EllipsisType
 
 import awkward as ak
 import numpy as np
@@ -56,8 +57,6 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     msg = f"Awkward Array type must have regular and irregular lists only, not {layout.form.type!s}"
     raise TypeError(msg)
 
-
-EllipsisType = type(Ellipsis)
 
 GetSliceKey = Union[
     int,
@@ -695,7 +694,7 @@ class array:  # pylint: disable=C0103
             key = array(key)  # attempt to cast unknown key type as ragged.array
 
         if isinstance(key, array):
-            key = key._impl  # type: ignore[assignment]
+            key = key._impl
 
         return _box(type(self), self._impl[key])  # type: ignore[index]
 
