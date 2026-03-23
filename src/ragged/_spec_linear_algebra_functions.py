@@ -12,7 +12,7 @@ from typing import Any
 import awkward as ak
 import numpy as np
 
-from ._helper_functions import is_sorted_descending_all_levels, safe_max_num
+from ._helper_functions import safe_max_num
 from ._spec_array_object import _help_is_sorted_descending_all_levels, array
 
 
@@ -103,7 +103,7 @@ def matmul(x1: array, x2: array, /) -> array:
             raise ValueError(msg)
         x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
         x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
-        return array(sum(a * b for a, b in zip(x1_list, x2_list)))
+        return array(sum(a * b for a, b in zip(x1_list, x2_list, strict=False)))
 
     # --- 1D x 2D / 2D x 1D promotion ---
     if x1.ndim == 1 and x2.ndim == 2:
