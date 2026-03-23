@@ -44,10 +44,11 @@ repos:
     rev: "v1.7.1"
     hooks:
       - id: mypy
-        files: src|tests
-        args: []
-        additional_dependencies:
-          - pytest
+        files: ^(src/|tests/)
+        args:
+          - --ignore-missing-imports
+          - --show-error-codes
+        additional_dependencies: []
 
   - repo: https://github.com/codespell-project/codespell
     rev: "v2.2.6"

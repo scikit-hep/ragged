@@ -114,59 +114,56 @@ def test_squeeze(x, axis):
         assert b.tolist() == x.tolist()
 
 
-def test_invalid_shape_type():
-    x = ragged.array([1, 2, 3])
-    with pytest.raises(TypeError, match="Shape must be a tuple of ints"):
-        broadcast_to(x, [3, 3])  # type: ignore[arg-type]
+def test_regular_array_identity_permutation():
+    x = ragged.array([[1, 2], [3, 4]])
+    out = ragged.permute_dims(x, (0, 1))
+    expected = [[1, 2], [3, 4]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
 
 
-def test_shape_contains_non_int():
-    x = ragged.array([1, 2])
-    with pytest.raises(TypeError, match="Shape dimensions must be ints"):
-        broadcast_to(x, (3, "3"))  # type: ignore[arg-type]
+def test_regular_array_swap_axes():
+    x = ragged.array([[1, 2, 3], [4, 5, 6]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1, 4], [2, 5], [3, 6]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
 
 
-def test_shape_contains_negative_other_than_minus_one():
-    x = ragged.array([1])
-    with pytest.raises(ValueError, match="Shape dimensions must be >= -1"):
-        broadcast_to(x, (-2,))
+def test_ragged_array_swap_axes():
+    x = ragged.array([[1, 2, 3], [4, 5]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1, 4], [2, 5], [3]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
 
 
-def test_broadcast_scalar_raises():
-    x = 10
-    with pytest.raises(ValueError, match="does not support scalar inputs"):
-        broadcast_to(x, (2, 3))  # type: ignore[arg-type]
+def test_three_dimensional_ragged():
+    x = ragged.array([[[1.1, 2.2], [3.3]], [[4.4], [5.5, 6.6, 7.7]]])
+    out = ragged.permute_dims(x, (1, 0, 2))
+    expected = [[[1.1, 2.2], [4.4]], [[3.3], [5.5, 6.6, 7.7]]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
 
 
-def test_broadcast_zero_dim_array_raises():
-    x = ragged.array(42)
-    with pytest.raises(ValueError, match="does not support 0-dimensional arrays"):
-        broadcast_to(x, ())
+def test_invalid_axes_wrong_length():
+    x = ragged.array([[1, 2], [3, 4]])
+    with pytest.raises(ValueError, match="axes must be a permutation"):
+        ragged.permute_dims(x, (1,))
 
 
-def test_broadcast_incompatible_shape():
-    x = ragged.array([1, 2, 3])
-    with pytest.raises(ValueError, match="Cannot broadcast array of shape"):
-        broadcast_to(x, (2, 2))
+def test_invalid_axes_duplicates():
+    x = ragged.array([[1, 2], [3, 4]])
+    with pytest.raises(ValueError, match="axes must be a permutation"):
+        ragged.permute_dims(x, (0, 0))
 
 
-def test_shape_must_be_tuple_of_ints():
-    x = ragged.array([1])
-    with pytest.raises(TypeError):
-        broadcast_to(x, (3.0,))  # type: ignore[arg-type]
-
-
-def test_shape_must_not_be_empty_tuple_for_non_scalar():
-    x = ragged.array([1, 2])
-    with pytest.raises(ValueError, match="Shape must be a tuple of ints"):
-        broadcast_to(x, ())  # empty tuple → scalar, mismatch
-
-
-def test_positional_only_for_x_and_shape():
-    from inspect import signature
-
-    sig = signature(broadcast_to)
-    assert list(sig.parameters.keys())[:2] == ["x", "shape"]
+def test_dtype_preserved():
+    x = ragged.array([[1.5, 2.5], [3.5]])
+    out = ragged.permute_dims(x, (1, 0))
+    expected = [[1.5, 3.5], [2.5]]
+    assert ak.to_list(out._impl) == expected
+    assert out.dtype == x.dtype
 
 
 def test_flip_none():

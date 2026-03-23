@@ -5,7 +5,6 @@ from typing import Any
 
 import awkward as ak
 import numpy as np
-from awkward.contents import Content, ListArray, ListOffsetArray
 
 from ._spec_array_object import array
 
@@ -24,29 +23,6 @@ def regularise_to_float(t: np.dtype, /) -> np.dtype:
         return np.float64
     else:
         return t
-
-
-def is_sorted_descending_all_levels(x: array, /) -> bool:
-    """
-    Checks whether all nested lists in the array are sorted by descending length
-    at every level of the array (ignoring leaves).
-
-    Returns:
-        bool: True if all nested lists are sorted descending by length, False otherwise.
-    """
-    array_ak = ak.Array(x._impl)  # pylint: disable=protected-access
-    layout: Content = ak.to_layout(array_ak)
-
-    def check(node: Content) -> bool:
-        if isinstance(node, (ListOffsetArray, ListArray)):
-            lengths: ak.Array = ak.num(node, axis=1)
-            if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
-                return False
-            return check(node.content)
-        else:
-            return True
-
-    return check(layout)
 
 
 def is_effectively_regular(x: array) -> bool:
@@ -95,3 +71,16 @@ def is_regular_or_effectively_regular(x: Any) -> bool:
         pass
 
     return is_effectively_regular(x)
+
+
+def safe_max_num(arr: array, axis: int | None = None) -> int:
+    """
+    Compute the maximum number of elements along an axis for a ragged array.
+    Returns as an int, even if ak.num returns a scalar-like array.
+    """
+    counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
+
+    if isinstance(counts, int | np.integer):
+        return int(counts)
+
+    return int(max(counts))

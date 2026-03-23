@@ -69,7 +69,7 @@ def test_mean():
     )
     assert ragged.mean(data, axis=None).tolist() == pytest.approx(4.95)
     assert (
-        ragged.mean(data, axis=0).tolist()  # type: ignore[comparison-overlap]
+        ragged.mean(data, axis=0).tolist()
         == ragged.mean(data, axis=-3).tolist()
         == [
             pytest.approx([1.65, 2.75, 2.2]),
@@ -78,7 +78,7 @@ def test_mean():
         ]
     )
     assert (
-        ragged.mean(data, axis=1).tolist()  # type: ignore[comparison-overlap]
+        ragged.mean(data, axis=1).tolist()
         == ragged.mean(data, axis=-2).tolist()
         == [
             pytest.approx([0, 1.1, 2.2]),
@@ -86,22 +86,16 @@ def test_mean():
             pytest.approx([5.13333, 6.05, 8.8, 9.9]),
         ]
     )
-    assert (
-        ragged.mean(data, axis=2).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([1.1, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([3.85, 5.5, 8.25]),
-        ]
-    )
-    assert (
-        ragged.mean(data, axis=-1).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([1.1, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([3.85, 5.5, 8.25]),
-        ]
-    )
+    assert ragged.mean(data, axis=2).tolist() == [
+        pytest.approx([1.1, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([3.85, 5.5, 8.25]),
+    ]
+    assert ragged.mean(data, axis=-1).tolist() == [
+        pytest.approx([1.1, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([3.85, 5.5, 8.25]),
+    ]
     assert (
         ragged.mean(data, axis=(0, 1)).tolist()
         == ragged.mean(data, axis=(1, 0)).tolist()
@@ -213,7 +207,7 @@ def test_std():
     )
     assert ragged.std(data, axis=None).tolist() == pytest.approx(3.159509)
     assert (
-        ragged.std(data, axis=0).tolist()  # type: ignore[comparison-overlap]
+        ragged.std(data, axis=0).tolist()
         == ragged.std(data, axis=-3).tolist()
         == [
             pytest.approx([1.65, 1.65, 0]),
@@ -222,7 +216,7 @@ def test_std():
         ]
     )
     assert (
-        ragged.std(data, axis=1).tolist()  # type: ignore[comparison-overlap]
+        ragged.std(data, axis=1).tolist()
         == ragged.std(data, axis=-2).tolist()
         == [
             pytest.approx([0, 0, 0]),
@@ -230,22 +224,16 @@ def test_std():
             pytest.approx([1.37194, 1.65, 0, 0]),
         ]
     )
-    assert (
-        ragged.std(data, axis=2).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([0.898146, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.55, 0, 1.229837]),
-        ]
-    )
-    assert (
-        ragged.std(data, axis=-1).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([0.898146, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.55, 0, 1.229837]),
-        ]
-    )
+    assert ragged.std(data, axis=2).tolist() == [
+        pytest.approx([0.898146, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.55, 0, 1.229837]),
+    ]
+    assert ragged.std(data, axis=-1).tolist() == [
+        pytest.approx([0.898146, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.55, 0, 1.229837]),
+    ]
     assert (
         ragged.std(data, axis=(0, 1, 2)).tolist()
         == ragged.std(data, axis=(-1, 0, 1)).tolist()
@@ -259,7 +247,7 @@ def test_sum():
     )
     assert ragged.sum(data, axis=None).tolist() == pytest.approx(49.5)
     assert (
-        ragged.sum(data, axis=0).tolist()  # type: ignore[comparison-overlap]
+        ragged.sum(data, axis=0).tolist()
         == ragged.sum(data, axis=-3).tolist()
         == [
             pytest.approx([3.3, 5.5, 2.2]),
@@ -268,7 +256,7 @@ def test_sum():
         ]
     )
     assert (
-        ragged.sum(data, axis=1).tolist()  # type: ignore[comparison-overlap]
+        ragged.sum(data, axis=1).tolist()
         == ragged.sum(data, axis=-2).tolist()
         == [
             pytest.approx([0, 1.1, 2.2]),
@@ -277,7 +265,7 @@ def test_sum():
         ]
     )
     assert (
-        ragged.sum(data, axis=2).tolist()  # type: ignore[comparison-overlap]
+        ragged.sum(data, axis=2).tolist()
         == ragged.sum(data, axis=-1).tolist()
         == [
             pytest.approx([3.3, 0]),
@@ -313,7 +301,7 @@ def test_var():
     )
     assert ragged.var(data, axis=None).tolist() == pytest.approx(9.9825)
     assert (
-        ragged.var(data, axis=0).tolist()  # type: ignore[comparison-overlap]
+        ragged.var(data, axis=0).tolist()
         == ragged.var(data, axis=-3).tolist()
         == [
             pytest.approx([2.7225, 2.7225, 0]),
@@ -322,7 +310,7 @@ def test_var():
         ]
     )
     assert (
-        ragged.var(data, axis=1).tolist()  # type: ignore[comparison-overlap]
+        ragged.var(data, axis=1).tolist()
         == ragged.var(data, axis=-2).tolist()
         == [
             pytest.approx([0, 0, 0]),
@@ -330,22 +318,16 @@ def test_var():
             pytest.approx([1.88222222, 2.7225, 0, 0]),
         ]
     )
-    assert (
-        ragged.var(data, axis=2).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([0.80666667, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.3025, 0, 1.5125]),
-        ]
-    )
-    assert (
-        ragged.var(data, axis=-1).tolist()  # type: ignore[comparison-overlap]
-        == [
-            pytest.approx([0.80666667, ragged.nan], nan_ok=True),
-            pytest.approx([]),
-            pytest.approx([0.3025, 0, 1.5125]),
-        ]
-    )
+    assert ragged.var(data, axis=2).tolist() == [
+        pytest.approx([0.80666667, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.3025, 0, 1.5125]),
+    ]
+    assert ragged.var(data, axis=-1).tolist() == [
+        pytest.approx([0.80666667, ragged.nan], nan_ok=True),
+        pytest.approx([]),
+        pytest.approx([0.3025, 0, 1.5125]),
+    ]
     assert (
         ragged.var(data, axis=(0, 1, 2)).tolist()
         == ragged.var(data, axis=(-1, 0, 1)).tolist()

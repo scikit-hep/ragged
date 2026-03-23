@@ -6,6 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/array_object.html
 
 from __future__ import annotations
 
+import awkward as ak
 import numpy as np
 import pytest
 
@@ -129,7 +130,7 @@ def test_float():
 def test_getitem():
     # slices are extensively tested in Awkward Array
     a = ragged.array([[1, 2, 3], [4], [5, 6, 7, 8]])
-    assert a[..., 1:].tolist() == [[2, 3], [], [6, 7, 8]]  # type: ignore[comparison-overlap,index]
+    assert a[..., 1:].tolist() == [[2, 3], [], [6, 7, 8]]  # type: ignore[comparison-overlap]
 
 
 def test_index():
@@ -140,3 +141,36 @@ def test_index():
 def test_int():
     assert isinstance(int(ragged.array(10)), int)
     assert int(ragged.array(10)) == 10
+
+
+def test_reflected_operations():
+    # Test non-commutative reflected operations:
+    arr = ragged.array([[1, 2], [3]])
+
+    assert (arr - 5).tolist() == [[-4, -3], [-2]]
+    assert (5 - arr).tolist() == [[4, 3], [2]]
+
+    assert (arr / 2).tolist() == [[0.5, 1.0], [1.5]]
+    assert ak.almost_equal(((2 / arr).tolist()), ([[2.0, 1.0], [2 / 3]]))
+
+
+def test_mT_raises_unsorted():
+    arr = ragged.array([[1.1], [2.2, 3.3]])
+    msg = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
+    with pytest.raises(ValueError, match=msg):
+        _ = arr.mT
+
+
+def test_mT_raises_less_2d():
+    arr = ragged.array([1.1])
+    print(arr.ndim)
+    msg = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
+    with pytest.raises(ValueError, match=msg):
+        _ = arr.mT
+
+
+def test_T_raises_non_2d():
+    arr = ragged.array([1, 2, 3])
+    msg = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+    with pytest.raises(ValueError, match=msg):
+        _ = arr.T
