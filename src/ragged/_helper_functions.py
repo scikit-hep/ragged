@@ -6,7 +6,7 @@ from typing import Any
 import awkward as ak
 import numpy as np
 
-from . import _spec_array_object
+from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
@@ -25,7 +25,7 @@ def regularise_to_float(t: np.dtype, /) -> np.dtype:
         return t
 
 
-def is_effectively_regular(x: _spec_array_object.array) -> bool:
+def is_effectively_regular(x: array) -> bool:
     try:
         if not hasattr(x, "__len__"):
             return False
@@ -71,3 +71,16 @@ def is_regular_or_effectively_regular(x: Any) -> bool:
         pass
 
     return is_effectively_regular(x)
+
+
+def safe_max_num(arr: array, axis: int | None = None) -> int:
+    """
+    Compute the maximum number of elements along an axis for a ragged array.
+    Returns as an int, even if ak.num returns a scalar-like array.
+    """
+    counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
+
+    if isinstance(counts, int | np.integer):
+        return int(counts)
+
+    return int(max(counts))
