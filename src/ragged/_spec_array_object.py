@@ -130,7 +130,7 @@ def _help_matrix_transpose(x: array, /) -> array:
 
     def is_matrix_level(b: list[Any]) -> bool:
         for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
                 return True
         return False
 
@@ -253,7 +253,7 @@ class array:  # pylint: disable=C0103
                 msg = f"unsupported __dlpack_device__ type: {device_type}"
                 raise TypeError(msg)
 
-        elif isinstance(obj, (bool, numbers.Complex)):
+        elif isinstance(obj, bool | numbers.Complex):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
@@ -608,7 +608,7 @@ class array:  # pylint: disable=C0103
         buf = self._impl
         if isinstance(buf, ak.Array):
             buf = buf.layout
-            while isinstance(buf, (ListArray, ListOffsetArray, RegularArray)):
+            while isinstance(buf, ListArray | ListOffsetArray | RegularArray):
                 buf = buf.content
             assert isinstance(buf, NumpyArray)
             buf = buf.data
@@ -685,12 +685,12 @@ class array:  # pylint: disable=C0103
         if isinstance(key, tuple):
             for item in key:
                 if not isinstance(
-                    item, (numbers.Integral, slice, type(...), type(None))
+                    item, numbers.Integral | slice | type(...) | type(None)
                 ):
                     msg = f"ragged.array sliced as arr[item1, item2, ...] can only have int, slice, ellipsis, None (np.newaxis) as items, not {item!r}"
                     raise TypeError(msg)
         elif not isinstance(
-            key, (numbers.Integral, slice, type(...), type(None), array)
+            key, numbers.Integral | slice | type(...) | type(None) | array
         ):
             key = array(key)  # attempt to cast unknown key type as ragged.array
 
