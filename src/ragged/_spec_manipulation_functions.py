@@ -7,6 +7,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 from __future__ import annotations
 
 import numbers
+from collections.abc import Iterable
 from typing import Any, cast
 
 import awkward as ak
@@ -55,9 +56,50 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_to.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    shape  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 115")  # noqa: EM101
+    if isinstance(x, (int, float, np.generic)):
+        msg = "broadcast_to does not support scalar inputs; provide an array"
+        raise ValueError(msg)
+
+    arr = x._impl if hasattr(x, "_impl") else ak.Array(x)  # pylint: disable=W0212
+
+    if hasattr(arr, "ndim") and arr.ndim == 0:
+        msg = "broadcast_to does not support 0-dimensional arrays"
+        raise ValueError(msg)
+
+    if not isinstance(shape, tuple):
+        msg_shape: str = "Shape must be a tuple of ints, got " + str(
+            type(shape)
+        )  # ignore: [unreachable]
+        raise TypeError(msg_shape)
+
+    if shape == () and ak.count(x, axis=None) != 1:
+        msgo: str = "Shape dimensions must be >= -1"
+        raise ValueError(msgo)
+    for dim in shape:
+        if dim is None:
+            msg_none: str = "Shape cannot contain None"
+            raise ValueError(msg_none)
+
+        if not isinstance(dim, int):
+            msg_type: str = "Shape dimensions must be ints, got " + str(type(dim))
+            raise TypeError(msg_type)
+
+        if dim < -1:
+            msg_value: str = "Shape dimensions must be >= -1, got " + str(dim)
+            raise ValueError(msg_value)
+
+    dummy_np = np.zeros(
+        shape, dtype=arr.layout.dtype if hasattr(arr, "layout") else arr.dtype
+    )
+    dummy = ak.from_numpy(dummy_np)
+
+    try:
+        bx, _ = ak.broadcast_arrays(arr, dummy)
+    except Exception as e:
+        msg = f"Cannot broadcast array of shape {arr.shape} to shape {shape}"
+        raise ValueError(msg) from e
+
+    return array(bx)
 
 
 def concat(
@@ -190,9 +232,53 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    axes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 119")  # noqa: EM101
+    nested = ak.to_list(x._impl)  # pylint: disable=protected-access
+    dtype = x.dtype
+
+    # Determine depth of nested list
+    def _ndim(lst: Any) -> int:
+        if not isinstance(lst, list) or not lst:
+            return 0
+        return 1 + max((_ndim(e) for e in lst), default=0)
+
+    ndim = _ndim(nested)
+    if len(axes) != ndim or sorted(axes) != list(range(ndim)):
+        msg = f"axes must be a permutation of (0,...,{ndim-1}), got {axes}"
+        raise ValueError(msg)
+
+    # Transpose 2D ragged matrix
+    def transpose_matrix(
+        mat: list[list[float | int]],
+    ) -> list[list[float | int]]:
+        max_cols = max((len(row) for row in mat), default=0)
+        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+
+    # Recursive permutation
+    def _permute(lst: Any, order: list[int]) -> Any:
+        if not order:
+            return lst
+        if order[0] == 0:
+            # Permute deeper levels
+            if all(isinstance(e, list) for e in lst):
+                return [_permute(e, order[1:]) for e in lst]
+            else:
+                return lst
+        else:
+            # Move axis to front
+            if all(isinstance(e, list) for e in lst):
+                # Transpose outermost lists
+                transposed = transpose_matrix(lst)
+                return [
+                    _permute(
+                        t, [order[0] - 1] + [i - 1 if i > 0 else i for i in order[1:]]
+                    )
+                    for t in transposed
+                ]
+            else:
+                return lst
+
+    result: list[Any] = _permute(nested, list(axes))
+    return array(result, dtype=dtype)
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
@@ -257,11 +343,77 @@ def roll(
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
+    ak_x = x._impl  # pylint: disable=W0212
+    if not isinstance(ak_x, (array, ak.Array)):
+        msg = f"x must be a ragged array or an Awkward Array, got {type(ak_x)}"
+        raise TypeError(msg)
 
-    x  # noqa: B018, pylint: disable=W0104
-    shift  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 121")  # noqa: EM101
+    if axis is None:
+        flat = cast(ak.Array, ak.flatten(ak_x, axis=None))
+        n = len(flat)
+        if n == 0:
+            return array(ak_x)
+        if isinstance(shift, int):
+            s = shift % n
+        else:
+            msg = f"shift must be int or tuple of ints, got {type(shift)}"
+            raise TypeError(msg)
+        rolled_flat = cast(
+            ak.Array, ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+        )
+        lengths = ak.num(ak_x, axis=-1)
+        restored = ak.unflatten(rolled_flat, lengths)
+        return array(restored)
+
+    if isinstance(axis, int):
+        axis_tuple: tuple[int, ...] = (axis,)
+    elif isinstance(axis, tuple):
+        if not all(isinstance(a, int) for a in axis):
+            msg = f"axis must be int or tuple of ints, got {type(axis)}"
+            raise TypeError(msg)
+        axis_tuple = tuple(axis)
+    else:
+        msg = f"axis must be int, None, or tuple of ints, got {type(axis)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
+
+    if isinstance(shift, int):
+        shift_tuple: tuple[int, ...] = (shift,) * len(axis_tuple)
+    elif isinstance(shift, tuple):
+        if not all(isinstance(s, int) for s in shift):
+            msg = f"shift must be int or tuple of ints, got {type(shift)}"
+            raise TypeError(msg)
+        shift_tuple = tuple(shift)
+        if len(shift_tuple) != len(axis_tuple):
+            msg = f"shift and axis must have the same length, got shift={shift_tuple} and axis={axis_tuple}"
+            raise ValueError(msg)
+    else:
+        msg = f"shift must be int or tuple of ints, got {type(shift)}"  # type: ignore[unreachable]
+        raise TypeError(msg)
+
+    ndim = ak_x.ndim
+    axis_tuple = tuple(a + ndim if a < 0 else a for a in axis_tuple)
+
+    def recursive_roll(
+        obj: Any, shift_val: int, target_axis: int, depth: int = 0
+    ) -> Any:
+        if not isinstance(obj, Iterable) or isinstance(obj, (str, bytes)):
+            return obj
+
+        if depth == target_axis:
+            items = list(obj)
+            n = len(items)
+            if n == 0:
+                return []
+            s = shift_val % n
+            return items[-s:] + items[:-s] if s else items
+
+        return [recursive_roll(o, shift_val, target_axis, depth + 1) for o in obj]
+
+    result = ak_x
+    for ax, sh in zip(axis_tuple, shift_tuple):
+        result = recursive_roll(result, sh, ax)
+
+    return array(result)
 
 
 def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
