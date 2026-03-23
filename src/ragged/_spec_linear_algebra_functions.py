@@ -114,7 +114,7 @@ def matrix_transpose(x: array, /) -> array:
 
     def is_matrix_level(b: list[Any]) -> bool:
         for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
                 return True
         return False
 

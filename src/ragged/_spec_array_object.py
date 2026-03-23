@@ -10,7 +10,8 @@ import copy as copy_lib
 import enum
 import numbers
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, Any, Union
+from types import EllipsisType
+from typing import Any, Union
 
 import awkward as ak
 import numpy as np
@@ -41,7 +42,7 @@ from ._typing import (
 def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     node = layout
     shape: Shape = (len(layout),)
-    while isinstance(node, (ListArray, ListOffsetArray, RegularArray)):
+    while isinstance(node, ListArray | ListOffsetArray | RegularArray):
         if isinstance(node, RegularArray):
             shape = (*shape, node.size)
         else:
@@ -57,27 +58,17 @@ def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     raise TypeError(msg)
 
 
-# https://github.com/python/typing/issues/684#issuecomment-548203158
-if TYPE_CHECKING:
-    from enum import Enum
-
-    class ellipsis(Enum):  # pylint: disable=C0103
-        Ellipsis = "..."  # pylint: disable=C0103
-
-else:
-    ellipsis = type(Ellipsis)  # pylint: disable=C0103
-
 GetSliceKey = Union[
     int,
     slice,
-    ellipsis,
+    EllipsisType,
     None,
-    tuple[Union[int, slice, ellipsis, None], ...],
+    tuple[int | slice | EllipsisType | None, ...],
     "array",
 ]
 
 SetSliceKey = Union[
-    int, slice, ellipsis, tuple[Union[int, slice, ellipsis], ...], "array"
+    int, slice, EllipsisType, tuple[int | slice | EllipsisType, ...], "array"
 ]
 
 
@@ -93,7 +84,7 @@ def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
     layout: Content = ak.to_layout(array_ak)
 
     def check(node: Content) -> bool:
-        if isinstance(node, (ListOffsetArray, ListArray)):
+        if isinstance(node, ListOffsetArray | ListArray):
             lengths: ak.Array = ak.num(node, axis=1)
             if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
                 return False
@@ -138,7 +129,7 @@ def _help_matrix_transpose(x: array, /) -> array:
 
     def is_matrix_level(b: list[Any]) -> bool:
         for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], (int, float)):
+            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
                 return True
         return False
 
@@ -261,7 +252,7 @@ class array:  # pylint: disable=C0103
                 msg = f"unsupported __dlpack_device__ type: {device_type}"
                 raise TypeError(msg)
 
-        elif isinstance(obj, (bool, numbers.Complex)):
+        elif isinstance(obj, bool | numbers.Complex):
             self._impl = np.array(obj)
             self._shape, self._dtype = (), self._impl.dtype
 
@@ -616,7 +607,7 @@ class array:  # pylint: disable=C0103
         buf = self._impl
         if isinstance(buf, ak.Array):
             buf = buf.layout
-            while isinstance(buf, (ListArray, ListOffsetArray, RegularArray)):
+            while isinstance(buf, ListArray | ListOffsetArray | RegularArray):
                 buf = buf.content
             assert isinstance(buf, NumpyArray)
             buf = buf.data
@@ -693,12 +684,12 @@ class array:  # pylint: disable=C0103
         if isinstance(key, tuple):
             for item in key:
                 if not isinstance(
-                    item, (numbers.Integral, slice, type(...), type(None))
+                    item, numbers.Integral | slice | type(...) | type(None)
                 ):
                     msg = f"ragged.array sliced as arr[item1, item2, ...] can only have int, slice, ellipsis, None (np.newaxis) as items, not {item!r}"
                     raise TypeError(msg)
         elif not isinstance(
-            key, (numbers.Integral, slice, type(...), type(None), array)
+            key, numbers.Integral | slice | type(...) | type(None) | array
         ):
             key = array(key)  # attempt to cast unknown key type as ragged.array
 
