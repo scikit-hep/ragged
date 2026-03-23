@@ -194,6 +194,9 @@ messages_control.disable = [
   "C0302",   # I can have as many lines as I want; what's it with you?
   "no-member",
   "import-error",
+  "unsupported-binary-operation",
+  "protected-access",
+  "import-outside-toplevel",
 ]
 
 typecheck.generated-members = [
