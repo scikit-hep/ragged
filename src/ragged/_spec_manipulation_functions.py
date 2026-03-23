@@ -357,7 +357,8 @@ def roll(
             msg = f"shift must be int or tuple of ints, got {type(shift)}"
             raise TypeError(msg)
         rolled_flat = cast(
-            ak.Array, ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+            ak.Array,
+            ak.concatenate([flat[-s:], flat[:-s]]) if s else flat,  # pylint: disable=unsubscriptable-object
         )
         lengths = ak.num(ak_x, axis=-1)
         restored = ak.unflatten(rolled_flat, lengths)

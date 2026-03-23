@@ -5,7 +5,7 @@ from typing import Any
 
 import awkward as ak
 import numpy as np
-from awkward.contents.content import Content, ListArray, ListOffsetArray
+from awkward.contents import Content, ListArray, ListOffsetArray
 
 from ._spec_array_object import array
 
