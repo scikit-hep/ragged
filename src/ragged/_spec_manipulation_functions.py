@@ -56,7 +56,7 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_to.html
     """
 
-    if isinstance(x, (int, float, np.generic)):
+    if isinstance(x, int | float | np.generic):
         msg = "broadcast_to does not support scalar inputs; provide an array"
         raise ValueError(msg)
 
@@ -67,9 +67,7 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
         raise ValueError(msg)
 
     if not isinstance(shape, tuple):
-        msg_shape: str = "Shape must be a tuple of ints, got " + str(
-            type(shape)
-        )  # ignore: [unreachable]
+        msg_shape: str = "Shape must be a tuple of ints, got " + str(type(shape))  # type: ignore[unreachable]
         raise TypeError(msg_shape)
 
     if shape == () and ak.count(x, axis=None) != 1:
@@ -77,11 +75,11 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
         raise ValueError(msgo)
     for dim in shape:
         if dim is None:
-            msg_none: str = "Shape cannot contain None"
+            msg_none: str = "Shape cannot contain None"  # type: ignore[unreachable]
             raise ValueError(msg_none)
 
         if not isinstance(dim, int):
-            msg_type: str = "Shape dimensions must be ints, got " + str(type(dim))
+            msg_type: str = "Shape dimensions must be ints, got " + str(type(dim))  # type: ignore[unreachable]
             raise TypeError(msg_type)
 
         if dim < -1:
@@ -344,7 +342,7 @@ def roll(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
     ak_x = x._impl  # pylint: disable=W0212
-    if not isinstance(ak_x, (array, ak.Array)):
+    if not isinstance(ak_x, array | ak.Array):
         msg = f"x must be a ragged array or an Awkward Array, got {type(ak_x)}"
         raise TypeError(msg)
 
@@ -359,7 +357,8 @@ def roll(
             msg = f"shift must be int or tuple of ints, got {type(shift)}"
             raise TypeError(msg)
         rolled_flat = cast(
-            ak.Array, ak.concatenate([flat[-s:], flat[:-s]]) if s else flat
+            ak.Array,
+            ak.concatenate([flat[-s:], flat[:-s]]) if s else flat,  # pylint: disable=unsubscriptable-object
         )
         lengths = ak.num(ak_x, axis=-1)
         restored = ak.unflatten(rolled_flat, lengths)
@@ -396,7 +395,7 @@ def roll(
     def recursive_roll(
         obj: Any, shift_val: int, target_axis: int, depth: int = 0
     ) -> Any:
-        if not isinstance(obj, Iterable) or isinstance(obj, (str, bytes)):
+        if not isinstance(obj, Iterable) or isinstance(obj, str | bytes):
             return obj
 
         if depth == target_axis:
@@ -410,7 +409,7 @@ def roll(
         return [recursive_roll(o, shift_val, target_axis, depth + 1) for o in obj]
 
     result = ak_x
-    for ax, sh in zip(axis_tuple, shift_tuple):
+    for ax, sh in zip(axis_tuple, shift_tuple, strict=False):
         result = recursive_roll(result, sh, ax)
 
     return array(result)

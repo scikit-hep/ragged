@@ -12,7 +12,6 @@ import awkward as ak
 import pytest
 
 import ragged
-from ragged._spec_manipulation_functions import broadcast_to
 
 devices = ["cpu"]
 try:
