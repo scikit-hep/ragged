@@ -153,6 +153,7 @@ from ._spec_utility_functions import (  # pylint: disable=W0622
     all,
     any,
 )
+from ._version import version as __version__
 
 __array_api_version__ = "2022.12"
 
@@ -292,4 +293,5 @@ __all__ = [
     # _spec_utility_functions
     "all",
     "any",
+    "__version__",
 ]
