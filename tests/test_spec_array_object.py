@@ -174,3 +174,45 @@ def test_T_raises_non_2d():
     msg = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
     with pytest.raises(ValueError, match=msg):
         _ = arr.T
+
+
+def test_mT_success_rectangular():
+    """Standard 2x3 rectangular matrix should transpose to 3x2."""
+    data = [[1, 2, 3], [4, 5, 6]]
+    arr = ragged.array(data)
+
+    result = arr.mT
+    expected = [[1, 4], [2, 5], [3, 6]]
+
+    assert ak.to_list(result._impl) == expected
+    # Property: A_TT == A
+    assert ak.to_list(result.mT._impl) == data
+
+
+def test_mT_success_ragged_descending():
+    """Ragged matrix sorted descending should transpose correctly (left-aligned)."""
+    data = [[1.1, 2.2, 3.3], [4.4, 5.5], [6.6]]
+    arr = ragged.array(data)
+
+    result = arr.mT
+    # Row 0: first elements [1.1, 4.4, 6.6]
+    # Row 1: second elements [2.2, 5.5]
+    # Row 2: third elements [3.3]
+    expected = [[1.1, 4.4, 6.6], [2.2, 5.5], [3.3]]
+
+    assert ak.to_list(result._impl) == expected
+    # Verify invertibility
+    assert ak.to_list(result.mT._impl) == data
+
+
+def test_mT_empty_rows():
+    """Check behavior with empty lists (still technically descending)."""
+    data = [[1, 2], [], []]
+    arr = ragged.array(data)
+
+    result = arr.mT
+    # Col 0: [1] (from first row only)
+    # Col 1: [2] (from first row only)
+    expected = [[1], [2]]
+
+    assert ak.to_list(result._impl) == expected

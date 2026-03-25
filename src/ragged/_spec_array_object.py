@@ -115,33 +115,43 @@ def _help_matrix_transpose(x: array, /) -> array:
         msg = "Input must have at least 2 dimensions"
         raise ValueError(msg)
 
-    if not _help_is_sorted_descending_all_levels(x):
-        message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
-        raise ValueError(message)
+    # Use a check that only looks at the last axis:
+    # pylint: disable=unsubscriptable-object
+    counts = ak.num(xarray, axis=-1)
+    # Check if counts are descending within their respective parent lists
+    is_descending = ak.all(counts[..., :-1] >= counts[..., 1:])
+    # pylint: enable=unsubscriptable-object
 
-    nested: list[Any] = ak.to_list(xarray)
+    if not is_descending:
+        msg = (
+            "Ragged dimension's lists must be sorted from longest to shortest, "
+            "which is the only way that makes left-aligned ragged transposition possible."
+        )
+        raise ValueError(msg)
 
-    def transpose_matrix(
-        mat: list[list[float | int]],
-    ) -> list[list[float | int]]:
-        max_cols = max((len(row) for row in mat), default=0)
-        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+    # Vectorized Transpose Logic
+    flat_data: ak.Array = ak.flatten(xarray, axis=-1)
+    col_indices: ak.Array = ak.flatten(ak.local_index(xarray, axis=-1))
 
-    def is_matrix_level(b: list[Any]) -> bool:
-        for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
-                return True
-        return False
+    # Stable sort keeps the row order within each column
+    sorter: ak.Array = ak.argsort(col_indices, axis=-1, stable=True)
 
-    def recurse(batch: list[Any]) -> list[Any]:
-        if all(isinstance(b, list) for b in batch):
-            if is_matrix_level(batch):
-                return transpose_matrix(batch)
-            return [recurse(b) for b in batch]
-        return batch
+    # pylint: disable=unsubscriptable-object
+    # Awkward Arrays are subscriptable via advanced indexing.
+    pivoted = flat_data[sorter]
+    # pylint: enable=unsubscriptable-object
 
-    transposed = recurse(nested)
-    return array(transposed)
+    # Calculate new row lengths
+    counts = ak.num(xarray, axis=-1)
+    max_len = ak.max(counts)
+
+    # Broadcasting to find how many rows have an element at each column index
+    counts_np = np.atleast_1d(ak.to_numpy(counts))
+    new_counts = np.sum(counts_np[:, np.newaxis] > np.arange(max_len), axis=0)
+
+    transposed_ak = ak.unflatten(pivoted, new_counts)
+
+    return array(transposed_ak)
 
 
 class array:  # pylint: disable=C0103
