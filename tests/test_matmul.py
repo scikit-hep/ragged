@@ -6,8 +6,8 @@ Tests for ragged.array.__matmul__ and __rmatmul__.
 Coverage
 --------
 Regular (non-ragged) arrays
-  - 2-D × 2-D square
-  - 2-D × 2-D non-square  (M,K) @ (K,N) → (M,N)
+  - 2-D x 2-D square
+  - 2-D x 2-D non-square  (M,K) @ (K,N) -> (M,N)
   - 3-D batched matmul    (..., M, K) @ (..., K, N) → (..., M, N)
   - @ operator and explicit __matmul__ call give the same result
   - __rmatmul__: scalar-side left operand delegates correctly
@@ -34,10 +34,10 @@ import pytest
 
 import ragged
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make(nested, dtype=None) -> ragged.array:
     """Shorthand constructor."""
@@ -53,12 +53,15 @@ def _as_np(x: ragged.array) -> np.ndarray:
 # Regular (non-ragged) 2-D matmul
 # ---------------------------------------------------------------------------
 
+
 class TestMatmul2D:
     def test_square(self):
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
         b = _make([[5, 6], [7, 8]], dtype=np.float64)
         result = a @ b
-        expected = np.array([[1, 2], [3, 4]], dtype=np.float64) @ np.array([[5, 6], [7, 8]], dtype=np.float64)
+        expected = np.array([[1, 2], [3, 4]], dtype=np.float64) @ np.array(
+            [[5, 6], [7, 8]], dtype=np.float64
+        )
         np.testing.assert_array_equal(_as_np(result), expected)
 
     def test_non_square(self):
@@ -66,7 +69,9 @@ class TestMatmul2D:
         a = _make([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         b = _make([[7, 8], [9, 10], [11, 12]], dtype=np.float64)
         result = a @ b
-        expected = np.array([[1, 2, 3], [4, 5, 6]]) @ np.array([[7, 8], [9, 10], [11, 12]])
+        expected = np.array([[1, 2, 3], [4, 5, 6]]) @ np.array(
+            [[7, 8], [9, 10], [11, 12]]
+        )
         np.testing.assert_array_equal(_as_np(result), expected.astype(np.float64))
 
     def test_non_square_tall_times_wide(self):
@@ -74,7 +79,9 @@ class TestMatmul2D:
         a = _make([[1, 0], [0, 1], [1, 1]], dtype=np.float64)
         b = _make([[2, 3, 4, 5], [6, 7, 8, 9]], dtype=np.float64)
         result = a @ b
-        expected = np.array([[1, 0], [0, 1], [1, 1]]) @ np.array([[2, 3, 4, 5], [6, 7, 8, 9]])
+        expected = np.array([[1, 0], [0, 1], [1, 1]]) @ np.array(
+            [[2, 3, 4, 5], [6, 7, 8, 9]]
+        )
         np.testing.assert_array_equal(_as_np(result), expected.astype(np.float64))
 
     def test_identity_matrix(self):
@@ -120,6 +127,7 @@ class TestMatmul2D:
 # Batched (N-D) matmul
 # ---------------------------------------------------------------------------
 
+
 class TestMatmulBatched:
     def test_3d_batch(self):
         # (2, 2, 3) @ (2, 3, 2) → (2, 2, 2)
@@ -144,6 +152,7 @@ class TestMatmulBatched:
 # __rmatmul__
 # ---------------------------------------------------------------------------
 
+
 class TestRMatmul:
     def test_rmatmul_via_operator(self):
         """Python tries b.__matmul__(a) first; if that fails, tries a.__rmatmul__(b)."""
@@ -167,12 +176,15 @@ class TestRMatmul:
         b = _make([[3, 4], [5, 6]], dtype=np.float64)
         ab = _as_np(a @ b)
         ba = _as_np(b @ a)
-        assert not np.array_equal(ab, ba), "a@b and b@a should differ for these matrices"
+        assert not np.array_equal(
+            ab, ba
+        ), "a@b and b@a should differ for these matrices"
 
 
 # ---------------------------------------------------------------------------
 # Ragged (non-contracted) dimensions
 # ---------------------------------------------------------------------------
+
 
 class TestMatmulRagged:
     def test_ragged_batch_dimension(self):
@@ -182,14 +194,18 @@ class TestMatmulRagged:
         """
         # batch of two independent matrix products
         # mat0: (2,2) @ (2,2); mat1: (3,2) @ (2,3)
-        a = ragged.array([
-            [[1, 0], [0, 1]],
-            [[1, 2], [3, 4], [5, 6]],
-        ])
-        b = ragged.array([
-            [[5, 6], [7, 8]],
-            [[1, 0, 1], [0, 1, 0]],
-        ])
+        a = ragged.array(
+            [
+                [[1, 0], [0, 1]],
+                [[1, 2], [3, 4], [5, 6]],
+            ]
+        )
+        b = ragged.array(
+            [
+                [[5, 6], [7, 8]],
+                [[1, 0, 1], [0, 1, 0]],
+            ]
+        )
         result = a @ b
         # batch dimension should be preserved (length 2)
         assert len(result) == 2
@@ -204,6 +220,7 @@ class TestMatmulRagged:
 # ---------------------------------------------------------------------------
 # Error paths
 # ---------------------------------------------------------------------------
+
 
 class TestMatmulErrors:
     def test_1d_left_raises(self):
@@ -236,7 +253,7 @@ class TestMatmulErrors:
         b_np = np.ones((2, 3, 5), dtype=np.float64)  # inner: 4 ≠ 3
         a = _make(a_np.tolist())
         b = _make(b_np.tolist())
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="[Mm]ismatch|dimension|shape"):
             _ = a @ b
 
     def test_ragged_contracted_axis_raises(self):
@@ -245,7 +262,7 @@ class TestMatmulErrors:
         matmul must raise ValueError because the dot products are undefined.
         """
         # ragged rows — last axis of `a` is ragged (shape[-1] is None)
-        a = ragged.array([[1, 2, 3], [4, 5]])       # shape (2, None)
+        a = ragged.array([[1, 2, 3], [4, 5]])  # shape (2, None)
         b = _make([[1, 0, 1], [0, 1, 0], [1, 1, 1]], dtype=np.float64)  # (3, 3)
         with pytest.raises(ValueError, match="[Rr]agged|contracted|axis"):
             _ = a @ b
@@ -254,6 +271,7 @@ class TestMatmulErrors:
 # ---------------------------------------------------------------------------
 # In-place operator __imatmul__
 # ---------------------------------------------------------------------------
+
 
 class TestIMatmul:
     def test_imatmul_updates_in_place(self):
@@ -274,13 +292,14 @@ class TestIMatmul:
     def test_imatmul_error_propagates(self):
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
         b = _make([[1, 2, 3], [4, 5, 6]], dtype=np.float64)  # shape mismatch
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="[Ii]n-place|shape|mismatch"):
             a @= b
 
 
 # ---------------------------------------------------------------------------
 # Numerical accuracy
 # ---------------------------------------------------------------------------
+
 
 class TestMatmulNumerics:
     def test_large_values(self):
@@ -308,8 +327,7 @@ class TestMatmulNumerics:
         a = _make([[1 + 1j, 2 + 0j], [0 + 1j, 1 + 2j]], dtype=np.complex128)
         b = _make([[1 + 0j, 0 + 1j], [1 + 1j, 1 + 0j]], dtype=np.complex128)
         result = a @ b
-        expected = (
-            np.array([[1 + 1j, 2 + 0j], [0 + 1j, 1 + 2j]])
-            @ np.array([[1 + 0j, 0 + 1j], [1 + 1j, 1 + 0j]])
+        expected = np.array([[1 + 1j, 2 + 0j], [0 + 1j, 1 + 2j]]) @ np.array(
+            [[1 + 0j, 0 + 1j], [1 + 1j, 1 + 0j]]
         )
         np.testing.assert_allclose(_as_np(result), expected)
