@@ -478,7 +478,104 @@ def vecdot(x1: rg.array, x2: rg.array, /, *, axis: int = -1) -> rg.array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.vecdot.html
     """
 
-    x1  # noqa: B018, pylint: disable=W0104
-    x2  # noqa: B018, pylint: disable=W0104
-    axis  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 113")  # noqa: EM101
+    import ragged as rg
+
+    if x1.ndim == 0 or x2.ndim == 0:
+        msg = "vecdot: arrays must have at least one dimension"
+        raise ValueError(msg)
+
+    # Normalise axis to a non-negative index relative to the broadcast rank.
+    # Per the spec the rank is determined by broadcasting the non-contracted axes,
+    # but for validation we use the larger ndim.
+    rank = max(x1.ndim, x2.ndim)
+    if axis < -rank or axis >= rank:
+        msg = f"vecdot: axis {axis} is out of range for arrays with rank {rank}"
+        raise ValueError(msg)
+    norm_axis = axis % rank  # convert negative to positive
+
+    # --- helper: uniform size along an axis (None = truly ragged) ---
+    def _uniform_size(arr: rg.array, ax: int) -> int | None:
+        nums = ak.num(arr._impl, axis=ax)  # pylint: disable=W0212
+        lst = ak.to_list(nums)
+        if isinstance(lst, int):
+            return lst
+
+        def _flat(obj: Any) -> list[int]:
+            if isinstance(obj, int):
+                return [obj]
+            out: list[int] = []
+            for item in obj:
+                out.extend(_flat(item))
+            return out
+
+        flat = _flat(lst)
+        if not flat:
+            return None
+        return flat[0] if all(v == flat[0] for v in flat) else None
+
+    # The contracted axis must not be ragged.
+    k1 = _uniform_size(x1, norm_axis)
+    k2 = _uniform_size(x2, norm_axis)
+    if k1 is None or k2 is None:
+        msg = f"vecdot: the contracted axis (axis={axis}) must not be ragged"
+        raise ValueError(msg)
+    if k1 != k2:
+        msg = (
+            f"vecdot: contracted dimension mismatch — "
+            f"x1 axis {norm_axis} has size {k1}, x2 axis {norm_axis} has size {k2}"
+        )
+        raise ValueError(msg)
+
+    out_dtype = np.result_type(x1.dtype, x2.dtype)
+
+    # --- fast path: fully regular arrays ---
+    try:
+        x1_np = ak.to_numpy(x1._impl)  # pylint: disable=W0212
+        x2_np = ak.to_numpy(x2._impl)  # pylint: disable=W0212
+        # Apply complex conjugate to x1 as required by the spec.
+        result_np = np.sum(np.conj(x1_np) * x2_np, axis=norm_axis)
+        result_np = result_np.astype(out_dtype)
+        if result_np.ndim == 0:
+            # 1-D input -> 0-D scalar result; preserve dtype via numpy scalar
+            return rg.array(result_np[()])
+        return rg.array(result_np)
+    except (TypeError, ValueError):
+        pass
+
+    # --- slow path: ragged non-contracted outer dims ---
+    # Recurse element-wise over the leading (batch) dimension.
+    if x1.ndim != x2.ndim:
+        msg = (
+            "vecdot: slow path requires x1 and x2 to have the same number of dimensions"
+        )
+        raise ValueError(msg)
+
+    def _vecdot_nested(
+        a_list: list[Any],
+        b_list: list[Any],
+        current_depth: int,
+    ) -> list[Any] | Any:
+        """Recursively compute vecdot, contracting at `norm_axis`."""
+        if current_depth == norm_axis:
+            # Contract this axis: element-wise multiply and sum.
+            return sum(
+                np.conj(np.asarray(ai, dtype=out_dtype))
+                * np.asarray(bi, dtype=out_dtype)
+                for ai, bi in zip(a_list, b_list, strict=False)
+            )
+        # Recurse into the next dimension.
+        if len(a_list) != len(b_list):
+            msg = (
+                f"vecdot: batch dimension mismatch at depth {current_depth} — "
+                f"x1 has {len(a_list)} entries, x2 has {len(b_list)}"
+            )
+            raise ValueError(msg)
+        return [
+            _vecdot_nested(ai, bi, current_depth + 1)
+            for ai, bi in zip(a_list, b_list, strict=False)
+        ]
+
+    x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
+    x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
+    result_list = _vecdot_nested(x1_list, x2_list, 0)
+    return rg.array(result_list, dtype=out_dtype)
