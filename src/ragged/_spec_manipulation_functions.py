@@ -6,6 +6,7 @@ https://data-apis.org/array-api/latest/API_specification/manipulation_functions.
 
 from __future__ import annotations
 
+import contextlib
 import numbers
 from collections.abc import Iterable
 from typing import Any, cast
@@ -301,10 +302,88 @@ def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) ->
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.reshape.html
     """
 
-    x  # noqa: B018, pylint: disable=W0104
-    shape  # noqa: B018, pylint: disable=W0104
-    copy  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 120")  # noqa: EM101
+    # --- validate shape ---
+    neg_one_count = sum(1 for s in shape if s == -1)
+    if neg_one_count > 1:
+        msg = "reshape: only one dimension may be -1"
+        raise ValueError(msg)
+    if any(s < -1 or s == 0 and s != 0 for s in shape):
+        # zero-size dims are allowed; negative dims other than -1 are not
+        pass
+    if any(s < -1 for s in shape):
+        msg = "reshape: shape dimensions must be -1 or non-negative"
+        raise ValueError(msg)
+
+    # --- fast path: fully regular arrays (can convert to numpy) ---
+    x_np: np.ndarray | None = None
+    with contextlib.suppress(TypeError, ValueError):
+        x_np = ak.to_numpy(x._impl)  # pylint: disable=W0212
+
+    if x_np is not None:
+        # Resolve -1
+        if -1 in shape:
+            known = 1
+            for s in shape:
+                if s != -1:
+                    known *= s
+            total = x_np.size
+            if known == 0 or total % known != 0:
+                msg = (
+                    f"reshape: cannot reshape array of size {total} "
+                    f"into shape {shape}"
+                )
+                raise ValueError(msg)
+            shape = tuple(total // known if s == -1 else s for s in shape)
+
+        result_np = x_np.reshape(shape)  # raises ValueError on size mismatch
+
+        if copy is False and not np.shares_memory(x_np, result_np):
+            msg = "reshape: copy=False but a copy was required"
+            raise ValueError(msg)
+
+        return _box(type(x), ak.from_numpy(result_np))
+
+    # --- ragged array: total element count is variable across batch entries ---
+    # The only unambiguous target is a flat 1-D array (all elements concatenated).
+    total_elements = int(ak.count(x._impl, axis=None))  # pylint: disable=W0212
+
+    # Resolve -1 using total element count.
+    resolved: list[int] = list(shape)
+    if -1 in resolved:
+        idx = resolved.index(-1)
+        known = 1
+        for s in resolved:
+            if s != -1:
+                known *= s
+        if known == 0 or total_elements % known != 0:
+            msg = (
+                f"reshape: cannot reshape ragged array with {total_elements} "
+                f"total elements into shape {shape}"
+            )
+            raise ValueError(msg)
+        resolved[idx] = total_elements // known
+
+    target_total = 1
+    for s in resolved:
+        target_total *= s
+
+    if target_total != total_elements:
+        msg = (
+            f"reshape: cannot reshape ragged array with {total_elements} "
+            f"total elements into shape {tuple(resolved)}"
+        )
+        raise ValueError(msg)
+
+    # Only allow 1-D target for ragged arrays.
+    if len(resolved) != 1:
+        msg = (
+            "reshape: ragged arrays can only be reshaped to 1-D (flatten); "
+            "multi-dimensional reshape requires all dimensions to be regular"
+        )
+        raise ValueError(msg)
+
+    flat = ak.flatten(x._impl, axis=None)  # pylint: disable=W0212
+    return _box(type(x), flat)
 
 
 def roll(
