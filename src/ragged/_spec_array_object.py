@@ -36,8 +36,6 @@ from ._typing import (
     numeric_types,
 )
 
-# from ._spec_linear_algebra_functions import matrix_transpose
-
 
 def _shape_dtype(layout: Content) -> tuple[Shape, Dtype]:
     node = layout
@@ -70,88 +68,6 @@ GetSliceKey = Union[
 SetSliceKey = Union[
     int, slice, EllipsisType, tuple[int | slice | EllipsisType, ...], "array"
 ]
-
-
-def _help_is_sorted_descending_all_levels(x: array, /) -> bool:
-    """
-    Checks whether all nested lists in the array are sorted by descending length
-    at every level of the array (ignoring leaves).
-    (A complete equivalent of is_sorted_descending_all_levels helper function introduced here to avoid circular dependencies.)
-    Returns:
-        bool: True if all nested lists are sorted descending by length, False otherwise.
-    """
-    array_ak = ak.Array(x._impl)  # pylint: disable=protected-access
-    layout: Content = ak.to_layout(array_ak)
-
-    def check(node: Content) -> bool:
-        if isinstance(node, ListOffsetArray | ListArray):
-            lengths: ak.Array = ak.num(node, axis=1)
-            if not ak.all(lengths[:-1] >= lengths[1:]):  # pylint: disable=E1136
-                return False
-            return check(node.content)
-        else:
-            return True
-
-    return check(layout)
-
-
-def _help_matrix_transpose(x: array, /) -> array:
-    """
-    Transposes a matrix (or a stack of matrices) x.
-    (A complete equivalent of matrix_transpose introduced here to avoid circular dependencies.)
-
-    Args:
-        x: Input array having shape `(..., M, N)` and whose innermost two
-        dimensions form `M` by `N` matrices.
-
-    Returns:
-        An array containing the transpose for each matrix and having shape
-        `(..., N, M)`. The returned array has the same data type as `x`.
-
-    https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
-    """
-    xarray = x._impl  # pylint: disable=protected-access
-    if not hasattr(xarray, "ndim") or xarray.ndim < 2:
-        msg = "Input must have at least 2 dimensions"
-        raise ValueError(msg)
-
-    # Use a check that only looks at the last axis:
-    # pylint: disable=unsubscriptable-object
-    counts = ak.num(xarray, axis=-1)
-    # Check if counts are descending within their respective parent lists
-    is_descending = ak.all(counts[..., :-1] >= counts[..., 1:])
-    # pylint: enable=unsubscriptable-object
-
-    if not is_descending:
-        msg = (
-            "Ragged dimension's lists must be sorted from longest to shortest, "
-            "which is the only way that makes left-aligned ragged transposition possible."
-        )
-        raise ValueError(msg)
-
-    # Vectorized Transpose Logic
-    flat_data: ak.Array = ak.flatten(xarray, axis=-1)
-    col_indices: ak.Array = ak.flatten(ak.local_index(xarray, axis=-1))
-
-    # Stable sort keeps the row order within each column
-    sorter: ak.Array = ak.argsort(col_indices, axis=-1, stable=True)
-
-    # pylint: disable=unsubscriptable-object
-    # Awkward Arrays are subscriptable via advanced indexing.
-    pivoted = flat_data[sorter]
-    # pylint: enable=unsubscriptable-object
-
-    # Calculate new row lengths
-    counts = ak.num(xarray, axis=-1)
-    max_len = ak.max(counts)
-
-    # Broadcasting to find how many rows have an element at each column index
-    counts_np = np.atleast_1d(ak.to_numpy(counts))
-    new_counts = np.sum(counts_np[:, np.newaxis] > np.arange(max_len), axis=0)
-
-    transposed_ak = ak.unflatten(pivoted, new_counts)
-
-    return array(transposed_ak)
 
 
 class array:  # pylint: disable=C0103
@@ -440,14 +356,9 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.mT.html
         """
+        from ._spec_linear_algebra_functions import matrix_transpose
 
-        if not _help_is_sorted_descending_all_levels(self):
-            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
-            raise ValueError(message)
-        if self.ndim < 2:
-            message = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
-            raise ValueError(message)
-        return _help_matrix_transpose(self)
+        return matrix_transpose(self)
 
     @property
     def ndim(self) -> int:
@@ -509,14 +420,14 @@ class array:  # pylint: disable=C0103
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.T.html
         """
-
-        if not _help_is_sorted_descending_all_levels(self):
-            message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
-            raise ValueError(message)
+        # Per Array API, .T is strictly for 2D arrays
         if self.ndim != 2:
-            message = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
-            raise ValueError(message)
-        return _help_matrix_transpose(self)
+            msg = "Per Array API, input array must be 2D to have a transpose property. Use permute_dims to reverse all axes"
+            raise ValueError(msg)
+
+        from ._spec_linear_algebra_functions import matrix_transpose
+
+        return matrix_transpose(self)
 
     # methods: https://data-apis.org/array-api/latest/API_specification/array_object.html#methods
 
@@ -783,10 +694,118 @@ class array:  # pylint: disable=C0103
         """
         Computes the matrix product.
 
+        For 2-D arrays, this is a standard matrix multiplication: (M, K) @ (K, N) → (M, N).
+        For N-D arrays, batch dimensions are broadcast and the last two axes are the
+        matrix dimensions, following the Array API convention.
+
+        Ragged inner dimensions are not supported — the contracted axis (last axis of
+        self, second-to-last axis of other) must be a regular (non-None) dimension so
+        that each dot product is well-defined.  The non-contracted axes may be ragged,
+        in which case the result is also ragged.
+
+        Raises:
+            ValueError: If either array has fewer than 2 dimensions.
+            ValueError: If the contracted dimensions are ragged or do not match.
+            TypeError: If the two arrays reside on different devices.
+
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
+        other = self._ensure_array(other)
 
-        raise NotImplementedError("TODO 22")  # noqa: EM101
+        if self.ndim < 2 or other.ndim < 2:
+            msg = "matmul requires arrays with at least 2 dimensions"
+            raise ValueError(msg)
+
+        # The contracted dimension is self.shape[-1] and other.shape[-2].
+        # Both must be regular (not None) and equal.
+        #
+        # NOTE: ragged.array always stores the last axis as variable-length
+        # internally, so shape[-1] is always None regardless of whether rows
+        # are actually uniform.  We use ak.num to determine the true size.
+        def _uniform_axis_size(arr: array, axis: int) -> int | None:
+            """Return the axis size if uniform across all entries, else None."""
+
+            def _flatten_ints(obj: Any) -> list[int]:
+                """Recursively flatten nested lists/ints to a flat list of ints."""
+                if isinstance(obj, int):
+                    return [obj]
+                result: list[int] = []
+                for item in obj:
+                    result.extend(_flatten_ints(item))
+                return result
+
+            nums = ak.num(arr._impl, axis=axis)
+            try:
+                nums_list = ak.to_list(nums)
+            except Exception:
+                nums_list = int(nums)
+            if isinstance(nums_list, int):
+                return nums_list
+            flat = _flatten_ints(nums_list)
+            if not flat:
+                return None
+            return flat[0] if all(v == flat[0] for v in flat) else None
+
+        k_self = _uniform_axis_size(self, -1)
+        k_other = _uniform_axis_size(other, -2)
+
+        if k_self is None or k_other is None:
+            msg = (
+                "matmul: the contracted axis (last axis of the left operand / "
+                "second-to-last axis of the right operand) must not be ragged"
+            )
+            raise ValueError(msg)
+
+        if k_self != k_other:
+            msg = (
+                f"matmul: contracted dimension mismatch — "
+                f"left operand last axis={k_self}, right operand second-to-last axis={k_other}"
+            )
+            raise ValueError(msg)
+
+        left_impl, right_impl = _unbox(self, other)
+
+        # Fast path: both arrays are fully regular (no ragged leading dims).
+        # Convert to NumPy and use np.matmul directly.
+        try:
+            left_np = ak.to_numpy(left_impl)
+            right_np = ak.to_numpy(right_impl)
+            result_np = np.matmul(left_np, right_np)
+            return _box(type(self), ak.from_numpy(result_np))
+        except (TypeError, ValueError, NotImplementedError):
+            pass
+
+        # Slow path: at least one operand has ragged non-contracted dimensions.
+        # We recurse over the batch / ragged leading dimensions with ak.to_list,
+        # compute each leaf matrix product with NumPy, and reassemble.
+        left_list = ak.to_list(left_impl)
+        right_list = ak.to_list(right_impl)
+
+        def _matmul_nested(
+            a: list[Any] | np.ndarray,
+            b: list[Any] | np.ndarray,
+        ) -> list[Any] | np.ndarray:
+            """Recursively multiply two (possibly ragged) nested lists."""
+            # Base case: both are 2-D lists-of-lists (or convertible)
+            a_arr = np.asarray(a, dtype=object)
+            b_arr = np.asarray(b, dtype=object)
+            if a_arr.ndim == 2 and b_arr.ndim == 2:
+                # Homogeneous 2-D — use np.matmul directly.
+                return np.matmul(
+                    np.asarray(a, dtype=self._dtype),
+                    np.asarray(b, dtype=other._dtype),
+                ).tolist()
+            # Ragged leading dimension — zip and recurse.
+            if len(a) != len(b):
+                msg = (
+                    f"matmul: batch dimension mismatch — "
+                    f"left has {len(a)} entries, right has {len(b)}"
+                )
+                raise ValueError(msg)
+            return [_matmul_nested(ai, bi) for ai, bi in zip(a, b, strict=False)]
+
+        result_list = _matmul_nested(left_list, right_list)
+        return array(result_list, dtype=np.result_type(self._dtype, other._dtype))
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -1080,8 +1099,50 @@ class array:  # pylint: disable=C0103
 
         (Internal arrays are immutable; this only replaces the array that the
         Python object points to.)
+
+        Raises ValueError if the result shape differs from the original shape,
+        since in-place assignment cannot change the shape of the array.
         """
-        return self._apply_inplace(self @ other)
+        orig_shape = self.shape
+        result = self @ other
+
+        # Build the "effective" original shape: substitute None dims with what
+        # ak.num reports (uniform size, or None if truly ragged).
+        def _effective_size(arr: array, axis: int) -> int | None:
+            nums = ak.num(arr._impl, axis=axis)
+            try:
+                lst = ak.to_list(nums)
+            except Exception:
+                lst = int(nums)
+            if isinstance(lst, int):
+                return lst
+
+            def _flatten(obj: Any) -> list[int]:
+                if isinstance(obj, int):
+                    return [obj]
+                out: list[int] = []
+                for item in obj:
+                    out.extend(_flatten(item))
+                return out
+
+            flat = _flatten(lst)
+            return flat[0] if flat and all(v == flat[0] for v in flat) else None
+
+        effective_self_shape = tuple(
+            _effective_size(self, i) if s is None else s
+            for i, s in enumerate(orig_shape)
+        )
+        # result.shape has concrete values from the numpy fast path
+        if result.ndim != len(orig_shape) or any(
+            es is not None and es != r
+            for es, r in zip(effective_self_shape, result.shape, strict=False)
+        ):
+            msg = (
+                f"matmul: in-place result shape {result.shape} does not match "
+                f"original shape {orig_shape}"
+            )
+            raise ValueError(msg)
+        return self._apply_inplace(result)
 
     def __iand__(self, other: int | bool | array, /) -> array:
         """
@@ -1180,14 +1241,9 @@ class array:  # pylint: disable=C0103
 
         return ns.bitwise_right_shift(self._ensure_array(other), self)
 
-    # __rmatmul__ should also raise NotImplementedError:
     def __rmatmul__(self, other: array, /) -> array:
         """Compute other @ self."""
-        msg = (
-            "Matrix multiplication (@) is not supported for ragged arrays. "
-            "Matrix operations require fixed dimensions."
-        )
-        raise NotImplementedError(msg)
+        return self._ensure_array(other).__matmul__(self)
 
 
 def _is_shared(

@@ -216,3 +216,47 @@ def test_mT_empty_rows():
     expected = [[1], [2]]
 
     assert ak.to_list(result._impl) == expected
+
+
+def test_T_success_rectangular():
+    """Verify .T works identically to .mT for a standard 2D matrix."""
+    data = [[10, 20, 30], [40, 50, 60]]
+    arr = ragged.array(data)
+
+    result = arr.T
+    expected = [[10, 40], [20, 50], [30, 60]]
+
+    assert ak.to_list(result._impl) == expected
+    # Property: (A.T).T == A
+    assert ak.to_list(result.T._impl) == data
+
+
+def test_T_success_ragged():
+    """Verify .T handles 2D ragged descending correctly."""
+    data = [[1, 2, 3], [4, 5], [6]]
+    arr = ragged.array(data)
+
+    result = arr.T
+    expected = [[1, 4, 6], [2, 5], [3]]
+
+    assert ak.to_list(result._impl) == expected
+
+
+def test_T_raises_3d():
+    """.T must raise an error for 3D stacks, unlike .mT."""
+    data = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
+    arr = ragged.array(data)
+
+    # This should pass
+    _ = arr.mT
+
+    # This must fail
+    msg = "Per Array API, input array must be 2D to have a transpose property."
+    with pytest.raises(ValueError, match=msg):
+        _ = arr.T
+
+
+def test_T_consistency_with_mT():
+    """Verify .T and .mT return identical results for 2D."""
+    arr = ragged.array([[5, 4, 3], [2, 1, 0]])
+    assert ak.to_list(arr.T._impl) == ak.to_list(arr.mT._impl)
