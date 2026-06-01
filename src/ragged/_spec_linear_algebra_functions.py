@@ -7,16 +7,29 @@ https://data-apis.org/array-api/latest/API_specification/linear_algebra_function
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import awkward as ak
 import numpy as np
 
-from ._helper_functions import safe_max_num
-from ._spec_array_object import _help_is_sorted_descending_all_levels, array
+if TYPE_CHECKING:
+    import ragged as rg
 
 
-def matmul(x1: array, x2: array, /) -> array:
+def safe_max_num(arr: rg.array, axis: int | None = None) -> int:
+    """
+    Compute the maximum number of elements along an axis for a ragged array.
+    Returns as an int, even if ak.num returns a scalar-like array.
+    """
+    counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
+
+    if isinstance(counts, int | np.integer):
+        return int(counts)
+
+    return int(max(counts))
+
+
+def matmul(x1: rg.array, x2: rg.array, /) -> rg.array:
     """
     Computes the matrix product.
 
@@ -77,13 +90,14 @@ def matmul(x1: array, x2: array, /) -> array:
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matmul.html
     """
+    import ragged as rg
 
     if x1.ndim == 0 or x2.ndim == 0:
         msg = "Zero-dimensional arrays are not allowed"
         raise ValueError(msg)
 
     # --- helper: promote 1D to 2D (list-of-rows) ---
-    def _promote_1d_to_2d(arr: array) -> list[list[int | float | complex]]:
+    def _promote_1d_to_2d(arr: rg.array) -> list[list[int | float | complex]]:
         impl_list = ak.to_list(arr._impl)  # pylint: disable=W0212
 
         if arr.ndim == 1:
@@ -103,29 +117,29 @@ def matmul(x1: array, x2: array, /) -> array:
             raise ValueError(msg)
         x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
         x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
-        return array(sum(a * b for a, b in zip(x1_list, x2_list, strict=False)))
+        return rg.array(sum(a * b for a, b in zip(x1_list, x2_list, strict=False)))
 
     # --- 1D x 2D / 2D x 1D promotion ---
     if x1.ndim == 1 and x2.ndim == 2:
         x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
-        promoted_x1 = array([x1_list])  # shape (1, K)
+        promoted_x1 = rg.array([x1_list])  # shape (1, K)
         res2d = matmul(promoted_x1, x2)
-        return array(res2d[0])  # drop leading 1 safely
+        return rg.array(res2d[0])  # drop leading 1 safely
 
     if x1.ndim == 2 and x2.ndim == 1:
         x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
-        promoted_x2 = array([[v] for v in x2_list])  # shape (K, 1)
+        promoted_x2 = rg.array([[v] for v in x2_list])  # shape (K, 1)
         res2d = matmul(x1, promoted_x2)  # returns 2D (M,1)
 
         # --- collapse trailing dimension safely ---
         if res2d.ndim == 2:
             impl_list = ak.to_list(res2d._impl)  # pylint: disable=W0212
             if len(impl_list) > 0:
-                return array([row[0] for row in impl_list])
+                return rg.array([row[0] for row in impl_list])
             else:
-                return array([])  # empty 2D
+                return rg.array([])  # empty 2D
         else:
-            return array(ak.to_list(res2d._impl))  # pylint: disable=W0212
+            return rg.array(ak.to_list(res2d._impl))  # pylint: disable=W0212
 
     # --- output dtype ---
     out_dtype = np.result_type(x1.dtype, x2.dtype)
@@ -175,11 +189,11 @@ def matmul(x1: array, x2: array, /) -> array:
             rowsA = ak.num(x1_impl, axis=0)
             colsB = safe_max_num(x2, axis=-1)
             if rowsA == 1 and colsB == 1:
-                return array([out2d[0][0]])
-        return array(out2d)
+                return rg.array([out2d[0][0]])
+        return rg.array(out2d)
 
     # --- batch (>2D) ---
-    def _batches(xt: array) -> list[list[int | float]]:
+    def _batches(xt: rg.array) -> list[list[int | float]]:
         xt_impl: Any = xt._impl  # pylint: disable=W0212
         if xt.ndim <= 2:
             return [ak.to_list(xt_impl)]
@@ -199,12 +213,12 @@ def matmul(x1: array, x2: array, /) -> array:
         b1 = x1_batches[i % B1]
         b2 = x2_batches[i % B2]
         results.append(
-            _matmul_2d(_promote_1d_to_2d(array(b1)), _promote_1d_to_2d(array(b2)))
+            _matmul_2d(_promote_1d_to_2d(rg.array(b1)), _promote_1d_to_2d(rg.array(b2)))
         )
-    return array(results)
+    return rg.array(results)
 
 
-def matrix_transpose(x: array, /) -> array:
+def matrix_transpose(x: rg.array, /) -> rg.array:
     """
     Transposes a matrix (or a stack of matrices) x.
 
@@ -219,42 +233,59 @@ def matrix_transpose(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.matrix_transpose.html
     """
     xarray = x._impl  # pylint: disable=protected-access
+
+    # 1. Validation
     if not hasattr(xarray, "ndim") or xarray.ndim < 2:
-        msg = "Input must have at least 2 dimensions"
+        msg = "Per Array API, input array must not have fewer than 2 dimensions to have a matrix transpose property."
         raise ValueError(msg)
 
-    if not _help_is_sorted_descending_all_levels(x):
-        message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
-        raise ValueError(message)
+    counts = ak.num(xarray, axis=-1)
+    # pylint: disable=unsubscriptable-object
+    if not ak.all(counts[..., :-1] >= counts[..., 1:]):
+        msg = (
+            "Ragged dimension's lists must be sorted from longest to shortest, "
+            "which is the only way that makes left-aligned ragged transposition possible."
+        )
+        raise ValueError(msg)
 
-    nested: list[Any] = ak.to_list(xarray)
+    # 2. Extract column indices and flatten the innermost matrix dimensions
+    col_indices = ak.local_index(xarray, axis=-1)
 
-    def transpose_matrix(
-        mat: list[list[float | int]],
-    ) -> list[list[float | int]]:
-        max_cols = max((len(row) for row in mat), default=0)
-        return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
+    # Flattening at axis=-1 merges the M and N dims into a single flat sequence per matrix.
+    # It preserves ALL outer batch dimensions intact.
+    flat_data: ak.Array = ak.flatten(xarray, axis=-1)
+    flat_cols: ak.Array = ak.flatten(col_indices, axis=-1)
 
-    def is_matrix_level(b: list[Any]) -> bool:
-        for row in b:
-            if (isinstance(row, list) and row) and isinstance(row[0], int | float):
-                return True
-        return False
+    # 3. Stable sort by column index to group elements by their new row index
+    # Because it's a stable sort, it naturally preserves the original row order!
+    sorter = ak.argsort(flat_cols, axis=-1, stable=True)
+    pivoted_flat = flat_data[sorter]
 
-    def recurse(batch: list[Any]) -> list[Any]:
-        if all(isinstance(b, list) for b in batch):
-            if is_matrix_level(batch):
-                return transpose_matrix(batch)
-            return [recurse(b) for b in batch]
-        return batch
+    # 4. Calculate new row lengths
+    # Since sorted_cols is ascending (e.g., 0, 0, 1, 1, 2), its run lengths
+    # give us the EXACT sizes of the new transposed rows.
+    sorted_cols = flat_cols[sorter]
+    new_row_lengths = ak.run_lengths(sorted_cols)
+    # pylint: enable=unsubscriptable-object
 
-    transposed = recurse(nested)
-    return array(transposed)
+    # 5. Structure Reconstruction
+    # Flatten counts to 1D. Awkward's unflatten with axis=-1 will sequentially
+    # consume this 1D array of counts, rebuilding the matrices perfectly.
+    counts_1d = ak.to_numpy(ak.flatten(new_row_lengths, axis=None))
+    transposed_ak = ak.unflatten(pivoted_flat, counts_1d, axis=-1)
+
+    import ragged as rg
+
+    return rg.array(transposed_ak)
 
 
 def tensordot(
-    x1: array, x2: array, /, *, axes: int | tuple[Sequence[int], Sequence[int]] = 2
-) -> array:
+    x1: rg.array,
+    x2: rg.array,
+    /,
+    *,
+    axes: int | tuple[Sequence[int], Sequence[int]] = 2,
+) -> rg.array:
     """
     Returns a tensor contraction of `x1` and `x2` over specific axes.
 
@@ -301,7 +332,7 @@ def tensordot(
     raise NotImplementedError("TODO 112")  # noqa: EM101
 
 
-def vecdot(x1: array, x2: array, /, *, axis: int = -1) -> array:
+def vecdot(x1: rg.array, x2: rg.array, /, *, axis: int = -1) -> rg.array:
     r"""
     Computes the (vector) dot product of two arrays.
 

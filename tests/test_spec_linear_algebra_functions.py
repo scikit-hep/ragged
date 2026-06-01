@@ -33,8 +33,22 @@ def test_can_transpose_with_empty():
 
 
 def test_can_transpose_allempty():
+    """
+    Test that we can transpose an array of empty arrays
+    consistent with Numpy collapsing the structure.
+    >>> arr = np.array([[[], [], []]])
+    >>> arr
+    array([], shape=(1, 3, 0), dtype=float64)
+    >>> arr.tolist()
+    [[[], [], []]]
+    >>> t_arr = arr.mT
+    >>> t_arr
+    array([], shape=(1, 0, 3), dtype=float64)
+    >>> t_arr.tolist()
+    [[]]
+    """
     arr = ragged.array([[[], []]])
-    expected_transpose = ragged.array([[[], []]])
+    expected_transpose = ragged.array([[]])
     assert ak.to_list(ragged.matrix_transpose(arr)._impl) == ak.to_list(
         expected_transpose._impl
     )
@@ -62,8 +76,16 @@ def test_transpose_structure_and_values():
     assert transposed.tolist() == expected_array
 
 
-def test_can_transpose_unsorted():
+def test_can_transpose_sorted():
     arr = ragged.array([[[1.1, 1.2, 1.3], [1.4, 1.5]], [[2.1, 2.2, 2.3]]])
+    expected_transpose = ragged.array(
+        [[[1.1, 1.4], [1.2, 1.5], [1.3]], [[2.1], [2.2], [2.3]]]
+    )
+    assert ak.almost_equal(ragged.matrix_transpose(arr)._impl, expected_transpose._impl)
+
+
+def test_can_transpose_unsorted():
+    arr = ragged.array([[[1.4, 1.5], [1.1, 1.2, 1.3]], [[2.1, 2.2, 2.3]]])
     message = "Ragged dimension's lists must be sorted from longest to shortest, which is the only way that makes left-aligned ragged transposition possible."
     with pytest.raises(ValueError, match=message):
         ragged.matrix_transpose(arr)

@@ -196,6 +196,7 @@ messages_control.disable = [
   "unsupported-binary-operation",
   "protected-access",
   "import-outside-toplevel",
+  "unsubscriptable-object",
 ]
 
 typecheck.generated-members = [
