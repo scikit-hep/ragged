@@ -735,10 +735,7 @@ class array:  # pylint: disable=C0103
                 return result
 
             nums = ak.num(arr._impl, axis=axis)
-            try:
-                nums_list = ak.to_list(nums)
-            except Exception:
-                nums_list = int(nums)
+            nums_list = ak.to_list(nums)
             if isinstance(nums_list, int):
                 return nums_list
             flat = _flatten_ints(nums_list)
@@ -1110,10 +1107,7 @@ class array:  # pylint: disable=C0103
         # ak.num reports (uniform size, or None if truly ragged).
         def _effective_size(arr: array, axis: int) -> int | None:
             nums = ak.num(arr._impl, axis=axis)
-            try:
-                lst = ak.to_list(nums)
-            except Exception:
-                lst = int(nums)
+            lst = ak.to_list(nums)
             if isinstance(lst, int):
                 return lst
 
