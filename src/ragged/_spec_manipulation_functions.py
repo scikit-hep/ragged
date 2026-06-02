@@ -143,7 +143,9 @@ def broadcast_to(x: array, /, shape: tuple[int | None, ...]) -> array:
                 raise ValueError(msg)
             dummy_shape.append(s)
 
-    dummy = ak.from_numpy(np.zeros(dummy_shape, dtype=x.dtype))
+    # Use a zero-copy broadcast view as the shape driver — values are discarded
+    # by ak.broadcast_arrays, so no allocation proportional to dummy_shape needed.
+    dummy = ak.from_numpy(np.broadcast_to(np.zeros((), dtype=np.int8), dummy_shape))
 
     try:
         bx, _ = ak.broadcast_arrays(current, dummy)
