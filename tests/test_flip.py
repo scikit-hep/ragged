@@ -137,12 +137,12 @@ class TestFlip2DRagged:
     def test_empty_row(self):
         a = _make([[], [1, 2], [3]], dtype=np.float64)
         result = ragged.flip(a, axis=0)
-        assert result.tolist() == [[3], [1, 2], []]
+        assert result.tolist() == [[3], [1, 2], []]  # type: ignore[comparison-overlap]
 
     def test_empty_row_axis1(self):
         a = _make([[], [1, 2], [3]], dtype=np.float64)
         result = ragged.flip(a, axis=1)
-        assert result.tolist() == [[], [2, 1], [3]]
+        assert result.tolist() == [[], [2, 1], [3]]  # type: ignore[comparison-overlap]
 
     def test_result_is_ragged_array(self):
         a = _make([[1, 2], [3]], dtype=np.float64)
