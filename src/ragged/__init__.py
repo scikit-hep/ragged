@@ -1,13 +1,21 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
 
 """
-Ragged array module.
+Ragged array library built on `awkward-array <https://awkward-array.org>`_.
 
-FIXME: needs more documentation!
+Implements the `Python Array API standard <https://data-apis.org/array-api/latest/>`_
+for variable-length (ragged) arrays, where the last dimension may differ in
+length across rows.
+
+Key entry points:
+
+- :class:`ragged.array` — the core ragged array type.
+- :mod:`ragged.io` — I/O helpers (CF Conventions contiguous/indexed encoding).
 """
 
 from __future__ import annotations
 
+from . import io
 from ._spec_array_object import array
 from ._spec_constants import (
     e,
@@ -159,6 +167,8 @@ __array_api_version__ = "2022.12"
 
 __all__ = [
     "__array_api_version__",
+    # io
+    "io",
     # _spec_array_object
     "array",
     # _spec_constants
