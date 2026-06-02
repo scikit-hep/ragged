@@ -999,13 +999,76 @@ class array:  # pylint: disable=C0103
         self, key: SetSliceKey, value: int | float | bool | array, /
     ) -> None:
         """
-        Sets `self[key]` to value.
+        Sets ``self[key]`` to *value*, mutating the array in-place.
+
+        This enables ``array_api_extra.at`` (NEP-47 / issue #103).  Mutations
+        are carried out on a copy of the underlying data, so they are not
+        particularly efficient; favour constructing new arrays when performance
+        matters.
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        msg = "ragged.array is an immutable type; its values cannot be assigned to"
-        raise TypeError(msg)
+        # Unwrap value if it is a ragged.array.
+        val: Any
+        if isinstance(value, array):
+            val_impl = value._impl  # pylint: disable=W0212
+            if isinstance(val_impl, ak.Array):
+                try:
+                    val = ak.to_numpy(val_impl)
+                except (TypeError, ValueError):
+                    val = val_impl.tolist()
+            else:
+                val = np.asarray(val_impl)
+        else:
+            val = value
+
+        # Unwrap key if it is a ragged.array (boolean-mask indexing).
+        key_any: Any = key
+        if isinstance(key_any, array):
+            key_any = key_any._impl  # pylint: disable=W0212
+            if isinstance(key_any, ak.Array):
+                key_any = ak.to_numpy(key_any)
+
+        # --- Fast path: uniform layout (NumpyArray or RegularArray) ---
+        # ak.to_numpy succeeds; do the mutation entirely in numpy then rebuild.
+        try:
+            arr = ak.to_numpy(self._impl)
+        except (TypeError, ValueError):
+            arr = None
+
+        if arr is not None:
+            arr = arr.copy()
+            arr[key_any] = val
+            new_impl: Any = ak.from_numpy(arr)
+            if arr.ndim > 1:
+                new_impl = ak.from_regular(new_impl, axis=None)
+            self._impl = new_impl
+            self._shape, self._dtype = _shape_dtype(self._impl.layout)
+            return
+
+        # --- General ragged path: list-based mutation ---
+        # Supports integer and slice keys on the outermost axis.
+        if not isinstance(key_any, int | slice):
+            msg = (
+                "ragged.array __setitem__: only integer and slice keys are "
+                "supported for ragged (variable-length) arrays; "
+                f"got key type {type(key_any).__name__!r}"
+            )
+            raise TypeError(msg)
+
+        if isinstance(val, ak.Array | np.ndarray):
+            val = val.tolist()
+
+        impl_ak: ak.Array = self._impl  # type: ignore[assignment,unused-ignore]
+        lst: list[Any] = impl_ak.tolist()
+        lst[key_any] = val
+        dt = self._dtype
+        new_impl = ak.Array(lst)
+        if dt is not None:
+            new_impl = ak.values_astype(new_impl, dt)
+        self._impl = new_impl
+        self._shape, self._dtype = _shape_dtype(self._impl.layout)
 
     def __sub__(self, other: int | float | array, /) -> array:
         """
