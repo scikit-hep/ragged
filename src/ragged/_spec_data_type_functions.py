@@ -7,8 +7,8 @@ https://data-apis.org/array-api/latest/API_specification/data_type_functions.htm
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
-import awkward as ak
 import numpy as np
 
 from ._spec_array_object import _box, _unbox, array
@@ -209,54 +209,92 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.isdtype.html
     """
 
-    boolean = {"bool"}
-    signed_int = {"int8", "int16", "int32", "int64"}
-    unsigned_int = {"uint8", "uint16", "uint32", "uint64"}
-    integral = signed_int | unsigned_int
-    real_float = {"float32", "float64"}
-    complex_float = {"complex64", "complex128"}
-    numeric = integral | real_float | complex_float
-
-    kind = kind.lower() if isinstance(kind, str) else kind
-
-    current = dtype
-    parameters = {}
-
-    while hasattr(current, "content"):
-        if hasattr(current, "parameters") and current.parameters:
-            parameters = current.parameters
-        current = current.content
-
-    if hasattr(current, "parameters") and current.parameters:
-        parameters = current.parameters
-
-    primitive = getattr(current, "primitive", None)
-
-    if isinstance(kind, type):
-        try:
-            expected_type = ak.types.numpytype.NumpyType(str(np.dtype(kind)))
-            return bool(primitive == expected_type.primitive)
-        except (TypeError, ValueError):
-            return False
-
-    if isinstance(kind, str):
-        if parameters.get("__array__") in {"string", "char"}:
-            return kind in {"str", "string"}
-        dtype_list = {
-            "bool": boolean,
-            "signed integer": signed_int,
-            "unsigned integer": unsigned_int,
-            "integral": integral,
-            "real floating": real_float,
-            "complex floating": complex_float,
-            "numeric": numeric,
-        }
-        return primitive in dtype_list.get(kind, set())
+    _BUILTIN_MAP: dict[type, str] = {
+        bool: "bool",
+        int: "signed integer",
+        float: "real floating",
+        complex: "complex floating",
+        str: "str",
+    }
+    _STRING_TO_CHARS: dict[str, set[str]] = {
+        "bool": {"b"},
+        "signed integer": {"i"},
+        "unsigned integer": {"u"},
+        "integral": {"i", "u"},
+        "real floating": {"f"},
+        "complex floating": {"c"},
+        "numeric": {"i", "u", "f", "c"},
+        "str": {"string"},
+        "string": {"string"},
+    }
 
     if isinstance(kind, tuple):
         return any(isdtype(dtype, k) for k in kind)
 
-    return False
+    # Normalise Python builtins -> string kind name; keep original for dtype
+    # comparison when kind is not a builtin (preserves type for mypy).
+    kind_str: str | None = _BUILTIN_MAP.get(kind)  # type: ignore[arg-type]
+    kind_norm: Dtype | str = kind_str if kind_str is not None else kind
+
+    # ------------------------------------------------------------------
+    # Try to interpret dtype as a plain numpy dtype first.  This covers
+    # the common case (np.dtype objects, numpy scalar types) without any
+    # awkward-array type introspection.
+    # ------------------------------------------------------------------
+    np_dtype: np.dtype[Any] | None
+    try:
+        dtype_any: Any = dtype
+        np_dtype = np.dtype(dtype_any)
+    except (TypeError, ValueError):
+        np_dtype = None
+
+    if np_dtype is not None:
+        actual_kind = np_dtype.kind  # one of 'b','i','u','f','c','U','S',…
+        if isinstance(kind_norm, str):
+            accepted = _STRING_TO_CHARS.get(kind_norm.lower())
+            if accepted is None:
+                return False
+            return bool(actual_kind in accepted)
+        # kind_norm is a dtype
+        try:
+            return bool(np_dtype == np.dtype(kind_norm))
+        except (TypeError, ValueError):
+            return False
+
+    # ------------------------------------------------------------------
+    # dtype is an awkward-array type object.  Walk .content to the leaf.
+    # ------------------------------------------------------------------
+    parameters: dict[str, Any] = {}
+    current: object = dtype
+    while hasattr(current, "content"):
+        if hasattr(current, "parameters") and current.parameters:
+            parameters = current.parameters
+        current = current.content
+    if hasattr(current, "parameters") and current.parameters:
+        parameters = current.parameters
+
+    if parameters.get("__array__") in {"string", "char"}:
+        return kind_norm in {"str", "string"}
+
+    primitive = getattr(current, "primitive", None)
+    if primitive is None:
+        return False
+    try:
+        leaf_dtype = np.dtype(primitive)
+    except (TypeError, ValueError):
+        return False
+
+    actual_kind = leaf_dtype.kind
+    if isinstance(kind_norm, str):
+        accepted = _STRING_TO_CHARS.get(kind_norm.lower())
+        if accepted is None:
+            return False
+        return bool(actual_kind in accepted)
+    # kind_norm is a dtype
+    try:
+        return bool(leaf_dtype == np.dtype(kind_norm))
+    except (TypeError, ValueError):
+        return False
 
 
 def result_type(*arrays_and_dtypes: array | Dtype) -> Dtype:
