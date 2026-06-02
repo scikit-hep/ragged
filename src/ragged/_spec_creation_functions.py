@@ -396,9 +396,33 @@ def meshgrid(*arrays: array, indexing: str = "xy") -> list[array]:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.meshgrid.html
     """
 
-    arrays  # noqa: B018, pylint: disable=W0104
-    indexing  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 43")  # noqa: EM101
+    if indexing not in ("xy", "ij"):
+        msg = f"meshgrid: indexing must be 'xy' or 'ij', got {indexing!r}"
+        raise ValueError(msg)
+
+    for i, arr in enumerate(arrays):
+        arr_obj: object = arr
+        if not isinstance(arr_obj, array):
+            msg = f"meshgrid: argument {i} is not a ragged.array"
+            raise TypeError(msg)
+        if arr.ndim != 1:
+            msg = (
+                f"meshgrid: all input arrays must be 1-dimensional, "
+                f"but argument {i} has ndim={arr.ndim}"
+            )
+            raise ValueError(msg)
+
+    if len(arrays) == 0:
+        return []
+
+    # Convert inputs to numpy, delegate to np.meshgrid, wrap results.
+    np_arrays = [ak.to_numpy(arr._impl) for arr in arrays]  # pylint: disable=W0212
+    out_dtype = np.result_type(*(arr.dtype for arr in arrays))
+    np_arrays = [a.astype(out_dtype) for a in np_arrays]
+
+    np_grids = np.meshgrid(*np_arrays, indexing=indexing)
+
+    return [_box(type(arrays[0]), ak.from_numpy(g)) for g in np_grids]
 
 
 def ones(
