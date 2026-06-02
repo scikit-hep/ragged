@@ -484,6 +484,82 @@ class array:  # pylint: disable=C0103
 
         return ragged
 
+    def __array_ufunc__(
+        self,
+        ufunc: Any,
+        method: str,
+        *inputs: Any,
+        **kwargs: Any,
+    ) -> Any:
+        """
+        NEP-13: intercept NumPy ufunc calls so that ``np.sqrt(x)``,
+        ``np.add(x, y)``, etc. work transparently on :class:`array`.
+
+        All :class:`array` arguments are unwrapped to their ``ak.Array``
+        implementation; the ufunc is then dispatched through awkward-array's
+        own ``__array_ufunc__``, and the result is re-wrapped.
+        """
+
+        ak_inputs = tuple(
+            x._impl if isinstance(x, array) else x  # pylint: disable=W0212
+            for x in inputs
+        )
+        out_orig = kwargs.pop("out", None)
+        if out_orig is not None:
+            kwargs["out"] = tuple(
+                x._impl if isinstance(x, array) else x  # pylint: disable=W0212
+                for x in out_orig
+            )
+        result = getattr(ufunc, method)(*ak_inputs, **kwargs)
+        if isinstance(result, ak.Array):
+            return _box(type(self), result)
+        if isinstance(result, tuple):
+            return tuple(
+                _box(type(self), r) if isinstance(r, ak.Array) else r for r in result
+            )
+        return result
+
+    def __array_function__(
+        self,
+        func: Any,
+        types: Any,  # pylint: disable=W0613
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> Any:
+        """
+        NEP-18: intercept NumPy array-function protocol calls.
+
+        A small set of numpy functions are mapped to their ragged equivalents;
+        everything else is forwarded to awkward-array after unwrapping.
+        """
+
+        import ragged  # pylint: disable=C0415,R0401
+
+        _RAGGED_MAP: dict[Any, Any] = {
+            np.concatenate: ragged.concat,
+            np.stack: ragged.stack,
+            np.broadcast_to: ragged.broadcast_to,
+            np.reshape: ragged.reshape,
+            np.squeeze: ragged.squeeze,
+            np.expand_dims: ragged.expand_dims,
+            np.flip: ragged.flip,
+            np.roll: ragged.roll,
+        }
+
+        if func in _RAGGED_MAP:
+            return _RAGGED_MAP[func](*args, **kwargs)
+
+        # Fall back: unwrap all ragged.array arguments and let awkward handle it.
+        def _unwrap(x: Any) -> Any:
+            return x._impl if isinstance(x, array) else x  # pylint: disable=W0212
+
+        new_args = tuple(_unwrap(a) for a in args)
+        new_kwargs = {k: _unwrap(v) for k, v in kwargs.items()}
+        result = func(*new_args, **new_kwargs)
+        if isinstance(result, ak.Array):
+            return _box(type(self), result)
+        return result
+
     def __bool__(self) -> bool:  # pylint: disable=E0304  # false positive: method is defined
         """
         Converts a zero-dimensional array to a Python `bool` object.
