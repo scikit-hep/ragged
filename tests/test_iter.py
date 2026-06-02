@@ -79,7 +79,9 @@ class TestIter2DUniform:
         A = ragged.array(np.arange(100).reshape(10, 10))
         rows = list(A)
         for i, row in enumerate(rows):
-            np.testing.assert_array_equal(ak.to_numpy(row), np.arange(i * 10, (i + 1) * 10))
+            np.testing.assert_array_equal(
+                ak.to_numpy(row), np.arange(i * 10, (i + 1) * 10)
+            )
 
     def test_next_iter_shape(self):
         A = ragged.array(np.arange(100).reshape(10, 10))
