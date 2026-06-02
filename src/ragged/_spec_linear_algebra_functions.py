@@ -326,10 +326,118 @@ def tensordot(
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.tensordot.html
     """
 
-    x1  # noqa: B018, pylint: disable=W0104
-    x2  # noqa: B018, pylint: disable=W0104
-    axes  # noqa: B018, pylint: disable=W0104
-    raise NotImplementedError("TODO 112")  # noqa: EM101
+    import ragged as rg
+
+    # --- normalize axes to explicit (x1_axes, x2_axes) lists ---
+    if isinstance(axes, int):
+        if axes < 0:
+            msg = "tensordot: axes must be a non-negative integer"
+            raise ValueError(msg)
+        if axes > x1.ndim or axes > x2.ndim:
+            msg = (
+                f"tensordot: axes={axes} exceeds the number of dimensions "
+                f"of x1 (ndim={x1.ndim}) or x2 (ndim={x2.ndim})"
+            )
+            raise ValueError(msg)
+        x1_axes: list[int] = list(range(x1.ndim - axes, x1.ndim))
+        x2_axes: list[int] = list(range(axes))
+    else:
+        x1_axes = [int(a) for a in axes[0]]
+        x2_axes = [int(a) for a in axes[1]]
+        if len(x1_axes) != len(x2_axes):
+            msg = "tensordot: axes sequences must have equal length"
+            raise ValueError(msg)
+
+    # normalise negative indices
+    x1_axes = [a % x1.ndim for a in x1_axes]
+    x2_axes = [a % x2.ndim for a in x2_axes]
+
+    # uniqueness
+    if len(set(x1_axes)) != len(x1_axes) or len(set(x2_axes)) != len(x2_axes):
+        msg = "tensordot: contracted axis indices must be unique"
+        raise ValueError(msg)
+
+    # --- helper: uniform size along a given axis (None = truly ragged) ---
+    def _uniform_size(arr: rg.array, axis: int) -> int | None:
+        nums = ak.num(arr._impl, axis=axis)  # pylint: disable=W0212
+        lst = ak.to_list(nums)
+        if isinstance(lst, int):
+            return lst
+
+        def _flat(obj: Any) -> list[int]:
+            if isinstance(obj, int):
+                return [obj]
+            out: list[int] = []
+            for item in obj:
+                out.extend(_flat(item))
+            return out
+
+        flat = _flat(lst)
+        if not flat:
+            return None
+        return flat[0] if all(v == flat[0] for v in flat) else None
+
+    # --- check contracted axes are not ragged and sizes match ---
+    for a1, a2 in zip(x1_axes, x2_axes, strict=False):
+        k1 = _uniform_size(x1, a1)
+        k2 = _uniform_size(x2, a2)
+        if k1 is None or k2 is None:
+            msg = (
+                "tensordot: contracted axes must not be ragged "
+                f"(x1 axis {a1} or x2 axis {a2} has varying lengths)"
+            )
+            raise ValueError(msg)
+        if k1 != k2:
+            msg = (
+                f"tensordot: contracted dimension mismatch — "
+                f"x1 axis {a1} has size {k1}, x2 axis {a2} has size {k2}"
+            )
+            raise ValueError(msg)
+
+    # --- fast path: fully regular arrays -> delegate to numpy ---
+    try:
+        x1_np = ak.to_numpy(x1._impl)  # pylint: disable=W0212
+        x2_np = ak.to_numpy(x2._impl)  # pylint: disable=W0212
+        result_np = np.tensordot(x1_np, x2_np, axes=(x1_axes, x2_axes))
+        return rg.array(result_np)
+    except (TypeError, ValueError):
+        pass
+
+    # --- slow path: ragged non-contracted dims ---
+    # Move contracted axes to the back of x1 and front of x2, then reshape
+    # to 2D, do a matmul, and reshape back.  This mirrors what numpy does.
+    #
+    # Step 1: permute x1 so contracted axes are last, free axes are first.
+    x1_free = [i for i in range(x1.ndim) if i not in x1_axes]
+    x1_perm = x1_free + x1_axes  # free first, contracted last
+
+    # Step 2: permute x2 so contracted axes are first, free axes are last.
+    x2_free = [i for i in range(x2.ndim) if i not in x2_axes]
+    x2_perm = x2_axes + x2_free  # contracted first, free last
+
+    # Step 3: convert to lists, transpose, flatten contracted dims, matmul.
+    x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
+    x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
+
+    # For arrays with ragged leading dims but regular contracted axes,
+    # convert via numpy after applying the permutation through ak.
+    x1_t = np.transpose(np.array(x1_list), x1_perm)
+    x2_t = np.transpose(np.array(x2_list), x2_perm)
+
+    n_contract = len(x1_axes)
+    x1_shape = x1_t.shape
+    x2_shape = x2_t.shape
+
+    # Collapse free dims into one axis, contracted dims into one axis.
+    x1_2d = x1_t.reshape(-1, int(np.prod(x1_shape[len(x1_free) :])))
+    x2_2d = x2_t.reshape(int(np.prod(x2_shape[:n_contract])), -1)
+
+    result_2d = x1_2d @ x2_2d
+
+    # Restore result shape: free dims of x1 then free dims of x2.
+    out_shape = tuple(x1_t.shape[: len(x1_free)]) + tuple(x2_t.shape[n_contract:])
+    result_np = result_2d.reshape(out_shape)
+    return rg.array(result_np)
 
 
 def vecdot(x1: rg.array, x2: rg.array, /, *, axis: int = -1) -> rg.array:
