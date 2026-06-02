@@ -4,6 +4,8 @@
 :maxdepth: 2
 :hidden:
 
+user_guide
+dev_guide
 ```
 
 ```{include} ../README.md
