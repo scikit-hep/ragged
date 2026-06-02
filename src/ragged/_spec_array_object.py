@@ -113,12 +113,15 @@ class array:  # pylint: disable=C0103
     def _apply_inplace(self, operation_result: array) -> array:
         """
         Apply result of an operation in-place.
+
+        All callers are elementwise ops whose shape is invariant — copy shape
+        and dtype directly from the already-computed result instead of
+        re-traversing the layout with _shape_dtype.
         """
-        self._impl, self._device = operation_result._impl, operation_result._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
+        self._impl = operation_result._impl
+        self._device = operation_result._device
+        self._shape = operation_result._shape
+        self._dtype = operation_result._dtype
         return self
 
     def __init__(
