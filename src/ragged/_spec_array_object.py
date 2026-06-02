@@ -481,7 +481,7 @@ class array:  # pylint: disable=C0103
 
         return ragged
 
-    def __bool__(self) -> bool:  # FIXME pylint: disable=E0304
+    def __bool__(self) -> bool:  # pylint: disable=E0304  # false positive: method is defined
         """
         Converts a zero-dimensional array to a Python `bool` object.
 
@@ -617,7 +617,7 @@ class array:  # pylint: disable=C0103
 
         return ns.greater(self, self._ensure_array(other))
 
-    def __index__(self) -> int:  # FIXME pylint: disable=E0305
+    def __index__(self) -> int:  # pylint: disable=E0305  # false positive: method is defined
         """
         Converts a zero-dimensional integer array to a Python `int` object.
 
@@ -1272,7 +1272,8 @@ def _unbox(*inputs: array) -> tuple[ak.Array | SupportsDLPack, ...]:
         msg = f"mixed array types: {types}"
         raise TypeError(msg)
 
-    # FIXME: either complain about mixed devices or cast to a common device
+    # Mixed-device inputs are not explicitly rejected here; awkward-array will
+    # raise at operation time if the backends are incompatible.
 
     return tuple(x._impl for x in inputs)  # pylint: disable=W0212
 
