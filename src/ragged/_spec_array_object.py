@@ -856,36 +856,33 @@ class array:  # pylint: disable=C0103
             pass
 
         # Slow path: at least one operand has ragged non-contracted dimensions.
-        # We recurse over the batch / ragged leading dimensions with ak.to_list,
-        # compute each leaf matrix product with NumPy, and reassemble.
-        left_list = ak.to_list(left_impl)
-        right_list = ak.to_list(right_impl)
+        # Walk ak.Array sub-blocks directly instead of calling ak.to_list on the
+        # whole array — ak.to_numpy is tried at every recursion level, so any
+        # fully-uniform sub-block (including batched 3-D+) hits np.matmul without
+        # allocating Python list objects.
+        result_dtype = np.result_type(self._dtype, other._dtype)
 
-        def _matmul_nested(
-            a: list[Any] | np.ndarray,
-            b: list[Any] | np.ndarray,
-        ) -> list[Any] | np.ndarray:
-            """Recursively multiply two (possibly ragged) nested lists."""
-            # Base case: both are 2-D lists-of-lists (or convertible)
-            a_arr = np.asarray(a, dtype=object)
-            b_arr = np.asarray(b, dtype=object)
-            if a_arr.ndim == 2 and b_arr.ndim == 2:
-                # Homogeneous 2-D — use np.matmul directly.
-                return np.matmul(
-                    np.asarray(a, dtype=self._dtype),
-                    np.asarray(b, dtype=other._dtype),
-                ).tolist()
-            # Ragged leading dimension — zip and recurse.
+        def _matmul_ak(a: ak.Array, b: ak.Array) -> Any:
+            # Fast: ak.to_numpy succeeds for uniform sub-blocks at any depth.
+            try:
+                return np.matmul(ak.to_numpy(a), ak.to_numpy(b))
+            except (TypeError, ValueError):
+                pass
+            # Ragged batch dimension — recurse element-by-element.
             if len(a) != len(b):
                 msg = (
                     f"matmul: batch dimension mismatch — "
                     f"left has {len(a)} entries, right has {len(b)}"
                 )
                 raise ValueError(msg)
-            return [_matmul_nested(ai, bi) for ai, bi in zip(a, b, strict=False)]
+            results: list[Any] = []
+            for ai, bi in zip(a, b, strict=False):
+                ai_ak = ai if isinstance(ai, ak.Array) else ak.Array(ai)
+                bi_ak = bi if isinstance(bi, ak.Array) else ak.Array(bi)
+                results.append(_matmul_ak(ai_ak, bi_ak))
+            return results
 
-        result_list = _matmul_nested(left_list, right_list)
-        return array(result_list, dtype=np.result_type(self._dtype, other._dtype))
+        return array(_matmul_ak(left_impl, right_impl), dtype=result_dtype)
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
