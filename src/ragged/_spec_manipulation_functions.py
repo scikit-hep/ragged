@@ -588,13 +588,20 @@ def roll(
         )
         # Restore nested structure layer by layer (innermost first).
         # For ndim=1: no unflatten needed (already 1D).
-        # For ndim=k: unflatten k-1 times using counts at each level.
+        # For ndim=k: collect counts at each nesting level with a single O(D)
+        # top-down walk — each ak.num(cur, axis=1) reads only the outermost
+        # offsets of `cur`; ak.flatten peels one level (O(1) for ListOffsetArray).
+        # The original approach called ak.num(impl, axis=depth) from the root
+        # for every depth, giving O(D²/2) total traversal work.
+        level_counts: list[np.ndarray] = []
+        cur: ak.Array = impl
+        for _ in range(ndim - 1):
+            level_counts.append(ak.to_numpy(ak.num(cur, axis=1)))
+            cur = cast(ak.Array, ak.flatten(cur, axis=1))
+
         result_ak: ak.Array = rolled
-        for depth in range(ndim - 1, 0, -1):
-            counts_at_depth = ak.num(impl, axis=depth)
-            if depth > 1:
-                counts_at_depth = cast(ak.Array, ak.flatten(counts_at_depth, axis=None))
-            result_ak = cast(ak.Array, ak.unflatten(result_ak, counts_at_depth))
+        for counts in reversed(level_counts):
+            result_ak = cast(ak.Array, ak.unflatten(result_ak, counts))
         return _box(type(x), result_ak)
 
     # ------------------------------------------------------------------
