@@ -44,7 +44,8 @@ from .._spec_array_object import _box, _unbox, array
 
 def _require_2d_ragged(x: array, name: str) -> None:
     """Raise ValueError if *x* is not a 2-D ragged.array."""
-    if not isinstance(x, array):
+    x_obj: object = x
+    if not isinstance(x_obj, array):
         msg = f"{name}: expected a ragged.array, got {type(x).__name__!r}"
         raise TypeError(msg)
     if x.ndim != 2:
@@ -59,7 +60,8 @@ def _require_2d_ragged(x: array, name: str) -> None:
 
 def _require_1d(arr: array, param: str, func: str) -> None:
     """Raise ValueError if *arr* is not 1-D."""
-    if not isinstance(arr, array):
+    arr_obj: object = arr
+    if not isinstance(arr_obj, array):
         msg = f"{func}: {param!r} must be a ragged.array, got {type(arr).__name__!r}"
         raise TypeError(msg)
     if arr.ndim != 1:

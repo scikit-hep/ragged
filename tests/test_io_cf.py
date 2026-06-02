@@ -145,7 +145,7 @@ class TestFromCfContiguous:
         content = _make([1.0, 2.0], dtype=np.float64)
         counts = _make([0, 2, 0], dtype=np.int64)
         result = from_cf_contiguous(content, counts)
-        assert result.tolist() == [[], [1.0, 2.0], []]
+        assert result.tolist() == [[], [1.0, 2.0], []]  # type: ignore[comparison-overlap]
 
     def test_single_row(self):
         content = _make([7, 8, 9], dtype=np.int64)
