@@ -1009,20 +1009,6 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        # Unwrap value if it is a ragged.array.
-        val: Any
-        if isinstance(value, array):
-            val_impl = value._impl  # pylint: disable=W0212
-            if isinstance(val_impl, ak.Array):
-                try:
-                    val = ak.to_numpy(val_impl)
-                except (TypeError, ValueError):
-                    val = val_impl.tolist()
-            else:
-                val = np.asarray(val_impl)
-        else:
-            val = value
-
         # Unwrap key if it is a ragged.array (boolean-mask indexing).
         key_any: Any = key
         if isinstance(key_any, array):
@@ -1030,14 +1016,26 @@ class array:  # pylint: disable=C0103
             if isinstance(key_any, ak.Array):
                 key_any = ak.to_numpy(key_any)
 
-        # --- Fast path: uniform layout (NumpyArray or RegularArray) ---
-        # ak.to_numpy succeeds; do the mutation entirely in numpy then rebuild.
+        # Single layout probe on self._impl determines which path to take.
+        # The value is then unwrapped in the appropriate form for that path —
+        # no second try/except needed.
         try:
             arr = ak.to_numpy(self._impl)
         except (TypeError, ValueError):
             arr = None
 
+        val: Any
         if arr is not None:
+            # --- Fast path: uniform layout — mutate via numpy ---
+            if isinstance(value, array):
+                v_impl = value._impl  # pylint: disable=W0212
+                val = (
+                    ak.to_numpy(v_impl)
+                    if isinstance(v_impl, ak.Array)
+                    else np.asarray(v_impl)
+                )
+            else:
+                val = value
             arr = arr.copy()
             arr[key_any] = val
             new_impl: Any = ak.from_numpy(arr)
@@ -1057,8 +1055,16 @@ class array:  # pylint: disable=C0103
             )
             raise TypeError(msg)
 
-        if isinstance(val, ak.Array | np.ndarray):
-            val = val.tolist()
+        if isinstance(value, array):
+            v_impl = value._impl  # pylint: disable=W0212
+            if isinstance(v_impl, ak.Array):
+                val = v_impl.tolist()
+            else:
+                val = np.asarray(v_impl).tolist()
+        elif isinstance(value, ak.Array | np.ndarray):
+            val = value.tolist()
+        else:
+            val = value
 
         impl_ak: ak.Array = self._impl  # type: ignore[assignment,unused-ignore]
         lst: list[Any] = impl_ak.tolist()
