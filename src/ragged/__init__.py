@@ -8,6 +8,7 @@ FIXME: needs more documentation!
 
 from __future__ import annotations
 
+from . import io
 from ._spec_array_object import array
 from ._spec_constants import (
     e,
@@ -159,6 +160,8 @@ __array_api_version__ = "2022.12"
 
 __all__ = [
     "__array_api_version__",
+    # io
+    "io",
     # _spec_array_object
     "array",
     # _spec_constants

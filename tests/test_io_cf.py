@@ -360,6 +360,11 @@ class TestToCfIndexedErrors:
 
 
 class TestFromCfIndexedErrors:
+    def test_non_array_index_raises(self):
+        content = _make([1, 2, 3], dtype=np.float64)
+        with pytest.raises(TypeError, match="ragged.array"):
+            from_cf_indexed(content, [0, 1, 2])  # type: ignore[arg-type]
+
     def test_2d_index_raises(self):
         content = _make([1, 2], dtype=np.float64)
         index_2d = _make([[0, 0], [1]], dtype=np.int64)

@@ -245,7 +245,7 @@ def from_cf_indexed(content: array, index: array) -> array:
     cont, ind = _unbox(content, index)
 
     ind_np = ns.asarray(ind, dtype=ns.int64)
-    if int(ind_np.min()) < 0 if len(ind_np) > 0 else False:
+    if len(ind_np) > 0 and int(ind_np.min()) < 0:
         msg = "from_cf_indexed: index values must be non-negative"
         raise ValueError(msg)
 
