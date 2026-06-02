@@ -113,12 +113,15 @@ class array:  # pylint: disable=C0103
     def _apply_inplace(self, operation_result: array) -> array:
         """
         Apply result of an operation in-place.
+
+        All callers are elementwise ops whose shape is invariant — copy shape
+        and dtype directly from the already-computed result instead of
+        re-traversing the layout with _shape_dtype.
         """
-        self._impl, self._device = operation_result._impl, operation_result._device
-        if isinstance(self._impl, ak.Array):
-            self._shape, self._dtype = _shape_dtype(self._impl.layout)
-        else:
-            self._shape, self._dtype = (), self._impl.dtype  # type: ignore[union-attr]
+        self._impl = operation_result._impl
+        self._device = operation_result._device
+        self._shape = operation_result._shape
+        self._dtype = operation_result._dtype
         return self
 
     def __init__(
@@ -209,7 +212,8 @@ class array:  # pylint: disable=C0103
         if dtype is not None and dtype != self._dtype:
             if isinstance(self._impl, ak.Array):
                 self._impl = ak.values_astype(self._impl, dtype)
-                self._shape, self._dtype = _shape_dtype(self._impl.layout)
+                # shape is invariant under values_astype — only dtype changes
+                self._dtype = dtype
             else:
                 self._impl = np.array(obj, dtype=dtype)
                 self._dtype = dtype
@@ -852,36 +856,33 @@ class array:  # pylint: disable=C0103
             pass
 
         # Slow path: at least one operand has ragged non-contracted dimensions.
-        # We recurse over the batch / ragged leading dimensions with ak.to_list,
-        # compute each leaf matrix product with NumPy, and reassemble.
-        left_list = ak.to_list(left_impl)
-        right_list = ak.to_list(right_impl)
+        # Walk ak.Array sub-blocks directly instead of calling ak.to_list on the
+        # whole array — ak.to_numpy is tried at every recursion level, so any
+        # fully-uniform sub-block (including batched 3-D+) hits np.matmul without
+        # allocating Python list objects.
+        result_dtype = np.result_type(self._dtype, other._dtype)
 
-        def _matmul_nested(
-            a: list[Any] | np.ndarray,
-            b: list[Any] | np.ndarray,
-        ) -> list[Any] | np.ndarray:
-            """Recursively multiply two (possibly ragged) nested lists."""
-            # Base case: both are 2-D lists-of-lists (or convertible)
-            a_arr = np.asarray(a, dtype=object)
-            b_arr = np.asarray(b, dtype=object)
-            if a_arr.ndim == 2 and b_arr.ndim == 2:
-                # Homogeneous 2-D — use np.matmul directly.
-                return np.matmul(
-                    np.asarray(a, dtype=self._dtype),
-                    np.asarray(b, dtype=other._dtype),
-                ).tolist()
-            # Ragged leading dimension — zip and recurse.
+        def _matmul_ak(a: ak.Array, b: ak.Array) -> Any:
+            # Fast: ak.to_numpy succeeds for uniform sub-blocks at any depth.
+            try:
+                return np.matmul(ak.to_numpy(a), ak.to_numpy(b))
+            except (TypeError, ValueError):
+                pass
+            # Ragged batch dimension — recurse element-by-element.
             if len(a) != len(b):
                 msg = (
                     f"matmul: batch dimension mismatch — "
                     f"left has {len(a)} entries, right has {len(b)}"
                 )
                 raise ValueError(msg)
-            return [_matmul_nested(ai, bi) for ai, bi in zip(a, b, strict=False)]
+            results: list[Any] = []
+            for ai, bi in zip(a, b, strict=False):
+                ai_ak = ai if isinstance(ai, ak.Array) else ak.Array(ai)
+                bi_ak = bi if isinstance(bi, ak.Array) else ak.Array(bi)
+                results.append(_matmul_ak(ai_ak, bi_ak))
+            return results
 
-        result_list = _matmul_nested(left_list, right_list)
-        return array(result_list, dtype=np.result_type(self._dtype, other._dtype))
+        return array(_matmul_ak(left_impl, right_impl), dtype=result_dtype)
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -1009,20 +1010,6 @@ class array:  # pylint: disable=C0103
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__setitem__.html
         """
 
-        # Unwrap value if it is a ragged.array.
-        val: Any
-        if isinstance(value, array):
-            val_impl = value._impl  # pylint: disable=W0212
-            if isinstance(val_impl, ak.Array):
-                try:
-                    val = ak.to_numpy(val_impl)
-                except (TypeError, ValueError):
-                    val = val_impl.tolist()
-            else:
-                val = np.asarray(val_impl)
-        else:
-            val = value
-
         # Unwrap key if it is a ragged.array (boolean-mask indexing).
         key_any: Any = key
         if isinstance(key_any, array):
@@ -1030,14 +1017,26 @@ class array:  # pylint: disable=C0103
             if isinstance(key_any, ak.Array):
                 key_any = ak.to_numpy(key_any)
 
-        # --- Fast path: uniform layout (NumpyArray or RegularArray) ---
-        # ak.to_numpy succeeds; do the mutation entirely in numpy then rebuild.
+        # Single layout probe on self._impl determines which path to take.
+        # The value is then unwrapped in the appropriate form for that path —
+        # no second try/except needed.
         try:
             arr = ak.to_numpy(self._impl)
         except (TypeError, ValueError):
             arr = None
 
+        val: Any
         if arr is not None:
+            # --- Fast path: uniform layout — mutate via numpy ---
+            if isinstance(value, array):
+                v_impl = value._impl  # pylint: disable=W0212
+                val = (
+                    ak.to_numpy(v_impl)
+                    if isinstance(v_impl, ak.Array)
+                    else np.asarray(v_impl)
+                )
+            else:
+                val = value
             arr = arr.copy()
             arr[key_any] = val
             new_impl: Any = ak.from_numpy(arr)
@@ -1057,8 +1056,16 @@ class array:  # pylint: disable=C0103
             )
             raise TypeError(msg)
 
-        if isinstance(val, ak.Array | np.ndarray):
-            val = val.tolist()
+        if isinstance(value, array):
+            v_impl = value._impl  # pylint: disable=W0212
+            if isinstance(v_impl, ak.Array):
+                val = v_impl.tolist()
+            else:
+                val = np.asarray(v_impl).tolist()
+        elif isinstance(value, ak.Array | np.ndarray):
+            val = value.tolist()
+        else:
+            val = value
 
         impl_ak: ak.Array = self._impl  # type: ignore[assignment,unused-ignore]
         lst: list[Any] = impl_ak.tolist()
