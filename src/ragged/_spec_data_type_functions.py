@@ -231,9 +231,10 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
     if isinstance(kind, tuple):
         return any(isdtype(dtype, k) for k in kind)
 
-    # Normalise Python builtins -> string kind name
-    if kind in _BUILTIN_MAP:
-        kind = _BUILTIN_MAP[kind]  # type: ignore[index]
+    # Normalise Python builtins -> string kind name; keep original for dtype
+    # comparison when kind is not a builtin (preserves type for mypy).
+    kind_str: str | None = _BUILTIN_MAP.get(kind)  # type: ignore[arg-type]
+    kind_norm: Dtype | str = kind_str if kind_str is not None else kind
 
     # ------------------------------------------------------------------
     # Try to interpret dtype as a plain numpy dtype first.  This covers
@@ -249,14 +250,14 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
 
     if np_dtype is not None:
         actual_kind = np_dtype.kind  # one of 'b','i','u','f','c','U','S',…
-        if isinstance(kind, str):
-            accepted = _STRING_TO_CHARS.get(kind.lower())
+        if isinstance(kind_norm, str):
+            accepted = _STRING_TO_CHARS.get(kind_norm.lower())
             if accepted is None:
                 return False
             return bool(actual_kind in accepted)
-        # kind is a dtype
+        # kind_norm is a dtype
         try:
-            return bool(np_dtype == np.dtype(kind))
+            return bool(np_dtype == np.dtype(kind_norm))
         except (TypeError, ValueError):
             return False
 
@@ -273,10 +274,7 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
         parameters = current.parameters
 
     if parameters.get("__array__") in {"string", "char"}:
-        # String array: only matches "str" / "string" kind strings
-        if isinstance(kind, str):
-            return kind.lower() in {"str", "string"}
-        return False
+        return kind_norm in {"str", "string"}
 
     primitive = getattr(current, "primitive", None)
     if primitive is None:
@@ -287,14 +285,14 @@ def isdtype(dtype: Dtype, kind: Dtype | str | tuple[Dtype | str, ...]) -> bool:
         return False
 
     actual_kind = leaf_dtype.kind
-    if isinstance(kind, str):
-        accepted = _STRING_TO_CHARS.get(kind.lower())
+    if isinstance(kind_norm, str):
+        accepted = _STRING_TO_CHARS.get(kind_norm.lower())
         if accepted is None:
             return False
-        return actual_kind in accepted
-    # kind is a dtype
+        return bool(actual_kind in accepted)
+    # kind_norm is a dtype
     try:
-        return bool(leaf_dtype == np.dtype(kind))
+        return bool(leaf_dtype == np.dtype(kind_norm))
     except (TypeError, ValueError):
         return False
 
