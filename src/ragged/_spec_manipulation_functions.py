@@ -41,15 +41,15 @@ def broadcast_arrays(*arrays: array) -> list[array]:
         ]
 
 
-def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
+def broadcast_to(x: array, /, shape: tuple[int | None, ...]) -> array:
     """
     Broadcasts an array to a specified shape.
 
     Args:
         x: Array to broadcast.
-        shape: Array shape. Must be compatible with `x`. If the array is
-        incompatible with the specified shape, the function raises an
-        exception.
+        shape: Array shape. Must be compatible with ``x``. Use ``None`` for
+            variable-length (ragged) dimensions.  If the array is incompatible
+            with the specified shape, the function raises an exception.
 
     Returns:
         An array having a specified shape. Must have the same data type as x.
@@ -57,48 +57,86 @@ def broadcast_to(x: array, /, shape: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.broadcast_to.html
     """
 
-    if isinstance(x, int | float | np.generic):
-        msg = "broadcast_to does not support scalar inputs; provide an array"
-        raise ValueError(msg)
+    x_obj: object = x
+    if not isinstance(x_obj, array):
+        msg = f"broadcast_to: expected a ragged.array, got {type(x).__name__!r}"
+        raise TypeError(msg)
 
-    arr = x._impl if hasattr(x, "_impl") else ak.Array(x)  # pylint: disable=W0212
-
-    if hasattr(arr, "ndim") and arr.ndim == 0:
-        msg = "broadcast_to does not support 0-dimensional arrays"
-        raise ValueError(msg)
-
-    if not isinstance(shape, tuple):
-        msg_shape: str = "Shape must be a tuple of ints, got " + str(type(shape))  # type: ignore[unreachable]
+    shape_any: Any = shape
+    if not isinstance(shape_any, tuple):
+        msg_shape: str = "shape must be a tuple, got " + str(type(shape))
         raise TypeError(msg_shape)
 
-    if shape == () and ak.count(x, axis=None) != 1:
-        msgo: str = "Shape dimensions must be >= -1"
-        raise ValueError(msgo)
     for dim in shape:
-        if dim is None:
-            msg_none: str = "Shape cannot contain None"  # type: ignore[unreachable]
-            raise ValueError(msg_none)
+        dim_any: Any = dim
+        if dim_any is not None:
+            if not isinstance(dim_any, int):
+                msg_type: str = "shape dimensions must be int or None, got " + str(
+                    type(dim)
+                )
+                raise TypeError(msg_type)
+            if dim_any < 0:
+                msg_value: str = "shape dimensions must be non-negative, got " + str(
+                    dim
+                )
+                raise ValueError(msg_value)
 
-        if not isinstance(dim, int):
-            msg_type: str = "Shape dimensions must be ints, got " + str(type(dim))  # type: ignore[unreachable]
-            raise TypeError(msg_type)
+    (impl,) = _unbox(x)
+    ndim = x.ndim
+    target_ndim = len(shape)
 
-        if dim < -1:
-            msg_value: str = "Shape dimensions must be >= -1, got " + str(dim)
-            raise ValueError(msg_value)
+    if target_ndim < ndim:
+        msg = (
+            f"Cannot broadcast array of shape {x.shape} to shape {shape}: "
+            "target has fewer dimensions"
+        )
+        raise ValueError(msg)
 
-    dummy_np = np.zeros(
-        shape, dtype=arr.layout.dtype if hasattr(arr, "layout") else arr.dtype
+    # Fast path: uniform arrays via numpy broadcast_to
+    with contextlib.suppress(TypeError, ValueError):
+        np_arr = ak.to_numpy(impl)
+        # shape may contain None for ragged dims; for uniform arrays all dims are int
+        np_shape = tuple(s for s in shape if s is not None)
+        if len(np_shape) == target_ndim:  # no None in shape: pure uniform target
+            bcast = np.broadcast_to(np_arr, np_shape)
+            return _box(type(x), ak.from_numpy(np.array(bcast)))
+
+    # Align ndim: prepend size-1 outer dimensions so impl.ndim == target_ndim
+    current: ak.Array = impl
+    for _ in range(target_ndim - ndim):
+        current = current[np.newaxis]
+
+    # Build a dummy numpy array whose shape drives the broadcast.
+    # Replace None (ragged) dims with 1 so np.zeros accepts it.
+    x_shape = x.shape  # original shape, length ndim
+    # Pad x_shape with 1s on the left to align with target_ndim
+    padded_x = (1,) * (target_ndim - ndim) + tuple(
+        1 if s is None else s for s in x_shape
     )
-    dummy = ak.from_numpy(dummy_np)
+
+    dummy_shape: list[int] = []
+    for i, s in enumerate(shape):
+        if s is None:
+            dummy_shape.append(1)  # ragged dim: dummy size irrelevant
+        else:
+            px = padded_x[i]
+            if px not in {1, s}:
+                msg = (
+                    f"Cannot broadcast array of shape {x.shape} to shape {shape}: "
+                    f"dimension {i} has size {px}, cannot broadcast to {s}"
+                )
+                raise ValueError(msg)
+            dummy_shape.append(s)
+
+    dummy = ak.from_numpy(np.zeros(dummy_shape, dtype=x.dtype))
 
     try:
-        bx, _ = ak.broadcast_arrays(arr, dummy)
+        bx, _ = ak.broadcast_arrays(current, dummy)
     except Exception as e:
-        msg = f"Cannot broadcast array of shape {arr.shape} to shape {shape}"
+        msg = f"Cannot broadcast array of shape {x.shape} to shape {shape}"
         raise ValueError(msg) from e
 
-    return array(bx)
+    return _box(type(x), bx)
 
 
 def concat(
