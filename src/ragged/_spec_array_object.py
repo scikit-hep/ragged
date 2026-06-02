@@ -209,7 +209,8 @@ class array:  # pylint: disable=C0103
         if dtype is not None and dtype != self._dtype:
             if isinstance(self._impl, ak.Array):
                 self._impl = ak.values_astype(self._impl, dtype)
-                self._shape, self._dtype = _shape_dtype(self._impl.layout)
+                # shape is invariant under values_astype — only dtype changes
+                self._dtype = dtype
             else:
                 self._impl = np.array(obj, dtype=dtype)
                 self._dtype = dtype
