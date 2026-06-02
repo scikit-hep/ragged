@@ -300,53 +300,76 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.permute_dims.html
     """
 
-    nested = ak.to_list(x._impl)  # pylint: disable=protected-access
-    dtype = x.dtype
+    (impl,) = _unbox(x)
+    ndim = x.ndim
 
-    # Determine depth of nested list
-    def _ndim(lst: Any) -> int:
-        if not isinstance(lst, list) or not lst:
-            return 0
-        return 1 + max((_ndim(e) for e in lst), default=0)
-
-    ndim = _ndim(nested)
+    # Validate axes.
     if len(axes) != ndim or sorted(axes) != list(range(ndim)):
-        msg = f"axes must be a permutation of (0,...,{ndim-1}), got {axes}"
+        msg = f"axes must be a permutation of (0,...,{ndim - 1}), got {axes}"
         raise ValueError(msg)
 
-    # Transpose 2D ragged matrix
-    def transpose_matrix(
-        mat: list[list[float | int]],
-    ) -> list[list[float | int]]:
+    # Identity permutation — return a view.
+    if axes == tuple(range(ndim)):
+        return _box(type(x), impl)
+
+    # Fast path: uniform array via numpy.transpose.
+    with contextlib.suppress(TypeError, ValueError):
+        np_arr = ak.to_numpy(impl)
+        return _box(type(x), ak.from_numpy(np.transpose(np_arr, axes)))
+
+    # Medium path: awkward-native 2-D transpose.
+    #
+    # For (1, 0) on a 2-D ragged array `impl` of shape (n_rows, None):
+    #   Column j of the result contains impl[i][j] for every row i that
+    #   has at least j+1 elements — i.e. the j-th element of each row,
+    #   collected across rows.
+    #
+    # Algorithm (all numpy/awkward, no Python loops over elements):
+    #   1. flat   = flatten to 1-D content buffer
+    #   2. counts = number of elements per row
+    #   3. max_cols = max(counts)
+    #   4. For each column j, the source indices are offsets[i] + j for
+    #      all i where counts[i] > j.  Build these via numpy broadcasting.
+    #   5. new_counts[j] = number of rows that have a j-th element.
+    #   6. Gather from flat and unflatten with new_counts.
+    if ndim == 2 and axes == (1, 0):
+        flat = ak.flatten(impl)
+        counts_np = ak.to_numpy(ak.num(impl))
+        if len(counts_np) == 0:
+            return _box(type(x), ak.Array([]))
+        max_cols = int(counts_np.max())
+        offsets = np.concatenate(([0], np.cumsum(counts_np)))
+        # col_indices[j]: boolean mask of rows that have a j-th element
+        # Build source-index array for all columns at once.
+        new_counts = np.array(
+            [(counts_np > j).sum() for j in range(max_cols)], dtype=np.intp
+        )
+        indices = np.concatenate(
+            [offsets[:-1][counts_np > j] + j for j in range(max_cols)]
+        ).astype(np.intp)
+        flat_any: Any = flat
+        return _box(type(x), ak.unflatten(flat_any[indices], new_counts))
+
+    # List-based fallback for exotic permutations (e.g. 3-D with axis swap).
+    def _transpose_matrix(mat: list[Any]) -> list[Any]:
         max_cols = max((len(row) for row in mat), default=0)
         return [[row[i] for row in mat if i < len(row)] for i in range(max_cols)]
 
-    # Recursive permutation
     def _permute(lst: Any, order: list[int]) -> Any:
         if not order:
             return lst
         if order[0] == 0:
-            # Permute deeper levels
             if all(isinstance(e, list) for e in lst):
                 return [_permute(e, order[1:]) for e in lst]
-            else:
-                return lst
-        else:
-            # Move axis to front
-            if all(isinstance(e, list) for e in lst):
-                # Transpose outermost lists
-                transposed = transpose_matrix(lst)
-                return [
-                    _permute(
-                        t, [order[0] - 1] + [i - 1 if i > 0 else i for i in order[1:]]
-                    )
-                    for t in transposed
-                ]
-            else:
-                return lst
+            return lst
+        if all(isinstance(e, list) for e in lst):
+            transposed = _transpose_matrix(lst)
+            new_order = [order[0] - 1] + [i - 1 if i > 0 else i for i in order[1:]]
+            return [_permute(t, new_order) for t in transposed]
+        return lst
 
-    result: list[Any] = _permute(nested, list(axes))
-    return array(result, dtype=dtype)
+    result: list[Any] = _permute(ak.to_list(impl), list(axes))
+    return _box(type(x), ak.Array(result))
 
 
 def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) -> array:
