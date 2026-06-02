@@ -17,6 +17,21 @@ import numpy as np
 from ._spec_array_object import _box, _unbox, array
 
 
+def _ak_from_numpy(arr: np.ndarray) -> ak.Array:
+    """Convert a numpy array to ak.Array with variable-length (not Regular) inner dims.
+
+    ``ak.from_numpy`` produces ``RegularArray`` layouts for multidimensional
+    inputs, which gives fixed integer sizes in ``ragged.array.shape`` instead
+    of the expected ``None``.  Calling ``ak.from_regular(..., axis=None)``
+    afterwards converts every regular dimension to variable-length so that
+    ``shape`` matches the ragged convention.
+    """
+    ak_arr = ak.from_numpy(arr)
+    if arr.ndim > 1:
+        ak_arr = ak.from_regular(ak_arr, axis=None)
+    return ak_arr
+
+
 def broadcast_arrays(*arrays: array) -> list[array]:
     """
     Broadcasts one or more arrays against one another.
@@ -353,7 +368,7 @@ def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
     # Fast path: uniform array via numpy.transpose.
     with contextlib.suppress(TypeError, ValueError):
         np_arr = ak.to_numpy(impl)
-        return _box(type(x), ak.from_numpy(np.transpose(np_arr, axes)))
+        return _box(type(x), _ak_from_numpy(np.transpose(np_arr, axes)))
 
     # Medium path: awkward-native 2-D transpose.
     #
@@ -550,78 +565,148 @@ def roll(
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.roll.html
     """
-    ak_x = x._impl  # pylint: disable=W0212
-    if not isinstance(ak_x, array | ak.Array):
-        msg = f"x must be a ragged array or an Awkward Array, got {type(ak_x)}"
-        raise TypeError(msg)
+    (impl,) = _unbox(x)
+    ndim = x.ndim
 
+    # ------------------------------------------------------------------
+    # axis=None: flatten all elements, roll, restore nested structure
+    # ------------------------------------------------------------------
     if axis is None:
-        flat = cast(ak.Array, ak.flatten(ak_x, axis=None))
+        shift_any: Any = shift
+        if not isinstance(shift_any, int):
+            msg = f"shift must be an int when axis is None, got {type(shift)}"
+            raise TypeError(msg)
+        flat = cast(ak.Array, ak.flatten(impl, axis=None))
         n = len(flat)
         if n == 0:
-            return array(ak_x)
-        if isinstance(shift, int):
-            s = shift % n
-        else:
-            msg = f"shift must be int or tuple of ints, got {type(shift)}"
-            raise TypeError(msg)
-        rolled_flat = cast(
-            ak.Array,
-            ak.concatenate([flat[-s:], flat[:-s]]) if s else flat,  # pylint: disable=unsubscriptable-object
+            return _box(type(x), impl)
+        s = int(shift_any) % n
+        rolled: ak.Array = (
+            cast(ak.Array, ak.concatenate([flat[-s:], flat[:-s]]))  # pylint: disable=unsubscriptable-object
+            if s
+            else flat
         )
-        lengths = ak.num(ak_x, axis=-1)
-        restored = ak.unflatten(rolled_flat, lengths)
-        return array(restored)
+        # Restore nested structure layer by layer (innermost first).
+        # For ndim=1: no unflatten needed (already 1D).
+        # For ndim=k: unflatten k-1 times using counts at each level.
+        result_ak: ak.Array = rolled
+        for depth in range(ndim - 1, 0, -1):
+            counts_at_depth = ak.num(impl, axis=depth)
+            if depth > 1:
+                counts_at_depth = cast(ak.Array, ak.flatten(counts_at_depth, axis=None))
+            result_ak = cast(ak.Array, ak.unflatten(result_ak, counts_at_depth))
+        return _box(type(x), result_ak)
 
+    # ------------------------------------------------------------------
+    # Normalize axis/shift to parallel tuples
+    # ------------------------------------------------------------------
     if isinstance(axis, int):
         axis_tuple: tuple[int, ...] = (axis,)
     elif isinstance(axis, tuple):
-        if not all(isinstance(a, int) for a in axis):
-            msg = f"axis must be int or tuple of ints, got {type(axis)}"
+        axis_any: Any = axis
+        if not all(isinstance(a, int) for a in axis_any):
+            msg = f"axis must be int or tuple of ints, got element types in {axis}"
             raise TypeError(msg)
         axis_tuple = tuple(axis)
-    else:
-        msg = f"axis must be int, None, or tuple of ints, got {type(axis)}"  # type: ignore[unreachable]
+    else:  # pragma: no cover
+        axis_type_any: Any = axis  # type: ignore[unreachable]
+        msg = f"axis must be int, None, or tuple of ints, got {type(axis_type_any)}"
         raise TypeError(msg)
 
     if isinstance(shift, int):
         shift_tuple: tuple[int, ...] = (shift,) * len(axis_tuple)
     elif isinstance(shift, tuple):
-        if not all(isinstance(s, int) for s in shift):
+        shift_t_any: Any = shift
+        if not all(isinstance(s, int) for s in shift_t_any):
             msg = f"shift must be int or tuple of ints, got {type(shift)}"
             raise TypeError(msg)
         shift_tuple = tuple(shift)
         if len(shift_tuple) != len(axis_tuple):
-            msg = f"shift and axis must have the same length, got shift={shift_tuple} and axis={axis_tuple}"
+            msg = (
+                f"shift and axis must have the same length, "
+                f"got shift={shift_tuple} and axis={axis_tuple}"
+            )
             raise ValueError(msg)
-    else:
-        msg = f"shift must be int or tuple of ints, got {type(shift)}"  # type: ignore[unreachable]
+    else:  # pragma: no cover
+        shift_type_any: Any = shift  # type: ignore[unreachable]
+        msg = f"shift must be int or tuple of ints, got {type(shift_type_any)}"
         raise TypeError(msg)
 
-    ndim = ak_x.ndim
+    # Normalise negative axes
     axis_tuple = tuple(a + ndim if a < 0 else a for a in axis_tuple)
 
-    def recursive_roll(
-        obj: Any, shift_val: int, target_axis: int, depth: int = 0
-    ) -> Any:
+    # ------------------------------------------------------------------
+    # Fast path: uniform arrays via numpy
+    # ------------------------------------------------------------------
+    with contextlib.suppress(TypeError, ValueError):
+        np_arr = ak.to_numpy(impl)
+        if len(axis_tuple) == 1:
+            rolled_np = np.roll(np_arr, shift_tuple[0], axis=axis_tuple[0])
+        else:
+            rolled_np = np_arr
+            for ax, sh in zip(axis_tuple, shift_tuple, strict=False):
+                rolled_np = np.roll(rolled_np, sh, axis=ax)
+        return _box(type(x), _ak_from_numpy(rolled_np))
+
+    # ------------------------------------------------------------------
+    # Ragged paths: apply each (axis, shift) pair in order
+    # ------------------------------------------------------------------
+    current: ak.Array = impl
+    for ax, sh in zip(axis_tuple, shift_tuple, strict=False):
+        current = _roll_ragged_axis(current, sh, ax, ndim)
+    return _box(type(x), current)
+
+
+def _roll_ragged_axis(impl: ak.Array, shift: int, axis: int, ndim: int) -> ak.Array:
+    """Roll a ragged ak.Array by *shift* along *axis* (already normalised ≥ 0)."""
+    # ---- axis 0: O(1) slice-based concatenation ----------------------
+    if axis == 0:
+        n = len(impl)
+        if n == 0:
+            return impl
+        s = shift % n
+        if s == 0:
+            return impl
+        return cast(ak.Array, ak.concatenate([impl[-s:], impl[:-s]]))  # pylint: disable=unsubscriptable-object
+
+    # ---- axis 1 for 2-D ragged: flatten → indexed roll → unflatten --
+    if axis == 1 and ndim == 2:
+        flat = ak.flatten(impl)
+        counts = ak.to_numpy(ak.num(impl)).astype(np.intp)
+        total = int(counts.sum())
+        if total == 0:
+            return impl
+        offsets = np.concatenate(([0], np.cumsum(counts)))
+        idx = np.empty(total, dtype=np.intp)
+        for o, n in zip(offsets[:-1], counts, strict=False):
+            ni = int(n)
+            if ni == 0:
+                continue
+            rs = shift % ni
+            start = int(o)
+            if rs == 0:
+                idx[start : start + ni] = np.arange(start, start + ni, dtype=np.intp)
+            else:
+                idx[start : start + ni] = start + np.roll(
+                    np.arange(ni, dtype=np.intp), rs
+                )
+        flat_any: Any = flat
+        return cast(ak.Array, ak.unflatten(flat_any[idx], counts))
+
+    # ---- fallback: Python list recursion (3-D+ ragged, axis ≥ 2) ----
+    def _roll_list(obj: Any, depth: int) -> Any:
         if not isinstance(obj, Iterable) or isinstance(obj, str | bytes):
             return obj
-
-        if depth == target_axis:
+        if depth == axis:
             items = list(obj)
-            n = len(items)
-            if n == 0:
+            ni = len(items)
+            if ni == 0:
                 return []
-            s = shift_val % n
-            return items[-s:] + items[:-s] if s else items
+            rs = shift % ni
+            return items[-rs:] + items[:-rs] if rs else items
+        return [_roll_list(item, depth + 1) for item in obj]
 
-        return [recursive_roll(o, shift_val, target_axis, depth + 1) for o in obj]
-
-    result = ak_x
-    for ax, sh in zip(axis_tuple, shift_tuple, strict=False):
-        result = recursive_roll(result, sh, ax)
-
-    return array(result)
+    return ak.Array(_roll_list(ak.to_list(impl), 0))
 
 
 def squeeze(x: array, /, axis: int | tuple[int, ...]) -> array:
@@ -706,44 +791,51 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
     """
 
     if not arrays:
-        msg = "stack() requires a non-empty sequence of arrays."
+        msg = "stack requires a non-empty sequence of arrays"
         raise ValueError(msg)
-
-    impl_arrays = [array(x)._impl for x in arrays]  # pylint: disable=protected-access
-
-    def get_dtype(x: array) -> Any:
-        if hasattr(x, "dtype"):
-            return x.dtype
-        if hasattr(x, "type"):
-            return x.type
-        msg = "Object has neither 'dtype' nor 'type'."
-        raise AttributeError(msg)
-
-    def get_ndim(x: array) -> int:
-        t = get_dtype(x)
-        n = 0
-        while hasattr(t, "type"):
-            n += 1
-            t = t.type
-        return n
 
     first = arrays[0]
-    dtype0 = get_dtype(first)
-    ndim = max(get_ndim(first), 1)
+    first_obj: object = first
+    if not isinstance(first_obj, array):
+        msg = f"stack: expected ragged.array inputs, got {type(first).__name__!r}"
+        raise TypeError(msg)
 
-    for a in arrays[1:]:
-        if max(get_ndim(a), 1) != ndim or get_dtype(a) != dtype0:
-            msg = "All input arrays must have same dtype and number of dimensions."
+    ndim = first.ndim
+    dtype0 = first.dtype
+
+    for arr in arrays[1:]:
+        arr_obj: object = arr
+        if not isinstance(arr_obj, array):
+            msg = f"stack: expected ragged.array inputs, got {type(arr).__name__!r}"
+            raise TypeError(msg)
+        if arr.ndim != ndim:
+            msg = (
+                f"stack: all arrays must have the same number of dimensions, "
+                f"got ndim={ndim} and ndim={arr.ndim}"
+            )
+            raise ValueError(msg)
+        if arr.dtype != dtype0:
+            msg = (
+                f"stack: all arrays must have the same dtype, "
+                f"got {dtype0} and {arr.dtype}"
+            )
             raise ValueError(msg)
 
-    if not -ndim - 1 <= axis <= ndim:
-        msg = f"axis={axis} is out of bounds for ndim={ndim}"
+    # axis is in [-ndim-1, ndim]; normalise to [0, ndim]
+    axis_any: Any = axis
+    if not isinstance(axis_any, int):
+        msg = f"stack: axis must be an int, got {type(axis)}"
+        raise TypeError(msg)
+    if not -(ndim + 1) <= axis <= ndim:
+        msg = f"stack: axis={axis} is out of bounds for ndim={ndim}"
         raise ValueError(msg)
-
     axis_norm = axis if axis >= 0 else axis + ndim + 1
 
-    expanded = [
-        cast(array, a)[(slice(None),) * axis_norm + (None,)] for a in impl_arrays
-    ]
+    # Fast path: uniform arrays via numpy
+    with contextlib.suppress(TypeError, ValueError):
+        np_arrays = [ak.to_numpy(_unbox(a)[0]) for a in arrays]
+        return _box(type(first), ak.from_numpy(np.stack(np_arrays, axis=axis_norm)))
 
-    return array(ak.concatenate(expanded, axis=axis_norm))
+    # General path: expand_dims at axis_norm on each array, then concatenate
+    expanded = [expand_dims(a, axis=axis_norm) for a in arrays]
+    return concat(expanded, axis=axis_norm)
