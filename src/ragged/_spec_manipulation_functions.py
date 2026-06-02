@@ -211,8 +211,77 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.flip.html
     """
 
-    x_flipped = np.flip(x, axis=axis)
-    return array(x_flipped)
+    (impl,) = _unbox(x)
+    ndim = x.ndim
+
+    # Normalise axis to a frozenset of non-negative ints.
+    if axis is None:
+        axes: frozenset[int] = frozenset(range(ndim))
+    else:
+        raw: tuple[int, ...] = (axis,) if isinstance(axis, int) else tuple(axis)
+        normalised: list[int] = []
+        for a in raw:
+            a_norm = a if a >= 0 else a + ndim
+            if a_norm < 0 or a_norm >= ndim:
+                msg = f"flip: axis {a} is out of range for array with {ndim} dimensions"
+                raise ValueError(msg)
+            normalised.append(a_norm)
+        axes = frozenset(normalised)
+
+    # Fast path: uniform (non-ragged) array via numpy.
+    with contextlib.suppress(TypeError, ValueError):
+        np_arr = ak.to_numpy(impl)
+        return _box(
+            type(x),
+            ak.from_numpy(
+                np.flip(np_arr, axis=tuple(axes) if axis is not None else None)
+            ),
+        )
+
+    # Medium path: awkward-native operations — no to_list round-trip.
+    #
+    # axis=0: impl[::-1] is O(1) — awkward builds an IndexedArray view
+    #   over the existing offsets buffer; no element copying occurs.
+    #
+    # innermost axis (ndim-1): flatten to 1-D, build a numpy reversal
+    #   index (contiguous reversed ranges per row), then unflatten.
+    #   All arithmetic is in numpy/C; no Python loop over elements.
+
+    result = impl
+
+    if 0 in axes:
+        result = result[::-1]  # type: ignore[index]
+
+    inner_axes = axes - {0}
+    if inner_axes and inner_axes == {ndim - 1}:
+        flat = ak.flatten(result)
+        counts_ak = ak.num(result)
+        counts_np = ak.to_numpy(counts_ak)
+        offsets = np.concatenate(([0], np.cumsum(counts_np)))
+        sorter: np.ndarray = (
+            np.concatenate(
+                [
+                    np.arange(int(o) + int(n) - 1, int(o) - 1, -1, dtype=np.intp)
+                    for o, n in zip(offsets, counts_np, strict=False)
+                ]
+            )
+            if len(counts_np)
+            else np.array([], dtype=np.intp)
+        )
+        flat_any: Any = flat
+        result = ak.unflatten(flat_any[sorter], counts_ak)
+    elif inner_axes:
+        # Fallback for multi-level inner axes via list round-trip.
+        # axis=0 is already applied; pass inner_axes so depth=0 is a no-op.
+        def _flip(obj: Any, depth: int, flip_axes: frozenset[int]) -> Any:
+            if not isinstance(obj, list):
+                return obj
+            items: list[Any] = list(reversed(obj)) if depth in flip_axes else obj
+            return [_flip(item, depth + 1, flip_axes) for item in items]
+
+        result = ak.Array(_flip(ak.to_list(result), 0, inner_axes))
+
+    return _box(type(x), result)
 
 
 def permute_dims(x: array, /, axes: tuple[int, ...]) -> array:
