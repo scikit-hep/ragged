@@ -80,7 +80,9 @@ class TestVecdot1D:
         a = _make(a_np.tolist(), dtype=np.float64)
         b = _make(b_np.tolist(), dtype=np.float64)
         result = ragged.vecdot(a, b)
-        expected = np.vecdot(a_np, b_np)
+        expected = np.vdot(
+            a_np, b_np
+        )  # np.vdot is the 1-D equivalent available in all numpy versions
         assert np.float64(result.tolist()) == pytest.approx(float(expected))
 
 
@@ -117,7 +119,8 @@ class TestVecdotND:
         a = _make(a_np.tolist(), dtype=np.float64)
         b = _make(b_np.tolist(), dtype=np.float64)
         result = ragged.vecdot(a, b, axis=1)
-        expected = np.vecdot(a_np, b_np, axis=1)
+        # np.vecdot added in NumPy 2.0; compute manually for compatibility
+        expected = np.sum(np.conj(a_np) * b_np, axis=1)
         np.testing.assert_allclose(_np(result), expected)
 
     def test_result_shape(self):
