@@ -1167,6 +1167,23 @@ class array:  # pylint: disable=C0103
 
         return self._new(impl, self._shape, self._dtype, device)
 
+    @property
+    def at(self) -> _AtIndexHelper:
+        """
+        JAX-style functional update interface.
+
+        Returns an :class:`_AtIndexHelper` that supports ``x.at[idx].set(val)``,
+        ``x.at[idx].add(val)``, etc.  Each operation returns a **new** array
+        with the indexed positions updated; the original array is unchanged.
+
+        Example::
+
+            a = ragged.array([1.0, 2.0, 3.0])
+            b = a.at[1].set(99.0)  # [1.0, 99.0, 3.0]
+            c = a.at[0].add(10.0)  # [11.0, 2.0, 3.0]
+        """
+        return _AtIndexHelper(self)
+
     # in-place operators: https://data-apis.org/array-api/2022.12/API_specification/array_object.html#in-place-operators
 
     def __iadd__(self, other: int | float | array, /) -> array:
@@ -1477,3 +1494,85 @@ def _box(
             impl = ak.Array(impl)
 
     return cls._new(impl, shape, dtype, device)  # pylint: disable=W0212
+
+
+# ---------------------------------------------------------------------------
+# .at[idx] helper classes  (JAX-style functional update, issue #103)
+# ---------------------------------------------------------------------------
+
+
+class _AtIndexHelper:
+    """Returned by ``array.at`` — supports ``array.at[idx]`` syntax."""
+
+    __slots__ = ("_x",)
+
+    def __init__(self, x: array) -> None:
+        self._x = x
+
+    def __getitem__(self, idx: Any) -> _AtIndexer:
+        return _AtIndexer(self._x, idx)
+
+
+class _AtIndexer:
+    """
+    Returned by ``array.at[idx]`` — provides JAX-style functional updates.
+
+    Every method returns a **new** :class:`array`; the original is unchanged.
+    Internally each operation copies the array, applies ``__setitem__``, and
+    returns the copy.
+    """
+
+    __slots__ = ("_x", "_idx")
+
+    def __init__(self, x: array, idx: Any) -> None:
+        self._x = x
+        self._idx = idx
+
+    # ------------------------------------------------------------------
+    # internal helper
+    # ------------------------------------------------------------------
+
+    def _apply(self, new_val: Any) -> array:
+        out = copy_lib.copy(self._x)
+        out[self._idx] = new_val  # delegates to array.__setitem__
+        return out
+
+    # ------------------------------------------------------------------
+    # public operations
+    # ------------------------------------------------------------------
+
+    def set(self, val: Any) -> array:
+        """Return a new array with ``x[idx] = val``."""
+        return self._apply(val)
+
+    def add(self, val: Any) -> array:
+        """Return a new array with ``x[idx] += val``."""
+        return self._apply(self._x[self._idx] + val)
+
+    def subtract(self, val: Any) -> array:
+        """Return a new array with ``x[idx] -= val``."""
+        return self._apply(self._x[self._idx] - val)
+
+    def multiply(self, val: Any) -> array:
+        """Return a new array with ``x[idx] *= val``."""
+        return self._apply(self._x[self._idx] * val)
+
+    def divide(self, val: Any) -> array:
+        """Return a new array with ``x[idx] /= val``."""
+        return self._apply(self._x[self._idx] / val)
+
+    def power(self, val: Any) -> array:
+        """Return a new array with ``x[idx] **= val``."""
+        return self._apply(self._x[self._idx] ** val)
+
+    def min(self, val: Any) -> array:
+        """Return a new array with ``x[idx] = minimum(x[idx], val)``."""
+        current = self._x[self._idx]
+        # np.minimum is a ufunc; ragged.__array_ufunc__ handles the dispatch.
+        return self._apply(np.minimum(current, val))
+
+    def max(self, val: Any) -> array:
+        """Return a new array with ``x[idx] = maximum(x[idx], val)``."""
+        current = self._x[self._idx]
+        # np.maximum is a ufunc; ragged.__array_ufunc__ handles the dispatch.
+        return self._apply(np.maximum(current, val))
