@@ -302,7 +302,10 @@ class array:  # pylint: disable=C0103
                     yield t._new(x, (), dt, dev)
             else:
                 for x in self._impl:
-                    yield t._new(x, (len(x), *sh), dt, dev)
+                    # x may be a numpy.ndarray when iterating over a uniform
+                    # (RegularArray) layout; wrap it so _impl is always ak.Array.
+                    x_ak = x if isinstance(x, ak.Array) else ak.Array(x)
+                    yield t._new(x_ak, (len(x_ak), *sh[1:]), dt, dev)
         else:
             msg = "iteration over a 0-d array"
             raise TypeError(msg)
