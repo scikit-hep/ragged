@@ -50,11 +50,11 @@ jobs:
   docs:
     name: Publish docs to GitHub Pages
     runs-on: ubuntu-latest
-    # Deploy on push to main or on a published release; skip for PRs.
-    if: >-
-      github.event_name == 'workflow_dispatch' || (github.event_name == 'push'
-      && github.ref == 'refs/heads/main') || (github.event_name == 'release' &&
-      github.event.action == 'published')
+    # Deploy on push to main, manual dispatch, or published release; skip for PRs.
+    if:
+      "github.event_name == 'workflow_dispatch' || github.event_name ==
+      'release' || (github.event_name == 'push' && github.ref ==
+      'refs/heads/main')"
     permissions:
       pages: write
       id-token: write
