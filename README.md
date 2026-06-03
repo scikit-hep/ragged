@@ -1,5 +1,5 @@
 <!-- begin-logo -->
-<img src="docs/logo.svg" width="500pt" />
+<img src="https://raw.githubusercontent.com/scikit-hep/ragged/main/docs-img/logo/logo.svg" width="300px">
 <!-- end-logo -->
 
 [![Actions Status][actions-badge]][actions-link]
