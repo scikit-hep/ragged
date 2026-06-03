@@ -4,7 +4,7 @@
 
 [![Actions Status][actions-badge]][actions-link]
 [![PyPI version][pypi-version]][pypi-link]
-[![PyPI platforms][pypi-platforms]][pypi-link]
+[![Python 3.10‒3.14](https://img.shields.io/badge/python-3.10%E2%80%923.14-blue)](https://www.python.org)
 [![GitHub Discussion][github-discussions-badge]][github-discussions-link]
 
 <!-- [![Documentation Status][rtd-badge]][rtd-link] -->
