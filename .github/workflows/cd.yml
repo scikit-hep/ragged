@@ -53,7 +53,9 @@ jobs:
     # Deploy on push to main or manual dispatch only.
     # Releases run on a tag ref which github-pages environment protection rejects;
     # the push-to-main that precedes every release already deploys the docs.
-    if: "github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')"
+    if:
+      "github.event_name == 'workflow_dispatch' || (github.event_name == 'push'
+      && github.ref == 'refs/heads/main')"
     permissions:
       pages: write
       id-token: write
