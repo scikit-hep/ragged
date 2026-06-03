@@ -52,9 +52,9 @@ jobs:
     runs-on: ubuntu-latest
     # Deploy on push to main or on a published release; skip for PRs.
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'release' && github.event.action == 'published')
+      github.event_name == 'workflow_dispatch' || (github.event_name == 'push'
+      && github.ref == 'refs/heads/main') || (github.event_name == 'release' &&
+      github.event.action == 'published')
     permissions:
       pages: write
       id-token: write
