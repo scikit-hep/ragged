@@ -51,7 +51,7 @@ jobs:
       - name: Build docs (warnings as errors)
         run: sphinx-build -W --keep-going -n -T -b html docs/ docs/_build/html
       - name: Upload docs artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs-html
           path: docs/_build/html/
@@ -106,4 +106,4 @@ jobs:
           pytest -ra --cov --cov-report=xml --cov-report=term --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v6.0.1
+        uses: codecov/codecov-action@v7.0.0
