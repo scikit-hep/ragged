@@ -10,6 +10,37 @@ from awkward.contents import Content, ListArray, ListOffsetArray
 from ._spec_array_object import array
 
 
+def uniform_axis_size(x: array, axis: int) -> int | None:
+    """
+    Return the size of ``x`` along ``axis`` if it is uniform across every
+    entry, otherwise ``None`` (the axis is ragged / non-uniform).
+
+    A ``ragged.array`` always stores its variable-length axes internally, so
+    ``shape[axis]`` may be ``None`` even when every list happens to have the
+    same length.  This walks the actual element counts with ``ak.num`` and
+    checks whether they all agree, using vectorised ``ak.min``/``ak.max``
+    rather than materialising Python lists.
+
+    Returns ``None`` for an empty selection (no counts to compare), matching the
+    behaviour of the call sites this consolidates.
+    """
+    counts: Any = ak.num(x._impl, axis=axis)  # pylint: disable=protected-access
+
+    # ``ak.num`` with ``axis=0`` returns a 0-d NumPy scalar (the outer length),
+    # which is always uniform; an int can come back for the same reason.
+    if not isinstance(counts, ak.Array):
+        return int(counts)
+
+    lo = ak.min(counts, axis=None)
+    hi = ak.max(counts, axis=None)
+    # Empty selection -> ak.min/ak.max return None: treat as non-uniform.
+    if lo is None or hi is None:
+        return None
+    if int(lo) != int(hi):
+        return None
+    return int(lo)
+
+
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
     # Ensure compatibility with numpy 2.0.0
     if np.__version__ >= "2.1":
