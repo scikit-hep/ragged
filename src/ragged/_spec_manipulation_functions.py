@@ -107,14 +107,16 @@ def broadcast_to(x: array, /, shape: tuple[int | None, ...]) -> array:
         )
         raise ValueError(msg)
 
-    # Fast path: uniform arrays via numpy broadcast_to
-    with contextlib.suppress(TypeError, ValueError):
-        np_arr = ak.to_numpy(impl)
-        # shape may contain None for ragged dims; for uniform arrays all dims are int
-        np_shape = tuple(s for s in shape if s is not None)
-        if len(np_shape) == target_ndim:  # no None in shape: pure uniform target
-            bcast = np.broadcast_to(np_arr, np_shape)
-            return _box(type(x), ak.from_numpy(np.array(bcast)))
+    # NOTE: there is deliberately no numpy fast path here. A uniform input whose
+    # *layout* is ragged (e.g. shape ``(2, None)``) must broadcast to the same
+    # shape signature as a genuinely ragged input: the source array's own inner
+    # dimensions stay variable-length (``None``) while newly prepended outer
+    # dimensions become regular. ``np.broadcast_to`` + ``ak.from_numpy`` would
+    # instead make *every* dimension a fixed int, silently forking the result
+    # convention on whether the data happened to be uniform. The awkward
+    # ``broadcast_arrays`` path below already produces the correct, consistent
+    # convention for both uniform and ragged inputs, so it is used
+    # unconditionally.
 
     # Align ndim: prepend size-1 outer dimensions so impl.ndim == target_ndim
     current: ak.Array = impl
@@ -284,11 +286,16 @@ def flip(x: array, /, *, axis: None | int | tuple[int, ...] = None) -> array:
         axes = frozenset(normalised)
 
     # Fast path: uniform (non-ragged) array via numpy.
+    #
+    # Use ``_ak_from_numpy`` (not plain ``ak.from_numpy``) so that the inner
+    # dimensions come back variable-length (``None``), matching the awkward
+    # paths below. ``flip`` preserves the input shape, so a ``(2, None)`` input
+    # must stay ``(2, None)`` regardless of whether its data is uniform.
     with contextlib.suppress(TypeError, ValueError):
         np_arr = ak.to_numpy(impl)
         return _box(
             type(x),
-            ak.from_numpy(
+            _ak_from_numpy(
                 np.flip(np_arr, axis=tuple(axes) if axis is not None else None)
             ),
         )
@@ -488,7 +495,12 @@ def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) ->
             msg = "reshape: copy=False but a copy was required"
             raise ValueError(msg)
 
-        return _box(type(x), ak.from_numpy(result_np))
+        # Use ``_ak_from_numpy`` so inner dimensions come back variable-length
+        # (``None``), matching the ragged shape convention used elsewhere. The
+        # reshaped result of a ragged-typed array is itself a transformed ragged
+        # array, so e.g. ``reshape(x, (2, 2, 1))`` yields ``(2, None, None)``
+        # rather than ``(2, 2, 1)``.
+        return _box(type(x), _ak_from_numpy(result_np))
 
     # --- ragged array: total element count is variable across batch entries ---
     # The only unambiguous target is a flat 1-D array (all elements concatenated).
@@ -840,11 +852,17 @@ def stack(arrays: tuple[array, ...] | list[array], /, *, axis: int = 0) -> array
         raise ValueError(msg)
     axis_norm = axis if axis >= 0 else axis + ndim + 1
 
-    # Fast path: uniform arrays via numpy
-    with contextlib.suppress(TypeError, ValueError):
-        np_arrays = [ak.to_numpy(_unbox(a)[0]) for a in arrays]
-        return _box(type(first), ak.from_numpy(np.stack(np_arrays, axis=axis_norm)))
+    # NOTE: there is deliberately no numpy fast path here. ``np.stack`` +
+    # ``ak.from_numpy`` would make every dimension a fixed int, whereas the
+    # expand_dims+concat path below keeps the *newly inserted* stack axis
+    # regular while leaving the source arrays' own inner dimensions
+    # variable-length (``None``). For example, stacking two ``(2, None)`` arrays
+    # along axis 0 yields ``(2, 2, None)`` (and along axis 2 yields
+    # ``(2, None, 2)``). Using numpy for uniform data would instead produce
+    # ``(2, 2, 2)``, silently forking the result convention on whether the data
+    # happened to be uniform. The general path produces the correct, consistent
+    # convention for both uniform and ragged inputs.
 
-    # General path: expand_dims at axis_norm on each array, then concatenate
+    # expand_dims at axis_norm on each array, then concatenate
     expanded = [expand_dims(a, axis=axis_norm) for a in arrays]
     return concat(expanded, axis=axis_norm)

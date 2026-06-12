@@ -113,7 +113,10 @@ class TestBroadcastTo2DUniform:
         a_np = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
         a = _make(a_np.tolist(), dtype=np.float64)
         result = ragged.broadcast_to(a, (4, 2, 3))
-        assert result.shape == (4, 2, 3)
+        # The 2-D source's own inner dimension is variable-length, so it stays
+        # ``None``; the newly prepended outer dimension is regular. This matches
+        # the convention produced for a genuinely ragged input.
+        assert result.shape == (4, 2, None)
         result_list: list[Any] = result.tolist()  # type: ignore[assignment]
         for i in range(4):
             np.testing.assert_array_equal(np.array(result_list[i]), a_np)
@@ -179,7 +182,9 @@ class TestBroadcastTo3DUniform:
         a_np = np.arange(24, dtype=np.float64).reshape(2, 3, 4)
         a = _make(a_np.tolist(), dtype=np.float64)
         result = ragged.broadcast_to(a, (5, 2, 3, 4))
-        assert result.shape == (5, 2, 3, 4)
+        # The 3-D source has shape (2, None, None); its variable-length inner
+        # dimensions are preserved and the new outer dimension is regular.
+        assert result.shape == (5, 2, None, None)
         result_list: list[Any] = result.tolist()  # type: ignore[assignment]
         for i in range(5):
             np.testing.assert_array_equal(np.array(result_list[i]), a_np)
@@ -225,3 +230,29 @@ class TestBroadcastToErrors:
     def test_non_array_input_raises(self):
         with pytest.raises(TypeError):
             ragged.broadcast_to([[1, 2], [3, 4]], (2, 2))  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# Shape convention: a uniform (numpy-convertible) source must broadcast to the
+# same shape signature as a genuinely ragged source. The source array's own
+# inner dimensions stay variable-length (``None``); newly prepended outer
+# dimensions are regular.
+# ---------------------------------------------------------------------------
+
+
+class TestBroadcastToShapeConvention:
+    def test_uniform_2d_inner_dim_none(self):
+        a = _make([[1.0, 2.0], [3.0, 4.0]])  # uniform data, ragged layout
+        assert a.shape == (2, None)
+        assert ragged.broadcast_to(a, (2, 2)).shape == (2, None)
+
+    def test_uniform_outer_replication_inner_none(self):
+        a = _make([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+        assert ragged.broadcast_to(a, (4, 2, 3)).shape == (4, 2, None)
+
+    def test_uniform_matches_ragged_signature(self):
+        # Broadcasting a single ragged-typed row outward yields the same shape
+        # whether the row data is uniform or genuinely ragged.
+        uniform = _make([[1.0, 2.0]])  # shape (1, None)
+        assert ragged.broadcast_to(uniform, (3, None)).shape == (3, None)
+        assert ragged.broadcast_to(uniform, (3, 2)).shape == (3, None)
