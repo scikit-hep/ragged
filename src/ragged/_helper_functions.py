@@ -9,10 +9,12 @@ from awkward.contents import Content, ListArray, ListOffsetArray
 
 from ._spec_array_object import array
 
+_NUMPY_GE_2_1 = np.lib.NumpyVersion(np.__version__) >= "2.1.0"
+
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
     # Ensure compatibility with numpy 2.0.0
-    if np.__version__ >= "2.1":
+    if _NUMPY_GE_2_1:
         # Just pass and return the input type if the numpy version is not 2.0.0
         return t
 
