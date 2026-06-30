@@ -260,3 +260,73 @@ def test_T_consistency_with_mT():
     """Verify .T and .mT return identical results for 2D."""
     arr = ragged.array([[5, 4, 3], [2, 1, 0]])
     assert ak.to_list(arr.T._impl) == ak.to_list(arr.mT._impl)
+
+
+# ---------------------------------------------------------------------------
+# Device-handling regression tests (fix: _box and __init__ actually move data)
+# ---------------------------------------------------------------------------
+
+
+def test_box_cpu_noop_nd():
+    """_box with device="cpu" on a CPU-backed ak.Array is a no-op and stays CPU."""
+    from ragged._spec_array_object import _box
+
+    x = ragged.array([[1.0, 2.0], [3.0]])
+    result = _box(type(x), x._impl, device="cpu")
+    assert result.device == "cpu"
+    assert isinstance(result._impl, ak.Array)
+    assert ak.backend(result._impl) == "cpu"
+
+
+def test_box_cpu_noop_0d():
+    """_box with device="cpu" on a CPU 0-d numpy array is a no-op and stays CPU."""
+    from ragged._spec_array_object import _box
+
+    x = ragged.array(np.float64(3.14))
+    result = _box(type(x), x._impl, device="cpu")
+    assert result.device == "cpu"
+    assert isinstance(result._impl, np.ndarray)
+
+
+def test_box_cuda_raises_or_moves():
+    """_box with device="cuda" on a CPU array either raises (no CuPy) or moves data."""
+    from ragged._spec_array_object import _box
+
+    x = ragged.array([[1.0, 2.0], [3.0]])
+    if cp is None:
+        # No CuPy: must raise with ModuleNotFoundError, not silently return a
+        # mislabeled array (which is what the pre-fix code did).
+        with pytest.raises(ModuleNotFoundError):
+            _box(type(x), x._impl, device="cuda")
+    else:
+        result = _box(type(x), x._impl, device="cuda")
+        assert result.device == "cuda"
+        assert ak.backend(result._impl) == "cuda"
+
+
+def test_ones_like_explicit_cpu_device_nd():
+    """ones_like with device="cpu" on a CPU array returns a properly CPU-backed array."""
+    x = ragged.array([[1.0, 2.0], [3.0]])
+    result = ragged.ones_like(x, device="cpu")
+    assert result.device == "cpu"
+    assert isinstance(result._impl, ak.Array)
+    assert ak.backend(result._impl) == "cpu"
+    assert result.tolist() == [[1.0, 1.0], [1.0]]
+
+
+def test_ones_like_explicit_cpu_device_0d():
+    """ones_like with device="cpu" on a CPU 0-d array returns a properly CPU-backed array."""
+    x = ragged.array(np.float64(1.0))
+    result = ragged.ones_like(x, device="cpu")
+    assert result.device == "cpu"
+    assert isinstance(result._impl, np.ndarray)
+
+
+def test_init_cupy_to_cpu_conversion():
+    """array.__init__ with device="cpu" on a CuPy scalar moves data to NumPy."""
+    if cp is None:
+        pytest.skip("CuPy not available")
+    cupy_scalar = cp.float64(2.0)
+    a = ragged.array(cupy_scalar, device="cpu")
+    assert a.device == "cpu"
+    assert isinstance(a._impl, np.ndarray)
