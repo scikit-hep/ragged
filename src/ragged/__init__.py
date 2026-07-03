@@ -113,6 +113,7 @@ from ._spec_elementwise_functions import (  # pylint: disable=W0622
 )
 from ._spec_indexing_functions import (
     take,
+    take_along_axis,
 )
 from ._spec_linear_algebra_functions import (
     matmul,
@@ -263,6 +264,7 @@ __all__ = [
     "trunc",
     # _spec_indexing_functions
     "take",
+    "take_along_axis",
     # _spec_linear_algebra_functions
     "matmul",
     "matrix_transpose",
