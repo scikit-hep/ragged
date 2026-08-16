@@ -66,6 +66,10 @@ Discussions = "https://github.com/scikit-hep/ragged/discussions"
 Changelog = "https://github.com/scikit-hep/ragged/releases"
 
 
+[tool.uv]
+exclude-newer = "7 days"
+
+
 [tool.hatch]
 version.source = "vcs"
 build.hooks.vcs.version-file = "src/ragged/_version.py"
