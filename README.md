@@ -244,4 +244,4 @@ Support for this work was provided by NSF grant
 [OAC-2103945](https://www.nsf.gov/awardsearch/showAward?AWD_ID=2103945) and the
 gracious help of
 [Awkward Array contributors](https://github.com/scikit-hep/awkward?tab=readme-ov-file#acknowledgements).
-Some parts of the work has been supported by US NAS and ONRG (IMPRESS-U).
+Some parts of the work have been supported by US NAS and ONRG (IMPRESS-U).
