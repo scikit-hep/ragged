@@ -1048,3 +1048,76 @@ def test_trunc(device, x):
     assert result.shape == x.shape
     assert xp.trunc(first(x)) == first(result)
     assert xp.trunc(first(x)).dtype == result.dtype
+
+
+# Regression tests for dtype bugs
+
+
+@pytest.mark.parametrize("device", devices)
+def test_real_float64_keeps_dtype(device):
+    """real() of a real float64 array must return float64, not float32."""
+    x = ragged.array(np.array([1.0, 2.0, 3.0], dtype=np.float64))
+    result = ragged.real(x.to_device(device))
+    assert result.dtype == np.float64
+
+
+@pytest.mark.parametrize("device", devices)
+def test_imag_float64_keeps_dtype(device):
+    """imag() of a real float64 array must return float64 zeros, not float32."""
+    x = ragged.array(np.array([1.0, 2.0, 3.0], dtype=np.float64))
+    result = ragged.imag(x.to_device(device))
+    assert result.dtype == np.float64
+    assert float(first(result)) == 0.0
+
+
+@pytest.mark.parametrize("device", devices)
+def test_imag_real_zeros_for_real_input(device):
+    """imag() of a real array must return all zeros."""
+    x = ragged.array(np.array([1.5, -2.5, 3.5], dtype=np.float32))
+    result = ragged.imag(x.to_device(device))
+    assert result.dtype == np.float32
+    assert float(first(result)) == 0.0
+
+
+@pytest.mark.skipif(
+    not has_complex_dtype,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
+@pytest.mark.parametrize("device", devices)
+def test_real_complex64_maps_to_float32(device):
+    """real() of complex64 must return float32."""
+    x = ragged.array(np.array([1.0 + 2.0j, 3.0 + 4.0j], dtype=np.complex64))
+    result = ragged.real(x.to_device(device))
+    assert result.dtype == np.float32
+
+
+@pytest.mark.skipif(
+    not has_complex_dtype,
+    reason=f"complex not allowed in np.array_api version {np.__version__}",
+)
+@pytest.mark.parametrize("device", devices)
+def test_imag_complex128_maps_to_float64(device):
+    """imag() of complex128 must return float64."""
+    x = ragged.array(np.array([1.0 + 2.0j, 3.0 + 4.0j], dtype=np.complex128))
+    result = ragged.imag(x.to_device(device))
+    assert result.dtype == np.float64
+
+
+@pytest.mark.parametrize("device", devices)
+def test_round_int64_keeps_dtype(device):
+    """round() of an int64 array must return int64, not float64."""
+    x = ragged.array(np.array([1, 2, 3], dtype=np.int64))
+    result = ragged.round(x.to_device(device))
+    assert result.dtype == np.int64
+    assert int(first(result)) == 1
+
+
+@pytest.mark.parametrize("device", devices)
+def test_trunc_int_matches_ceil_floor_dtype(device):
+    """trunc() of an int array should behave consistently with ceil/floor."""
+    x_int_arr = ragged.array(np.array([1, 2, 3], dtype=np.int64))
+    result_trunc = ragged.trunc(x_int_arr.to_device(device))
+    result_ceil = ragged.ceil(x_int_arr.to_device(device))
+    result_floor = ragged.floor(x_int_arr.to_device(device))
+    assert result_trunc.dtype == result_ceil.dtype
+    assert result_trunc.dtype == result_floor.dtype

@@ -669,13 +669,15 @@ def imag(x: array, /) -> array:
     """
 
     (a,) = _unbox(x)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        return _box(
-            type(x),
-            (a - np.conjugate(a)) / 2j,
-            dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
-        )
+    if x.dtype.kind == "c":
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return _box(
+                type(x),
+                (a - np.conjugate(a)) / 2j,
+                dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
+            )
+    return _box(type(x), np.zeros_like(a), dtype=x.dtype)
 
 
 def isfinite(x: array, /) -> array:
@@ -1061,13 +1063,15 @@ def real(x: array, /) -> array:
     """
 
     (a,) = _unbox(x)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        return _box(
-            type(x),
-            (a + np.conjugate(a)) / 2,
-            dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
-        )
+    if x.dtype.kind == "c":
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return _box(
+                type(x),
+                (a + np.conjugate(a)) / 2,
+                dtype=np.dtype(f"f{x.dtype.itemsize // 2}"),
+            )
+    return _box(type(x), a, dtype=x.dtype)
 
 
 def remainder(x1: array, x2: array, /) -> array:
@@ -1116,6 +1120,8 @@ def round(x: array, /) -> array:  # pylint: disable=W0622
     """
 
     (a,) = _unbox(x)
+    if x.dtype.kind in "biu":
+        return _box(type(x), a, dtype=x.dtype)
     if x.dtype in (np.complex64, np.complex128):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -1132,6 +1138,7 @@ def round(x: array, /) -> array:  # pylint: disable=W0622
             type(x),
             whole
             + ((abs_frac == 0.5) * (whole % 2 != 0) + (abs_frac > 0.5)) * np.sign(frac),
+            dtype=x.dtype,
         )
 
 
@@ -1326,4 +1333,4 @@ def trunc(x: array, /) -> array:
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.trunc.html
     """
 
-    return _box(type(x), np.trunc(*_unbox(x)))
+    return _box(type(x), np.trunc(*_unbox(x)), dtype=regularise_to_float(x.dtype))
