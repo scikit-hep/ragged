@@ -777,112 +777,27 @@ class array:  # pylint: disable=C0103
         """
         Computes the matrix product.
 
-        For 2-D arrays, this is a standard matrix multiplication: (M, K) @ (K, N) → (M, N).
-        For N-D arrays, batch dimensions are broadcast and the last two axes are the
-        matrix dimensions, following the Array API convention.
+        This delegates to :func:`ragged.matmul` so that ``x1 @ x2`` and
+        ``matmul(x1, x2)`` behave identically, as required by the Array API.
 
-        Ragged inner dimensions are not supported — the contracted axis (last axis of
-        self, second-to-last axis of other) must be a regular (non-None) dimension so
-        that each dot product is well-defined.  The non-contracted axes may be ragged,
-        in which case the result is also ragged.
+        For 2-D arrays this is standard matrix multiplication
+        ``(M, K) @ (K, N) → (M, N)``; for N-D arrays batch dimensions are
+        broadcast and the last two axes are the matrix dimensions.  1-D
+        operands are promoted following the spec (and the promoted dimension is
+        removed from the result).
 
-        Raises:
-            ValueError: If either array has fewer than 2 dimensions.
-            ValueError: If the contracted dimensions are ragged or do not match.
-            TypeError: If the two arrays reside on different devices.
+        Ragged contracted axes are not supported — the contracted axis (last
+        axis of ``self``, second-to-last axis of ``other``) must be a uniform
+        (non-ragged) dimension so each dot product is well-defined.  The
+        non-contracted axes may be ragged, in which case the result is ragged.
 
         https://data-apis.org/array-api/latest/API_specification/generated/array_api.array.__matmul__.html
         """
-        other = self._ensure_array(other)
+        from ragged import (  # pylint: disable=C0415,R0401
+            _spec_linear_algebra_functions as ns,
+        )
 
-        if self.ndim < 2 or other.ndim < 2:
-            msg = "matmul requires arrays with at least 2 dimensions"
-            raise ValueError(msg)
-
-        # The contracted dimension is self.shape[-1] and other.shape[-2].
-        # Both must be regular (not None) and equal.
-        #
-        # NOTE: ragged.array always stores the last axis as variable-length
-        # internally, so shape[-1] is always None regardless of whether rows
-        # are actually uniform.  We use ak.num to determine the true size.
-        def _uniform_axis_size(arr: array, axis: int) -> int | None:
-            """Return the axis size if uniform across all entries, else None."""
-
-            def _flatten_ints(obj: Any) -> list[int]:
-                """Recursively flatten nested lists/ints to a flat list of ints."""
-                if isinstance(obj, int):
-                    return [obj]
-                result: list[int] = []
-                for item in obj:
-                    result.extend(_flatten_ints(item))
-                return result
-
-            nums = ak.num(arr._impl, axis=axis)
-            nums_list = ak.to_list(nums)
-            if isinstance(nums_list, int):
-                return nums_list
-            flat = _flatten_ints(nums_list)
-            if not flat:
-                return None
-            return flat[0] if all(v == flat[0] for v in flat) else None
-
-        k_self = _uniform_axis_size(self, -1)
-        k_other = _uniform_axis_size(other, -2)
-
-        if k_self is None or k_other is None:
-            msg = (
-                "matmul: the contracted axis (last axis of the left operand / "
-                "second-to-last axis of the right operand) must not be ragged"
-            )
-            raise ValueError(msg)
-
-        if k_self != k_other:
-            msg = (
-                f"matmul: contracted dimension mismatch — "
-                f"left operand last axis={k_self}, right operand second-to-last axis={k_other}"
-            )
-            raise ValueError(msg)
-
-        left_impl, right_impl = _unbox(self, other)
-
-        # Fast path: both arrays are fully regular (no ragged leading dims).
-        # Convert to NumPy and use np.matmul directly.
-        try:
-            left_np = ak.to_numpy(left_impl)
-            right_np = ak.to_numpy(right_impl)
-            result_np = np.matmul(left_np, right_np)
-            return _box(type(self), ak.from_numpy(result_np))
-        except (TypeError, ValueError, NotImplementedError):
-            pass
-
-        # Slow path: at least one operand has ragged non-contracted dimensions.
-        # Walk ak.Array sub-blocks directly instead of calling ak.to_list on the
-        # whole array — ak.to_numpy is tried at every recursion level, so any
-        # fully-uniform sub-block (including batched 3-D+) hits np.matmul without
-        # allocating Python list objects.
-        result_dtype = np.result_type(self._dtype, other._dtype)
-
-        def _matmul_ak(a: ak.Array, b: ak.Array) -> Any:
-            # Fast: ak.to_numpy succeeds for uniform sub-blocks at any depth.
-            try:
-                return np.matmul(ak.to_numpy(a), ak.to_numpy(b))
-            except (TypeError, ValueError):
-                pass
-            # Ragged batch dimension — recurse element-by-element.
-            if len(a) != len(b):
-                msg = (
-                    f"matmul: batch dimension mismatch — "
-                    f"left has {len(a)} entries, right has {len(b)}"
-                )
-                raise ValueError(msg)
-            results: list[Any] = []
-            for ai, bi in zip(a, b, strict=False):
-                ai_ak = ai if isinstance(ai, ak.Array) else ak.Array(ai)
-                bi_ak = bi if isinstance(bi, ak.Array) else ak.Array(bi)
-                results.append(_matmul_ak(ai_ak, bi_ak))
-            return results
-
-        return array(_matmul_ak(left_impl, right_impl), dtype=result_dtype)
+        return ns.matmul(self, self._ensure_array(other))
 
     def __mod__(self, other: int | float | array, /) -> array:
         """
@@ -1266,30 +1181,17 @@ class array:  # pylint: disable=C0103
         Raises ValueError if the result shape differs from the original shape,
         since in-place assignment cannot change the shape of the array.
         """
+        from ._helper_functions import (  # pylint: disable=C0415,R0401
+            uniform_axis_size,
+        )
+
         orig_shape = self.shape
         result = self @ other
 
         # Build the "effective" original shape: substitute None dims with what
         # ak.num reports (uniform size, or None if truly ragged).
-        def _effective_size(arr: array, axis: int) -> int | None:
-            nums = ak.num(arr._impl, axis=axis)
-            lst = ak.to_list(nums)
-            if isinstance(lst, int):
-                return lst
-
-            def _flatten(obj: Any) -> list[int]:
-                if isinstance(obj, int):
-                    return [obj]
-                out: list[int] = []
-                for item in obj:
-                    out.extend(_flatten(item))
-                return out
-
-            flat = _flatten(lst)
-            return flat[0] if flat and all(v == flat[0] for v in flat) else None
-
         effective_self_shape = tuple(
-            _effective_size(self, i) if s is None else s
+            uniform_axis_size(self, i) if s is None else s
             for i, s in enumerate(orig_shape)
         )
         # result.shape has concrete values from the numpy fast path
