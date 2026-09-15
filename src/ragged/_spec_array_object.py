@@ -236,6 +236,8 @@ class array:  # pylint: disable=C0103
             elif isinstance(self._impl, np.ndarray) and device == "cuda":
                 cp = _import.cupy()
                 self._impl = cp.array(self._impl)
+            elif not isinstance(self._impl, ak.Array | np.ndarray) and device == "cpu":
+                self._impl = np.asarray(self._impl.get())
             self._device = device
         else:
             if isinstance(self._impl, ak.Array):
@@ -1462,7 +1464,7 @@ def _box(
         if device is None:
             device = device_observed
         elif device != device_observed:
-            output = ak.to_backend(output, device)
+            impl = ak.to_backend(impl, device)
 
     elif isinstance(output, np.number):
         impl = np.array(output)
@@ -1477,7 +1479,7 @@ def _box(
             device = device_observed
         elif device != device_observed:
             cp = _import.cupy()
-            output = cp.array(output)
+            impl = cp.array(impl)
 
     else:
         impl = output
@@ -1492,10 +1494,10 @@ def _box(
             device = device_observed
         elif device != device_observed:
             if device == "cpu":
-                output = np.array(output)
+                impl = np.asarray(impl.get())
             else:
                 cp = _import.cupy()
-                output = cp.array(output)
+                impl = cp.array(impl)
 
         if shape != ():
             impl = ak.Array(impl)
