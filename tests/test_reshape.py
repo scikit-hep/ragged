@@ -79,7 +79,10 @@ class TestReshapeRegular:
     def test_add_trailing_dim(self):
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
         result = ragged.reshape(a, (2, 2, 1))
-        assert result.shape == (2, 2, 1)
+        # The reshaped result is a transformed ragged array, so its inner
+        # dimensions are variable-length (``None``), following the same
+        # convention as flip / permute_dims rather than fixed ints.
+        assert result.shape == (2, None, None)
 
     def test_result_is_ragged_array(self):
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
@@ -202,3 +205,24 @@ class TestReshapeErrors:
         a = ragged.array([[1, 2, 3], [4, 5]])  # 5 elements total
         with pytest.raises(ValueError, match="[Rr]eshape|shape|size|element"):
             ragged.reshape(a, (6,))
+
+
+# ---------------------------------------------------------------------------
+# Shape convention: a multi-dimensional reshape produces variable-length inner
+# dimensions, matching flip / permute_dims rather than fixed ints.
+# ---------------------------------------------------------------------------
+
+
+class TestReshapeShapeConvention:
+    def test_2d_to_2d_inner_dim_none(self):
+        a = _make([[1.0, 2.0], [3.0, 4.0]])
+        assert ragged.reshape(a, (2, 2)).shape == (2, None)
+
+    def test_2d_to_3d_inner_dims_none(self):
+        a = _make([[1, 2], [3, 4]], dtype=np.float64)
+        assert ragged.reshape(a, (2, 2, 1)).shape == (2, None, None)
+
+    def test_1d_target_stays_regular(self):
+        # A 1-D result has no inner dimension to make variable-length.
+        a = _make([[1, 2], [3, 4]], dtype=np.float64)
+        assert ragged.reshape(a, (4,)).shape == (4,)

@@ -189,3 +189,34 @@ class TestFlipErrors:
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
         with pytest.raises(ValueError, match="out of range|axis"):
             ragged.flip(a, axis=-3)
+
+
+# ---------------------------------------------------------------------------
+# Shape convention: the uniform (numpy fast path) and ragged paths must agree
+# ---------------------------------------------------------------------------
+
+
+class TestFlipShapeConvention:
+    """flip preserves the input shape signature regardless of whether the data
+    happens to be uniform. A ``(2, None)``-typed input stays ``(2, None)``,
+    matching the convention of the ragged path (and of permute_dims / roll)."""
+
+    def test_uniform_2d_inner_dim_stays_none(self):
+        uniform = _make([[1.0, 2.0], [3.0, 4.0]])  # uniform data, ragged layout
+        assert uniform.shape == (2, None)
+        assert ragged.flip(uniform, axis=1).shape == (2, None)
+        assert ragged.flip(uniform, axis=0).shape == (2, None)
+        assert ragged.flip(uniform).shape == (2, None)
+
+    def test_uniform_matches_ragged_signature(self):
+        uniform = _make([[1.0, 2.0], [3.0, 4.0]])  # fast (numpy) path
+        ragged_in = _make([[1.0, 2.0], [3.0]])  # general (awkward) path
+        assert (
+            ragged.flip(uniform, axis=1).shape == ragged.flip(ragged_in, axis=1).shape
+        )
+
+    def test_uniform_3d_inner_dims_stay_none(self):
+        a_np = np.arange(24, dtype=np.float64).reshape(2, 3, 4)
+        a = _make(a_np.tolist(), dtype=np.float64)
+        assert ragged.flip(a, axis=0).shape == (2, None, None)
+        assert ragged.flip(a, axis=2).shape == (2, None, None)

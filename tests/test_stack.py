@@ -282,3 +282,38 @@ class TestStackErrors:
         bad: Any = [[1, 2], [3, 4]]
         with pytest.raises(TypeError):
             ragged.stack(bad)
+
+
+# ---------------------------------------------------------------------------
+# Shape convention: stacking uniform arrays must produce the same shape
+# signature as stacking genuinely ragged arrays. The newly inserted stack axis
+# is regular; the source arrays' own inner dimensions stay variable-length.
+# ---------------------------------------------------------------------------
+
+
+class TestStackShapeConvention:
+    def test_uniform_2d_axis0_inner_dim_none(self):
+        a = _make([[1.0, 2.0], [3.0, 4.0]])  # uniform data, ragged layout
+        assert a.shape == (2, None)
+        assert ragged.stack([a, a], axis=0).shape == (2, 2, None)
+
+    def test_uniform_2d_axis2_new_axis_regular(self):
+        a = _make([[1.0, 2.0], [3.0, 4.0]])
+        # New stack axis is inserted last (regular); source inner dim stays None.
+        assert ragged.stack([a, a], axis=2).shape == (2, None, 2)
+
+    def test_uniform_3d(self):
+        a_np = np.arange(24, dtype=np.float64).reshape(2, 3, 4)
+        a = _make(a_np.tolist(), dtype=np.float64)
+        assert ragged.stack([a, a], axis=0).shape == (2, 2, None, None)
+
+    @pytest.mark.parametrize("axis", [0, 1, 2, -1])
+    def test_uniform_matches_ragged_signature(self, axis):
+        # The fast-path-eligible uniform input and the genuinely ragged input
+        # must yield the same shape structure for every axis.
+        uniform = _make([[1.0, 2.0], [3.0, 4.0]])  # to_numpy succeeds (fast path)
+        ragged_in = _make([[1.0, 2.0], [3.0]])  # to_numpy fails (general path)
+        assert (
+            ragged.stack([uniform, uniform], axis=axis).shape
+            == ragged.stack([ragged_in, ragged_in], axis=axis).shape
+        )
