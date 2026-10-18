@@ -30,8 +30,9 @@ def _regularize_axis(
         out = []
         for x in axis:  # type: ignore[union-attr]
             out.append(x + ndim if x < 0 else x)
-            if not 0 < out[-1] < ndim:
+            if not 0 <= out[-1] < ndim:
                 msg = f"axis {x} is out of bounds for an array with {ndim} dimensions"
+                raise ak.errors.AxisError(msg)
         if len(out) == 0:
             msg = "at least one axis must be specified"
             raise ak.errors.AxisError(msg)
@@ -132,7 +133,9 @@ def mean(
         If the arithmetic mean was computed over the entire array, a
         zero-dimensional array containing the arithmetic mean; otherwise, a
         non-zero-dimensional array containing the arithmetic means. The
-        returned array has the same data type as `x`.
+        returned array has a floating-point data type: the same data type as
+        `x` if `x` is floating-point, otherwise the default floating-point data
+        type.
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.mean.html
     """
@@ -150,7 +153,10 @@ def mean(
         sumw = ak.count(*_unbox(x), axis=axis, keepdims=keepdims)
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        return _ensure_dtype(_box(type(x), sumwx / sumw), x.dtype)
+        out = _box(type(x), sumwx / sumw)
+        if x.dtype.kind in "fc":
+            out = _ensure_dtype(out, x.dtype)
+        return out
 
 
 def min(  # pylint: disable=W0622
@@ -252,7 +258,7 @@ def prod(
 
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
-    arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+    arr = _ensure_dtype(x, dtype)
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)
@@ -302,7 +308,9 @@ def std(
         If the standard deviation was computed over the entire array, a
         zero-dimensional array containing the standard deviation; otherwise, a
         non-zero-dimensional array containing the standard deviations.
-        The returned array has the same data type as `x`.
+        The returned array has a floating-point data type: the same data type
+        as `x` if `x` is floating-point, otherwise the default floating-point
+        data type.
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.std.html
     """
@@ -366,7 +374,7 @@ def sum(  # pylint: disable=W0622
 
     axis = _regularize_axis(axis, x.ndim)
     dtype = _regularize_dtype(dtype, x.dtype)
-    arr = _box(type(x), ak.values_astype(*_unbox(x), dtype)) if x.dtype == dtype else x
+    arr = _ensure_dtype(x, dtype)
 
     if isinstance(axis, tuple):
         (out,) = _unbox(arr)
@@ -413,8 +421,9 @@ def var(
     Returns:
         If the variance was computed over the entire array, a zero-dimensional
         array containing the variance; otherwise, a non-zero-dimensional array
-        containing the variances. The returned array has the same data type as
-        `x`.
+        containing the variances. The returned array has a floating-point data
+        type: the same data type as `x` if `x` is floating-point, otherwise the
+        default floating-point data type.
 
     https://data-apis.org/array-api/latest/API_specification/generated/array_api.var.html
     """
@@ -438,4 +447,7 @@ def var(
         out = sumwxx / sumw - np.square(sumwx / sumw)
         if correction is not None and correction != 0:
             out *= sumw / (sumw - correction)
-        return _ensure_dtype(_box(type(x), out), x.dtype)
+        result = _box(type(x), out)
+        if x.dtype.kind in "fc":
+            result = _ensure_dtype(result, x.dtype)
+        return result

@@ -6,6 +6,8 @@ https://data-apis.org/array-api/latest/API_specification/statistical_functions.h
 
 from __future__ import annotations
 
+import awkward as ak
+import numpy as np
 import pytest
 
 import ragged
@@ -332,4 +334,60 @@ def test_var():
         ragged.var(data, axis=(0, 1, 2)).tolist()
         == ragged.var(data, axis=(-1, 0, 1)).tolist()
         == pytest.approx(9.9825)
+    )
+
+
+def test_sum_dtype_argument():
+    data = ragged.array([[1, 2, 3], [4, 5]])
+    assert data.dtype == np.dtype(np.int64)
+
+    result = ragged.sum(data, dtype=np.dtype(np.float32))
+    assert result.dtype == np.dtype(np.float32)
+    assert result.tolist() == pytest.approx(15.0)
+
+
+def test_prod_dtype_argument():
+    data = ragged.array([[1, 2, 3], [4, 5]])
+    assert data.dtype == np.dtype(np.int64)
+
+    result = ragged.prod(data, dtype=np.dtype(np.float32))
+    assert result.dtype == np.dtype(np.float32)
+    assert result.tolist() == pytest.approx(120.0)
+
+
+def test_mean_integer_not_truncated():
+    result = ragged.mean(ragged.array([1, 2]))
+    assert result.dtype.kind == "f"
+    assert result.tolist() == pytest.approx(1.5)
+
+
+def test_var_integer_not_truncated():
+    result = ragged.var(ragged.array([1, 2, 4]))
+    assert result.dtype.kind == "f"
+    assert result.tolist() == pytest.approx(1.5555556)
+
+
+def test_std_integer_not_truncated():
+    result = ragged.std(ragged.array([1, 2, 4]))
+    assert result.dtype.kind == "f"
+    assert result.tolist() == pytest.approx(1.2472191)
+
+
+def test_mean_var_std_float32_preserved():
+    data = ragged.array(np.array([1.0, 2.0, 4.0], dtype=np.float32))
+    assert ragged.mean(data).dtype == np.dtype(np.float32)
+    assert ragged.var(data).dtype == np.dtype(np.float32)
+    assert ragged.std(data).dtype == np.dtype(np.float32)
+
+
+def test_tuple_axis_out_of_bounds():
+    data = ragged.array([[[0, 1, 2], []], [], [[3, 4], [5], [6, 7, 8, 9]]])
+    with pytest.raises(ak.errors.AxisError):
+        ragged.sum(data, axis=(0, 5))
+
+
+def test_tuple_axis_includes_zero():
+    data = ragged.array([[[0, 1, 2], []], [], [[3, 4], [5], [6, 7, 8, 9]]])
+    assert (
+        ragged.sum(data, axis=(0, 1)).tolist() == ragged.sum(data, axis=(1, 0)).tolist()
     )
