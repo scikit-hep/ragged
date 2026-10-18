@@ -1,4 +1,13 @@
 # BSD 3-Clause License; see https://github.com/scikit-hep/ragged/blob/main/LICENSE
+
+"""
+Internal helper/utility functions shared across the ragged package.
+
+These are not part of the public Array API surface; they handle dtype
+normalisation and structural regularity checks that several spec modules
+need in common.
+"""
+
 from __future__ import annotations
 
 from typing import Any
@@ -11,6 +20,28 @@ from ._spec_array_object import array
 
 
 def regularise_to_float(t: np.dtype, /) -> np.dtype:
+    """
+    Promote an integer or boolean dtype to a suitable floating-point dtype.
+
+    This is a compatibility shim for NumPy 2.0.0, which removed implicit
+    integer-to-float promotion in certain operations.  For NumPy 2.1 and
+    later the function is a no-op, because that version restored compatible
+    behaviour.
+
+    The promotion rules mirror those of NumPy's own type-promotion ladder:
+
+    * ``bool``, ``int8``, ``uint8``   → ``float16``
+    * ``int16``, ``uint16``           → ``float32``
+    * ``int32``, ``uint32``, ``int64``, ``uint64`` → ``float64``
+    * All other dtypes (e.g. floating-point) are returned unchanged.
+
+    Args:
+        t: The NumPy dtype to (potentially) promote.
+
+    Returns:
+        A floating-point NumPy dtype that can represent values of ``t``,
+        or ``t`` itself when no promotion is required.
+    """
     # Ensure compatibility with numpy 2.0.0
     if np.__version__ >= "2.1":
         # Just pass and return the input type if the numpy version is not 2.0.0
@@ -50,6 +81,27 @@ def is_sorted_descending_all_levels(x: array, /) -> bool:
 
 
 def is_effectively_regular(x: array) -> bool:
+    """
+    Return ``True`` if *x* behaves like a rectangular (non-ragged) array.
+
+    Unlike :func:`is_regular_or_effectively_regular`, this function does
+    **not** inspect the Awkward Array layout; it instead walks the Python
+    object directly using ``len`` and iteration.  This makes it useful as a
+    fallback when the layout-based check is unavailable or inconclusive.
+
+    A 1-D sequence is considered effectively regular if every element has the
+    same ``len``.  A 2-D (or higher) sequence is considered effectively regular
+    if every outer entry has the same length *and* every inner entry of those
+    outer entries has the same length.
+
+    Args:
+        x: The array (or array-like object) to inspect.
+
+    Returns:
+        ``True`` if all rows (and, for 3-D inputs, all sub-rows) have uniform
+        length; ``False`` if any dimension is ragged, or if the object does not
+        support ``len`` / iteration at all.
+    """
     try:
         if not hasattr(x, "__len__"):
             return False
@@ -80,6 +132,30 @@ def is_effectively_regular(x: array) -> bool:
 
 
 def is_regular_or_effectively_regular(x: Any) -> bool:
+    """
+    Return ``True`` if *x* is backed by a regular (rectangular) layout or
+    behaves like one at the Python level.
+
+    The check is performed in two stages:
+
+    1. **Layout-based (fast path):** If *x* exposes an Awkward Array layout
+       via ``x._impl.layout``, the function accepts *x* as regular when the
+       outermost layout node is a :class:`ak.contents.RegularArray` whose
+       content is either a :class:`ak.contents.NumpyArray` (2-D) or another
+       ``RegularArray`` wrapping a ``NumpyArray`` (3-D).
+    2. **Iteration-based (fallback):** If the layout check raises
+       ``TypeError`` or ``AttributeError`` (e.g. the object is not an
+       Awkward-backed ``ragged.array``), the function delegates to
+       :func:`is_effectively_regular`.
+
+    Args:
+        x: Any object to inspect — typically a :class:`ragged.array`, but
+           plain Python sequences and NumPy arrays are also accepted (they
+           fall through to the iteration-based check).
+
+    Returns:
+        ``True`` if *x* is structurally regular; ``False`` otherwise.
+    """
     try:
         layout = x.layout
         layout = x._impl.layout  # pylint: disable=W0212
