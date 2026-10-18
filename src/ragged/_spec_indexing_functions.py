@@ -49,7 +49,7 @@ def take(x: array, indices: array, /, *, axis: None | int = None) -> array:
 
     original_axis = axis
     if axis < 0:
-        axis += x.ndim + 1
+        axis += x.ndim
     if not 0 <= axis < x.ndim:
         msg = f"axis {original_axis} is out of bounds for array of dimension {x.ndim}"
         raise ak.errors.AxisError(msg)

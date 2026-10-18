@@ -454,9 +454,6 @@ def reshape(x: array, /, shape: tuple[int, ...], *, copy: None | bool = None) ->
     if neg_one_count > 1:
         msg = "reshape: only one dimension may be -1"
         raise ValueError(msg)
-    if any(s < -1 or s == 0 and s != 0 for s in shape):
-        # zero-size dims are allowed; negative dims other than -1 are not
-        pass
     if any(s < -1 for s in shape):
         msg = "reshape: shape dimensions must be -1 or non-negative"
         raise ValueError(msg)
