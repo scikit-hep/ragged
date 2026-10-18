@@ -6,27 +6,17 @@ https://data-apis.org/array-api/latest/API_specification/linear_algebra_function
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
 import awkward as ak
 import numpy as np
 
+from ._helper_functions import uniform_axis_size
+from ._spec_array_object import _unbox
+
 if TYPE_CHECKING:
     import ragged as rg
-
-
-def safe_max_num(arr: rg.array, axis: int | None = None) -> int:
-    """
-    Compute the maximum number of elements along an axis for a ragged array.
-    Returns as an int, even if ak.num returns a scalar-like array.
-    """
-    counts: int | np.ndarray | list[int] = ak.num(arr, axis=axis)
-
-    if isinstance(counts, int | np.integer):
-        return int(counts)
-
-    return int(max(counts))
 
 
 def matmul(x1: rg.array, x2: rg.array, /) -> rg.array:
@@ -96,126 +86,112 @@ def matmul(x1: rg.array, x2: rg.array, /) -> rg.array:
         msg = "Zero-dimensional arrays are not allowed"
         raise ValueError(msg)
 
-    # --- helper: promote 1D to 2D (list-of-rows) ---
-    def _promote_1d_to_2d(arr: rg.array) -> list[list[int | float | complex]]:
-        impl_list = ak.to_list(arr._impl)  # pylint: disable=W0212
-
-        if arr.ndim == 1:
-            return [impl_list]
-
-        return [
-            list(row)
-            if isinstance(row, Iterable) and not isinstance(row, str | bytes)
-            else [row]
-            for row in impl_list
-        ]
-
-    # --- 1Dx1D -> scalar ---
+    # --- 1-D x 1-D -> 0-d inner product -------------------------------------
     if x1.ndim == 1 and x2.ndim == 1:
-        if len(x1) != len(x2):
-            msg = "Shape mismatch for 1D arrays"
+        k1 = uniform_axis_size(x1, 0)
+        k2 = uniform_axis_size(x2, 0)
+        if k1 != k2:
+            msg = (
+                f"matmul: shape mismatch for 1-D operands "
+                f"(left has {k1} elements, right has {k2})"
+            )
             raise ValueError(msg)
-        x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
-        x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
-        return rg.array(sum(a * b for a, b in zip(x1_list, x2_list, strict=False)))
+        left_impl, right_impl = _unbox(x1, x2)
+        out_dtype = np.result_type(x1.dtype, x2.dtype)
+        result = np.sum(
+            ak.to_numpy(left_impl).astype(out_dtype)
+            * ak.to_numpy(right_impl).astype(out_dtype)
+        )
+        return rg.array(result)
 
-    # --- 1D x 2D / 2D x 1D promotion ---
-    if x1.ndim == 1 and x2.ndim == 2:
-        x1_list = ak.to_list(x1._impl)  # pylint: disable=W0212
-        promoted_x1 = rg.array([x1_list])  # shape (1, K)
-        res2d = matmul(promoted_x1, x2)
-        return rg.array(res2d[0])  # drop leading 1 safely
+    # --- 1-D x N-D : prepend a 1, then drop it from the result --------------
+    if x1.ndim == 1:
+        (left_impl,) = _unbox(x1)
+        promoted = rg.array(ak.Array(left_impl)[np.newaxis])  # shape (1, M)
+        promoted_result = matmul(promoted, x2)
+        # The prepended dimension is the second-to-last axis of the result.
+        (res_impl,) = _unbox(promoted_result)
+        return rg.array(ak.Array(res_impl)[..., 0, :])
 
-    if x1.ndim == 2 and x2.ndim == 1:
-        x2_list = ak.to_list(x2._impl)  # pylint: disable=W0212
-        promoted_x2 = rg.array([[v] for v in x2_list])  # shape (K, 1)
-        res2d = matmul(x1, promoted_x2)  # returns 2D (M,1)
+    # --- N-D x 1-D : append a 1, then drop it from the result ---------------
+    if x2.ndim == 1:
+        (right_impl,) = _unbox(x2)
+        promoted = rg.array(ak.Array(right_impl)[:, np.newaxis])  # shape (N, 1)
+        promoted_result = matmul(x1, promoted)
+        # The appended dimension is the last axis of the result.
+        (res_impl,) = _unbox(promoted_result)
+        return rg.array(ak.Array(res_impl)[..., 0])
 
-        # --- collapse trailing dimension safely ---
-        if res2d.ndim == 2:
-            impl_list = ak.to_list(res2d._impl)  # pylint: disable=W0212
-            if len(impl_list) > 0:
-                return rg.array([row[0] for row in impl_list])
-            else:
-                return rg.array([])  # empty 2D
-        else:
-            return rg.array(ak.to_list(res2d._impl))  # pylint: disable=W0212
+    return _matmul_2d_plus(x1, x2)
 
-    # --- output dtype ---
-    out_dtype = np.result_type(x1.dtype, x2.dtype)
 
-    # --- ragged-safe 2Dx2D ---
-    def _matmul_2d(a_impl: Any, b_impl: Any) -> list[Any]:
-        if len(a_impl) == 0 or len(b_impl) == 0:
-            return []
+def _matmul_2d_plus(x1: rg.array, x2: rg.array, /) -> rg.array:
+    """
+    Matrix product for operands that both have at least two dimensions.
 
-        max_cols_a = int(safe_max_num(a_impl, axis=-1))
-        max_cols_b = int(safe_max_num(b_impl, axis=-1))
-        all_b_rows_empty = all(len(row) == 0 for row in b_impl)
-        eff_rows_b = 0 if all_b_rows_empty else len(b_impl)
+    The contracted axis (last of ``x1`` / second-to-last of ``x2``) must be
+    uniform; ragged contracted axes are rejected rather than zero-padded, so no
+    elements are ever invented.  Non-contracted (batch / row) axes may be
+    ragged, in which case the result is ragged too.
+    """
+    import ragged as rg
 
-        if max_cols_a != eff_rows_b and not (max_cols_a == 0 and eff_rows_b == 0):
-            msg = "Shape mismatch in core dimensions"
-            raise ValueError(msg)
+    # The contracted dimension is x1.shape[-1] and x2.shape[-2]; both must be
+    # uniform (not ragged) and equal.  ragged.array stores its last axis as
+    # variable-length internally, so we probe the true sizes with ak.num.
+    k1 = uniform_axis_size(x1, -1)
+    k2 = uniform_axis_size(x2, -2)
 
-        M, K, N = len(a_impl), max_cols_a, max_cols_b
-
-        mat_a = np.zeros((M, K), dtype=out_dtype)
-        for r, row in enumerate(a_impl):
-            for c, val in enumerate(row):
-                mat_a[r, c] = val
-
-        mat_b = np.zeros((K, N), dtype=out_dtype)
-        for r in range(min(len(b_impl), K)):
-            row = b_impl[r]
-            for c, val in enumerate(row):
-                mat_b[r, c] = val
-
-        product = mat_a @ mat_b
-
-        out: list[Any] = []
-        for r, orig_row in enumerate(a_impl):
-            if len(orig_row) == 0:
-                out.append([])
-            else:
-                out.append(list(product[r, :N]))
-        return out
-
-    # --- both <=2D ---
-    if x1.ndim <= 2 and x2.ndim <= 2:
-        out2d = _matmul_2d(_promote_1d_to_2d(x1), _promote_1d_to_2d(x2))
-        x1_impl = x1._impl  # pylint: disable=W0212
-        if x1.ndim == x2.ndim == 2:
-            rowsA = ak.num(x1_impl, axis=0)
-            colsB = safe_max_num(x2, axis=-1)
-            if rowsA == 1 and colsB == 1:
-                return rg.array([out2d[0][0]])
-        return rg.array(out2d)
-
-    # --- batch (>2D) ---
-    def _batches(xt: rg.array) -> list[list[int | float]]:
-        xt_impl: Any = xt._impl  # pylint: disable=W0212
-        if xt.ndim <= 2:
-            return [ak.to_list(xt_impl)]
-        return [ak.to_list(xt_impl[i]) for i in range(len(xt_impl))]
-
-    x1_batches = _batches(x1)
-    x2_batches = _batches(x2)
-
-    B1, B2 = len(x1_batches), len(x2_batches)
-    if B1 not in (B2, 1) and B2 not in (B1, 1):
-        msg = "Broadcast dimension mismatch"
+    if k1 is None or k2 is None:
+        msg = (
+            "matmul: the contracted axis (last axis of the left operand / "
+            "second-to-last axis of the right operand) must not be ragged"
+        )
         raise ValueError(msg)
 
-    n_batches = max(B1, B2)
-    results = []
-    for i in range(n_batches):
-        b1 = x1_batches[i % B1]
-        b2 = x2_batches[i % B2]
-        results.append(
-            _matmul_2d(_promote_1d_to_2d(rg.array(b1)), _promote_1d_to_2d(rg.array(b2)))
+    if k1 != k2:
+        msg = (
+            f"matmul: contracted dimension mismatch — "
+            f"left operand last axis={k1}, right operand second-to-last axis={k2}"
         )
-    return rg.array(results)
+        raise ValueError(msg)
+
+    left_impl, right_impl = _unbox(x1, x2)
+
+    # Fast path: both arrays are fully regular (no ragged leading dims).
+    try:
+        left_np = ak.to_numpy(left_impl)
+        right_np = ak.to_numpy(right_impl)
+        result_np = np.matmul(left_np, right_np)
+        return rg.array(result_np)
+    except (TypeError, ValueError, NotImplementedError):
+        pass
+
+    # Slow path: at least one operand has ragged non-contracted dimensions.
+    # Walk ak.Array sub-blocks directly; ak.to_numpy is retried at every
+    # recursion level, so any fully-uniform sub-block (including batched 3-D+)
+    # hits np.matmul without materialising Python lists.
+    result_dtype = np.result_type(x1.dtype, x2.dtype)
+
+    def _matmul_ak(a: ak.Array, b: ak.Array) -> Any:
+        try:
+            return np.matmul(ak.to_numpy(a), ak.to_numpy(b))
+        except (TypeError, ValueError):
+            pass
+        if len(a) != len(b):
+            msg = (
+                f"matmul: batch dimension mismatch — "
+                f"left has {len(a)} entries, right has {len(b)}"
+            )
+            raise ValueError(msg)
+        results: list[Any] = []
+        for ai, bi in zip(a, b, strict=False):
+            ai_ak = ai if isinstance(ai, ak.Array) else ak.Array(ai)
+            bi_ak = bi if isinstance(bi, ak.Array) else ak.Array(bi)
+            results.append(_matmul_ak(ai_ak, bi_ak))
+        return results
+
+    return rg.array(_matmul_ak(left_impl, right_impl), dtype=result_dtype)
 
 
 def matrix_transpose(x: rg.array, /) -> rg.array:
@@ -357,30 +333,10 @@ def tensordot(
         msg = "tensordot: contracted axis indices must be unique"
         raise ValueError(msg)
 
-    # --- helper: uniform size along a given axis (None = truly ragged) ---
-    def _uniform_size(arr: rg.array, axis: int) -> int | None:
-        nums = ak.num(arr._impl, axis=axis)  # pylint: disable=W0212
-        lst = ak.to_list(nums)
-        if isinstance(lst, int):
-            return lst
-
-        def _flat(obj: Any) -> list[int]:
-            if isinstance(obj, int):
-                return [obj]
-            out: list[int] = []
-            for item in obj:
-                out.extend(_flat(item))
-            return out
-
-        flat = _flat(lst)
-        if not flat:
-            return None
-        return flat[0] if all(v == flat[0] for v in flat) else None
-
     # --- check contracted axes are not ragged and sizes match ---
     for a1, a2 in zip(x1_axes, x2_axes, strict=False):
-        k1 = _uniform_size(x1, a1)
-        k2 = _uniform_size(x2, a2)
+        k1 = uniform_axis_size(x1, a1)
+        k2 = uniform_axis_size(x2, a2)
         if k1 is None or k2 is None:
             msg = (
                 "tensordot: contracted axes must not be ragged "
@@ -493,29 +449,9 @@ def vecdot(x1: rg.array, x2: rg.array, /, *, axis: int = -1) -> rg.array:
         raise ValueError(msg)
     norm_axis = axis % rank  # convert negative to positive
 
-    # --- helper: uniform size along an axis (None = truly ragged) ---
-    def _uniform_size(arr: rg.array, ax: int) -> int | None:
-        nums = ak.num(arr._impl, axis=ax)  # pylint: disable=W0212
-        lst = ak.to_list(nums)
-        if isinstance(lst, int):
-            return lst
-
-        def _flat(obj: Any) -> list[int]:
-            if isinstance(obj, int):
-                return [obj]
-            out: list[int] = []
-            for item in obj:
-                out.extend(_flat(item))
-            return out
-
-        flat = _flat(lst)
-        if not flat:
-            return None
-        return flat[0] if all(v == flat[0] for v in flat) else None
-
     # The contracted axis must not be ragged.
-    k1 = _uniform_size(x1, norm_axis)
-    k2 = _uniform_size(x2, norm_axis)
+    k1 = uniform_axis_size(x1, norm_axis)
+    k2 = uniform_axis_size(x2, norm_axis)
     if k1 is None or k2 is None:
         msg = f"vecdot: the contracted axis (axis={axis}) must not be ragged"
         raise ValueError(msg)

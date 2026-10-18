@@ -29,6 +29,8 @@ In-place operator
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pytest
 
@@ -223,17 +225,27 @@ class TestMatmulRagged:
 
 
 class TestMatmulErrors:
-    def test_1d_left_raises(self):
+    def test_1d_left_promotes(self):
+        # 1-D left operand is promoted to (1, K), multiplied, and the prepended
+        # dimension is removed from the result (Array API vector promotion).
         a = _make([1, 2, 3], dtype=np.float64)
         b = _make([[1, 0], [0, 1], [1, 1]], dtype=np.float64)
-        with pytest.raises(ValueError, match="[Mm]atmul|dimension"):
-            _ = a @ b
+        result = a @ b
+        expected = np.array([1, 2, 3], dtype=np.float64) @ np.array(
+            [[1, 0], [0, 1], [1, 1]], dtype=np.float64
+        )
+        np.testing.assert_array_equal(_as_np(result), expected)
 
-    def test_1d_right_raises(self):
+    def test_1d_right_promotes(self):
+        # 1-D right operand is promoted to (K, 1), multiplied, and the appended
+        # dimension is removed from the result.
         a = _make([[1, 2], [3, 4]], dtype=np.float64)
         b = _make([1, 2], dtype=np.float64)
-        with pytest.raises(ValueError, match="[Mm]atmul|dimension"):
-            _ = a @ b
+        result = a @ b
+        expected = np.array([[1, 2], [3, 4]], dtype=np.float64) @ np.array(
+            [1, 2], dtype=np.float64
+        )
+        np.testing.assert_array_equal(_as_np(result), expected)
 
     def test_0d_left_raises(self):
         a = ragged.array(5.0)
@@ -294,6 +306,67 @@ class TestIMatmul:
         b = _make([[1, 2, 3], [4, 5, 6]], dtype=np.float64)  # shape mismatch
         with pytest.raises(ValueError, match="[Ii]n-place|shape|mismatch"):
             a @= b
+
+
+# ---------------------------------------------------------------------------
+# ragged.matmul and the @ operator must agree (same value or same exception)
+# ---------------------------------------------------------------------------
+
+
+def _run(fn: Any) -> tuple[str, Any]:
+    """Return ("ok", value) or ("err", ExceptionType) for a call."""
+    try:
+        return ("ok", fn())
+    except Exception as exc:  # we compare the type below
+        return ("err", type(exc))
+
+
+def _assert_agree(a: ragged.array, b: ragged.array) -> None:
+    """ragged.matmul(a, b) and a @ b must give the same result or same error."""
+    free = _run(lambda: ragged.matmul(a, b))
+    op = _run(lambda: a @ b)
+    assert free[0] == op[0], f"matmul={free} but operator={op}"
+    if free[0] == "err":
+        assert free[1] is op[1]
+    else:
+        np.testing.assert_array_equal(_as_np(free[1]), _as_np(op[1]))
+
+
+class TestMatmulOperatorAgreement:
+    def test_regular_2x2(self):
+        a = _make([[1, 2], [3, 4]], dtype=np.float64)
+        b = _make([[5, 6], [7, 8]], dtype=np.float64)
+        _assert_agree(a, b)
+
+    def test_ragged_row_left_both_raise(self):
+        # Left operand's contracted axis is ragged -> both must raise ValueError.
+        a = ragged.array([[1.0, 2.0], [3.0]])
+        b = _make([[1.0, 0.0], [0.0, 1.0]], dtype=np.float64)
+        assert _run(lambda: ragged.matmul(a, b)) == ("err", ValueError)
+        assert _run(lambda: a @ b) == ("err", ValueError)
+        _assert_agree(a, b)
+
+    def test_1d_x_1d(self):
+        a = _make([1, 2, 3], dtype=np.float64)
+        b = _make([4, 5, 6], dtype=np.float64)
+        _assert_agree(a, b)
+
+    def test_1d_x_2d(self):
+        a = _make([1, 2], dtype=np.float64)
+        b = _make([[3, 4], [5, 6]], dtype=np.float64)
+        _assert_agree(a, b)
+
+    def test_2d_x_1d(self):
+        a = _make([[1, 2], [3, 4]], dtype=np.float64)
+        b = _make([1, 2], dtype=np.float64)
+        _assert_agree(a, b)
+
+    def test_3d_batched(self):
+        a_np = np.arange(12, dtype=np.float64).reshape(2, 2, 3)
+        b_np = np.arange(12, dtype=np.float64).reshape(2, 3, 2)
+        a = _make(a_np.tolist(), dtype=np.float64)
+        b = _make(b_np.tolist(), dtype=np.float64)
+        _assert_agree(a, b)
 
 
 # ---------------------------------------------------------------------------

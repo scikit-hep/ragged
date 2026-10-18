@@ -112,19 +112,22 @@ def test_matmul_simple_more_dim():
 
 
 def test_matmul_with_empty():
+    # Ragged contracted axis (rows of differing length within a matrix) is no
+    # longer zero-padded — it is rejected, since inventing zeros would
+    # silently fabricate data.
     x1 = ragged.array([[[], [1, 2]], [[]]])
     x2 = ragged.array([[[], [3]], [[]]])
-    output = ragged.array([[[], [6]], [[]]])
-    print("result type", type(ragged.matmul(x1, x2)))
-    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+    with pytest.raises(ValueError, match="ragged|contracted|axis"):
+        ragged.matmul(x1, x2)
 
 
 def test_matmul_with_var_length():
+    # The left operand's contracted axis is ragged (rows [1.0, 2.0] and [3.0]),
+    # so matmul must raise rather than zero-pad the short row.
     x1 = ragged.array([[[1.0, 2.0], [3.0]]])
     x2 = ragged.array([[[1.0], [2.0]]])
-    output = ragged.array([[[5.0], [3.0]]])
-    print("result type", type(ragged.matmul(x1, x2)))
-    assert ak.to_list(ragged.matmul(x1, x2)._impl) == ak.to_list(output._impl)
+    with pytest.raises(ValueError, match="ragged|contracted|axis"):
+        ragged.matmul(x1, x2)
 
 
 def test_matmul_type_promotion():
@@ -163,13 +166,13 @@ def test_matmul_dimension_mismatch():
     x1 = ragged.array([1, 2])
     x2 = ragged.array([1, 2, 3])
     print(x1.shape, x2.shape)
-    with pytest.raises(ValueError, match="Shape mismatch"):
+    with pytest.raises(ValueError, match="[Mm]ismatch|dimension|shape"):
         ragged.matmul(x1, x2)
 
     x1 = ragged.array([[1, 2]])
     x2 = ragged.array([1, 2, 3])
     print(x1.shape, x2.shape)
-    with pytest.raises(ValueError, match="Shape mismatch"):
+    with pytest.raises(ValueError, match="[Mm]ismatch|dimension|shape"):
         ragged.matmul(x1, x2)
 
 
@@ -201,13 +204,15 @@ def test_matmul_higherdim_with_2d():
 def test_matmul_broadcast_dimension_mismatch():
     x1 = ragged.array([[[1, 2], [3, 4]]])
     x2 = ragged.array([[[1, 2, 3]]])
-    with pytest.raises(ValueError, match="Shape mismatch"):
+    with pytest.raises(ValueError, match="[Mm]ismatch|dimension|shape"):
         ragged.matmul(x1, x2)
 
 
 def test_matmul_with_complex_numbers():
+    # (1, 2) @ (2, 1) -> (1, 1); the result keeps both matrix dimensions, as
+    # NumPy does (the old implementation incorrectly collapsed this to 1-D).
     x1 = ragged.array([[1 + 2j, 3 + 4j]])
     x2 = ragged.array([[5], [6]])
     result = ragged.matmul(x1, x2)
-    expected = ragged.array([(1 + 2j) * 5 + (3 + 4j) * 6])
+    expected = ragged.array([[(1 + 2j) * 5 + (3 + 4j) * 6]])
     assert ak.to_list(result._impl) == ak.to_list(expected._impl)
